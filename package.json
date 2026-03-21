@@ -1,0 +1,13 @@
+{
+  "name": "zhzw-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.6.5",
+  "scripts": {
+    "test": "pnpm run test:frontend && pnpm run test:backend",
+    "test:frontend": "make test-frontend",
+    "test:backend": "make test-backend",
+    "lint": "make lint",
+    "dev:api": "make dev-api"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@zhzw/game-web",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "test": "node -e \"console.log('game-web tests pending')\"",
+    "lint": "node -e \"console.log('game-web lint pending')\""
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@zhzw/admin-web",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "test": "node -e \"console.log('admin-web tests pending')\"",
+    "lint": "node -e \"console.log('admin-web lint pending')\""
+  }
+}

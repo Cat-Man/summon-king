@@ -1,0 +1,10 @@
+{
+  "miniprogramRoot": ".",
+  "projectname": "zhzw-mini-shell",
+  "appid": "touristappid",
+  "setting": {
+    "es6": true,
+    "minified": true,
+    "urlCheck": false
+  }
+}

@@ -1,0 +1,12 @@
+.DS_Store
+node_modules/
+dist/
+coverage/
+.vscode/
+.idea/
+.tmp/
+tmp/
+.worktrees/
+pnpm-lock.yaml
+召唤之王/
+召唤之王详细需求文档.pdf
