@@ -35,6 +35,9 @@ jobs:
       - name: Prepare pnpm
         run: corepack prepare pnpm@10.6.5 --activate
 
+      - name: Install workspace dependencies
+        run: pnpm install
+
       - name: Show tool versions
         run: |
           go version
