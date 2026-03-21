@@ -7,10 +7,15 @@ import (
 	httpx "github.com/Cat-Man/summon-king/apps/backend/internal/infra/http"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
 	accountmod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
+	alliancemod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/alliance"
 	arenamod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	assetmod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	battlemod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/battle"
+	wxminimod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/bridge/wxmini"
+	commercemod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/commerce"
+	configmod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/config"
 	dungeonmod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
+	gmmod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/gm"
 	growthmod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	petmod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
 	playermod "github.com/Cat-Man/summon-king/apps/backend/internal/modules/player"
@@ -28,6 +33,11 @@ func SetupRouter() *gin.Engine {
 	petService := petmod.NewService(petmod.NewMemoryRepository())
 	dungeonService := dungeonmod.NewService(dungeonmod.NewMemoryRepository())
 	growthService := growthmod.NewService(growthmod.NewMemoryRepository())
+	allianceService := alliancemod.NewService(alliancemod.NewMemoryRepository())
+	commerceService := commercemod.NewService(commercemod.NewMemoryRepository())
+	configService := configmod.NewService()
+	gmService := gmmod.NewService()
+	wxminiService := wxminimod.NewService()
 	towerService := towermod.NewService()
 	arenaService := arenamod.NewService()
 	rankingService := rankingmod.NewService()
@@ -55,6 +65,10 @@ func SetupRouter() *gin.Engine {
 	router.GET("/healthz", func(c *gin.Context) {
 		c.JSON(stdhttp.StatusOK, httpx.Success(gin.H{"status": "ok"}, middleware.GetTraceID(c)))
 	})
+	router.GET("/metrics", func(c *gin.Context) {
+		c.Header("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
+		c.String(stdhttp.StatusOK, "# HELP summon_king_build_info Build information.\n# TYPE summon_king_build_info gauge\nsummon_king_build_info{service=\"api\"} 1\n# HELP summon_king_health_status Service health status.\n# TYPE summon_king_health_status gauge\nsummon_king_health_status 1\n")
+	})
 
 	playerGroup := router.Group("/api/v1/player")
 	accountmod.NewHandler(accountService).RegisterRoutes(playerGroup.Group("/auth"))
@@ -67,6 +81,15 @@ func SetupRouter() *gin.Engine {
 	towermod.NewHandler(towerService).RegisterRoutes(playerGroup.Group("/tower"))
 	arenamod.NewHandler(arenaService).RegisterRoutes(playerGroup.Group("/arena"))
 	rankingmod.NewHandler(rankingService).RegisterRoutes(playerGroup.Group("/rankings"))
+	alliancemod.NewHandler(allianceService).RegisterRoutes(playerGroup.Group("/alliance"))
+	commercemod.NewHandler(commerceService).RegisterRoutes(playerGroup.Group("/commerce"))
+
+	bridgeGroup := router.Group("/api/v1/bridge")
+	wxminimod.NewHandler(wxminiService).RegisterRoutes(bridgeGroup.Group("/wxmini"))
+
+	adminGroup := router.Group("/api/v1/admin")
+	configmod.NewHandler(configService).RegisterRoutes(adminGroup.Group("/config"))
+	gmmod.NewHandler(gmService).RegisterRoutes(adminGroup.Group("/gm"))
 
 	return router
 }

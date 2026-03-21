@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import ArenaPage from '@/pages/arena/ArenaPage.vue'
+import AlliancePage from '@/pages/alliance/AlliancePage.vue'
+import AllianceWarPage from '@/pages/alliance/AllianceWarPage.vue'
 import GameLayout from '@/layouts/GameLayout.vue'
 import InventoryPage from '@/pages/assets/InventoryPage.vue'
 import CultivationPage from '@/pages/cultivation/CultivationPage.vue'
@@ -13,10 +15,13 @@ import PetDetailPage from '@/pages/pets/PetDetailPage.vue'
 import PetListPage from '@/pages/pets/PetListPage.vue'
 import PetTeamPage from '@/pages/pets/PetTeamPage.vue'
 import RankingPage from '@/pages/ranking/RankingPage.vue'
+import ShopPage from '@/pages/shop/ShopPage.vue'
+import SigninPage from '@/pages/signin/SigninPage.vue'
 import SoulPage from '@/pages/growth/SoulPage.vue'
 import SpiritPage from '@/pages/growth/SpiritPage.vue'
 import PagodaPage from '@/pages/tower/PagodaPage.vue'
 import SpiritTowerPage from '@/pages/tower/SpiritTowerPage.vue'
+import VIPPage from '@/pages/vip/VIPPage.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -99,6 +104,31 @@ const router = createRouter({
           path: 'arena',
           name: 'arena',
           component: ArenaPage
+        },
+        {
+          path: 'alliance',
+          name: 'alliance',
+          component: AlliancePage
+        },
+        {
+          path: 'alliance/war',
+          name: 'alliance-war',
+          component: AllianceWarPage
+        },
+        {
+          path: 'vip',
+          name: 'vip',
+          component: VIPPage
+        },
+        {
+          path: 'shop',
+          name: 'shop',
+          component: ShopPage
+        },
+        {
+          path: 'signin',
+          name: 'signin',
+          component: SigninPage
         },
         {
           path: 'ranking',
