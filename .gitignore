@@ -1,12 +1,42 @@
+# OS
 .DS_Store
-node_modules/
-dist/
-coverage/
+Thumbs.db
+
+# IDE / Editor
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# Node / Frontend
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+.npm/
+.pnpm-store/
+dist/
+coverage/
+.cache/
+.vite/
+
+# Go
+bin/
+*.test
+*.out
+coverage.out
+
+# Build / Temp
 .tmp/
 tmp/
+worktrees/
 .worktrees/
-pnpm-lock.yaml
+
+# Env / Secrets
+.env
+.env.*
+!.env.example
+
+# Local source materials (not for repo)
 召唤之王/
 召唤之王详细需求文档.pdf
