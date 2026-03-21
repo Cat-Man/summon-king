@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import UiPageHero from '@/components/ui/UiPageHero.vue'
+import UiPanelCard from '@/components/ui/UiPanelCard.vue'
+
 const currentPrivileges = [
   '每日宝箱可领 1 次',
   '修行队列 +1',
@@ -15,45 +18,38 @@ const nextPrivileges = [
 
 <template>
   <section class="vip-page">
-    <header class="hero-card">
-      <div>
-        <p class="eyebrow">升级价值感</p>
-        <h1>当前 VIP 4</h1>
-        <p>今日权益与下一档成长收益同屏展示，突出效率型特权。</p>
-      </div>
-      <div class="hero-side">
-        <span>距离下一档</span>
-        <strong>还差 320 充值点</strong>
-      </div>
-    </header>
+    <UiPageHero
+      eyebrow="升级价值感"
+      title="当前 VIP 4"
+      description="今日权益与下一档成长收益同屏展示，突出效率型特权。"
+      tone="amber"
+      meta-label="距离下一档"
+      meta-value="还差 320 充值点"
+    />
 
     <section class="status-grid">
-      <article class="panel-card">
-        <h2>每日宝箱</h2>
+      <UiPanelCard title="每日宝箱">
         <p>今日状态：未领取</p>
         <button type="button">立即领取</button>
-      </article>
+      </UiPanelCard>
 
-      <article class="panel-card">
-        <h2>见面礼包</h2>
+      <UiPanelCard title="见面礼包">
         <p>VIP 4 礼包已解锁，可查看铜钱、焚火晶与洗炼石内容。</p>
-      </article>
+      </UiPanelCard>
     </section>
 
     <section class="benefit-grid">
-      <article class="panel-card">
-        <h2>当前权益</h2>
+      <UiPanelCard title="当前权益">
         <ul>
           <li v-for="item in currentPrivileges" :key="item">{{ item }}</li>
         </ul>
-      </article>
+      </UiPanelCard>
 
-      <article class="panel-card">
-        <h2>下一档新增权益</h2>
+      <UiPanelCard title="下一档新增权益">
         <ul>
           <li v-for="item in nextPrivileges" :key="item">{{ item }}</li>
         </ul>
-      </article>
+      </UiPanelCard>
     </section>
   </section>
 </template>
@@ -66,44 +62,6 @@ const nextPrivileges = [
   color: #1f2937;
 }
 
-.hero-card,
-.panel-card {
-  padding: 20px;
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 10px 30px rgb(15 23 42 / 8%);
-}
-
-.hero-card {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  background: linear-gradient(135deg, #f59e0b, #f97316);
-  color: #fff;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  opacity: 0.8;
-}
-
-.hero-card h1,
-.panel-card h2 {
-  margin: 0 0 10px;
-}
-
-.hero-side {
-  display: flex;
-  flex-direction: column;
-  align-self: flex-start;
-  gap: 6px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: rgb(255 255 255 / 18%);
-}
-
 .status-grid,
 .benefit-grid {
   display: grid;
@@ -111,7 +69,7 @@ const nextPrivileges = [
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.panel-card ul {
+ul {
   margin: 0;
   padding-left: 18px;
   display: flex;
@@ -120,7 +78,7 @@ const nextPrivileges = [
   color: #374151;
 }
 
-.panel-card button {
+button {
   margin-top: 12px;
   padding: 10px 14px;
   border: 0;
@@ -131,10 +89,6 @@ const nextPrivileges = [
 }
 
 @media (max-width: 768px) {
-  .hero-card {
-    flex-direction: column;
-  }
-
   .status-grid,
   .benefit-grid {
     grid-template-columns: 1fr;

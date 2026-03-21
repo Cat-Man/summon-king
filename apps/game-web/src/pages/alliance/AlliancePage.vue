@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import UiPageHero from '@/components/ui/UiPageHero.vue'
+import UiPanelCard from '@/components/ui/UiPanelCard.vue'
+import UiStatGrid from '@/components/ui/UiStatGrid.vue'
+
 const overview = [
   { label: '我的职位', value: '副盟主' },
   { label: '成员数', value: '32 / 40' },
@@ -21,39 +25,30 @@ const activities = [
 
 <template>
   <section class="alliance-page">
-    <header class="hero-card">
-      <div>
-        <p class="eyebrow">次级主城</p>
-        <h1>青焰盟</h1>
-        <p class="hero-desc">聚合公告、贡献、盟战状态、火能修行、建筑与联盟动态，方便玩家上线后一眼判断今天还能做什么。</p>
-      </div>
-      <div class="hero-tag">联盟资金 286,000</div>
-    </header>
+    <UiPageHero
+      eyebrow="次级主城"
+      title="青焰盟"
+      description="聚合公告、贡献、盟战状态、火能修行、建筑与联盟动态，方便玩家上线后一眼判断今天还能做什么。"
+      tone="blue"
+      meta-value="联盟资金 286,000"
+    />
 
-    <section class="overview-grid">
-      <article v-for="item in overview" :key="item.label" class="stat-card">
-        <span class="stat-label">{{ item.label }}</span>
-        <strong class="stat-value">{{ item.value }}</strong>
-      </article>
-    </section>
+    <UiStatGrid :items="overview" min-width="140px" />
 
     <section class="content-grid">
-      <article class="panel-card">
-        <h2>联盟公告</h2>
+      <UiPanelCard title="联盟公告">
         <p>今晚 20:00 锁定盟战名单，请先完成捐献并安排火能修行空房。</p>
-      </article>
+      </UiPanelCard>
 
-      <article class="panel-card">
-        <h2>火能修行</h2>
+      <UiPanelCard title="火能修行">
         <div class="mini-row">
           <span>空闲房间：2 / 6</span>
           <span>可领取原石：480</span>
         </div>
         <p>推荐优先安排主力幻兽修行，领取后可直达养成页继续消耗。</p>
-      </article>
+      </UiPanelCard>
 
-      <article class="panel-card panel-card--wide">
-        <h2>联盟建筑</h2>
+      <UiPanelCard title="联盟建筑" wide>
         <div class="building-list">
           <div v-for="building in buildings" :key="building.name" class="building-item">
             <div>
@@ -63,20 +58,18 @@ const activities = [
             <span class="building-action">可升级</span>
           </div>
         </div>
-      </article>
+      </UiPanelCard>
 
-      <article class="panel-card">
-        <h2>联盟动态</h2>
+      <UiPanelCard title="联盟动态">
         <ul class="activity-list">
           <li v-for="item in activities" :key="item">{{ item }}</li>
         </ul>
-      </article>
+      </UiPanelCard>
 
-      <article class="panel-card">
-        <h2>聊天室入口</h2>
+      <UiPanelCard title="聊天室入口">
         <p>支持快速进入联盟频道，查看战前安排、成员求助与活动通知。</p>
         <button type="button" class="ghost-button">进入联盟频道</button>
-      </article>
+      </UiPanelCard>
     </section>
   </section>
 </template>
@@ -89,88 +82,10 @@ const activities = [
   color: #1f2937;
 }
 
-.hero-card,
-.stat-card,
-.panel-card {
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 10px 30px rgb(15 23 42 / 8%);
-}
-
-.hero-card {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px;
-  background: linear-gradient(135deg, #1d4ed8, #4338ca);
-  color: #fff;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  opacity: 0.8;
-}
-
-.hero-card h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
-}
-
-.hero-desc {
-  margin: 0;
-  max-width: 620px;
-  line-height: 1.6;
-}
-
-.hero-tag {
-  align-self: flex-start;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 18%);
-  font-size: 14px;
-  white-space: nowrap;
-}
-
-.overview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-}
-
-.stat-card {
-  padding: 16px;
-}
-
-.stat-label {
-  display: block;
-  margin-bottom: 8px;
-  color: #6b7280;
-  font-size: 13px;
-}
-
-.stat-value {
-  font-size: 22px;
-}
-
 .content-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-}
-
-.panel-card {
-  padding: 18px;
-}
-
-.panel-card h2 {
-  margin: 0 0 12px;
-  font-size: 18px;
-}
-
-.panel-card--wide {
-  grid-column: 1 / -1;
 }
 
 .mini-row {
@@ -234,7 +149,6 @@ const activities = [
 }
 
 @media (max-width: 768px) {
-  .hero-card,
   .mini-row,
   .building-item {
     flex-direction: column;

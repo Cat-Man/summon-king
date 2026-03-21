@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import UiPageHero from '@/components/ui/UiPageHero.vue'
+import UiPanelCard from '@/components/ui/UiPanelCard.vue'
+
 const signinDays = [
   { day: 'Day 1', reward: '铜钱 x 20k', claimed: true },
   { day: 'Day 2', reward: '洗炼石 x 5', claimed: true },
@@ -15,18 +18,16 @@ const gifts = [
 
 <template>
   <section class="signin-page">
-    <header class="hero-card">
-      <div>
-        <p class="eyebrow">每日必做</p>
-        <h1>今日签到</h1>
-        <p>把签到、连续签到、礼包中心与兑换码入口聚合在一个页面，便于首页工作台直接跳转。</p>
-      </div>
-      <div class="hero-side">连续签到 9 天</div>
-    </header>
+    <UiPageHero
+      eyebrow="每日必做"
+      title="今日签到"
+      description="把签到、连续签到、礼包中心与兑换码入口聚合在一个页面，便于首页工作台直接跳转。"
+      tone="green"
+      meta-value="连续签到 9 天"
+    />
 
     <section class="grid">
-      <article class="panel-card">
-        <h2>连续签到</h2>
+      <UiPanelCard title="连续签到">
         <div class="signin-list">
           <div v-for="item in signinDays" :key="item.day" class="signin-item">
             <strong>{{ item.day }}</strong>
@@ -34,22 +35,20 @@ const gifts = [
             <em>{{ item.claimed ? '已领取' : '待领取' }}</em>
           </div>
         </div>
-      </article>
+      </UiPanelCard>
 
-      <article class="panel-card">
-        <h2>礼包中心</h2>
+      <UiPanelCard title="礼包中心">
         <ul>
           <li v-for="gift in gifts" :key="gift">{{ gift }}</li>
         </ul>
-      </article>
+      </UiPanelCard>
 
-      <article class="panel-card panel-card--wide">
-        <h2>兑换码</h2>
+      <UiPanelCard title="兑换码" wide>
         <div class="redeem-box">
           <span>输入礼包码后校验可用状态，并由后端完成幂等兑换。</span>
           <button type="button">前往兑换</button>
         </div>
-      </article>
+      </UiPanelCard>
     </section>
   </section>
 </template>
@@ -62,49 +61,10 @@ const gifts = [
   color: #1f2937;
 }
 
-.hero-card,
-.panel-card {
-  padding: 20px;
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 10px 30px rgb(15 23 42 / 8%);
-}
-
-.hero-card {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  background: linear-gradient(135deg, #16a34a, #22c55e);
-  color: #fff;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  opacity: 0.85;
-}
-
-.hero-card h1,
-.panel-card h2 {
-  margin: 0 0 10px;
-}
-
-.hero-side {
-  align-self: flex-start;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgb(255 255 255 / 18%);
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-}
-
-.panel-card--wide {
-  grid-column: 1 / -1;
 }
 
 .signin-list {
@@ -121,7 +81,7 @@ const gifts = [
 }
 
 .signin-item span,
-.panel-card ul {
+ul {
   color: #4b5563;
 }
 
@@ -131,7 +91,7 @@ const gifts = [
   font-size: 13px;
 }
 
-.panel-card ul {
+ul {
   margin: 0;
   padding-left: 18px;
   display: flex;
@@ -159,7 +119,6 @@ const gifts = [
 }
 
 @media (max-width: 768px) {
-  .hero-card,
   .redeem-box {
     flex-direction: column;
   }

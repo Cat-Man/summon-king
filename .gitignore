@@ -28,6 +28,8 @@ coverage.out
 # Build / Temp
 .tmp/
 tmp/
+output/
+.playwright-cli/
 worktrees/
 .worktrees/
 
