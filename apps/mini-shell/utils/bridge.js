@@ -5,6 +5,22 @@ function buildGameURL(baseURL, token) {
   return url.toString()
 }
 
+function buildMiniLoginPayload(code) {
+  return {
+    code,
+    channel: 'wxmini'
+  }
+}
+
+function buildMiniPayPayload(orderNo) {
+  return {
+    order_no: orderNo,
+    channel: 'wxmini'
+  }
+}
+
 module.exports = {
-  buildGameURL
+  buildGameURL,
+  buildMiniLoginPayload,
+  buildMiniPayPayload
 }
