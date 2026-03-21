@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feat/**'
+      - 'fix/**'
+      - 'docs/**'
+      - 'chore/**'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: apps/backend/go.mod
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare pnpm
+        run: corepack prepare pnpm@10.6.5 --activate
+
+      - name: Show tool versions
+        run: |
+          go version
+          node -v
+          pnpm -v
+
+      - name: Run backend tests
+        run: make test-backend
+
+      - name: Run frontend tests
+        run: make test-frontend
+
+      - name: Run lint
+        run: make lint
+
+      - name: Smoke run backend entry
+        run: make dev-api
