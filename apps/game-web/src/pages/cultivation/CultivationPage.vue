@@ -3,6 +3,7 @@ import UiChipGroup from '@/components/ui/UiChipGroup.vue'
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
 import UiStatGrid from '@/components/ui/UiStatGrid.vue'
+import { legacyItemAssets, legacyPetAssets } from '@/assets/legacy'
 
 const currentStatus = [
   { label: '可修行地图', value: '定老城 · 青木林地' },
@@ -12,8 +13,27 @@ const currentStatus = [
 ]
 
 const durationPlans = ['2 小时自由开放', '4 小时自由开放', '8 小时自由开放', '12 小时 VIP2 开放', '24 小时 VIP5 开放']
-const rewardPreview = ['玩家声望 x 160', '幻兽经验 x 2,400', '强化石 x 18', '召唤球概率掉落']
-const teamSnapshot = ['烈焰狼王 · Lv.36', '寒枝鹿灵 · Lv.34', '玄甲龟 · Lv.35', '流云狐 · Lv.33', '焚羽雀 · Lv.32']
+const rewardPreview = [
+  { label: '玩家声望 x 160' },
+  { label: '幻兽经验 x 2,400', icon: legacyItemAssets.expPillIcon },
+  { label: '强化石 x 18' },
+  { label: '召唤球概率掉落' }
+]
+const teamSnapshot = [
+  {
+    name: '烈焰狼王 · Lv.36',
+    icon: legacyPetAssets.flameWolfKingIcon,
+    dataId: 'cultivation-team-烈焰狼王'
+  },
+  {
+    name: '寒枝鹿灵 · Lv.34',
+    icon: legacyPetAssets.coldBranchDeerIcon,
+    dataId: 'cultivation-team-寒枝鹿灵'
+  },
+  { name: '玄甲龟 · Lv.35' },
+  { name: '流云狐 · Lv.33' },
+  { name: '焚羽雀 · Lv.32' }
+]
 const rules = [
   '修行至少 5 分钟才有收益',
   '30 秒内舍去，30-60 秒进 1 分钟',
@@ -53,12 +73,34 @@ const rules = [
 
       <UiPanelCard title="队伍快照">
         <ul class="text-list">
-          <li v-for="item in teamSnapshot" :key="item">{{ item }}</li>
+          <li v-for="item in teamSnapshot" :key="item.name" :data-testid="item.dataId || null">
+            <img
+              v-if="item.icon"
+              :src="item.icon"
+              :alt="`${item.name} 头像`"
+              class="list-icon"
+            />
+            {{ item.name }}
+          </li>
         </ul>
       </UiPanelCard>
 
       <UiPanelCard title="奖励预览" wide>
-        <UiChipGroup :items="rewardPreview" tone="orange" min-width="150px" />
+        <ul class="reward-list">
+          <li
+            v-for="reward in rewardPreview"
+            :key="reward.label"
+            :data-testid="reward.label === '幻兽经验 x 2,400' ? 'cultivation-reward-幻兽经验 x 2,400' : null"
+          >
+            <img
+              v-if="reward.icon"
+              :src="reward.icon"
+              :alt="`${reward.label} 图标`"
+              class="list-icon"
+            />
+            {{ reward.label }}
+          </li>
+        </ul>
       </UiPanelCard>
     </section>
   </section>
@@ -95,6 +137,33 @@ const rules = [
   gap: 10px;
   color: #4b5563;
   line-height: 1.6;
+}
+
+.text-list img,
+.reward-list img {
+  width: 34px;
+  height: 34px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-right: 8px;
+  background: #fff;
+  border: 1px solid #d1fae5;
+}
+
+.reward-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: #4b5563;
+}
+
+.reward-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 @media (max-width: 768px) {

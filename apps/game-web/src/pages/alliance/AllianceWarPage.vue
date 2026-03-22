@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
+import { legacyAllianceAvatarMap, legacyItemAssets } from '@/assets/legacy'
 
 const timeline = [
   { phase: '报名阶段', time: '周四 00:00 - 周六 20:00', status: '进行中' },
@@ -10,9 +11,24 @@ const timeline = [
 ]
 
 const redeemOptions = [
-  { name: '焚火晶礼包', cost: 120 },
+  { name: '焚火晶礼包', cost: 120, icon: legacyItemAssets.fireEvolutionStoneIcon },
   { name: '盟战增援令', cost: 80 },
   { name: '高阶洗炼石', cost: 160 }
+]
+
+const commanders = [
+  {
+    role: '盟主',
+    status: '指挥中 · 在线',
+    icon: legacyAllianceAvatarMap.盟主,
+    dataId: 'war-commander-盟主'
+  },
+  {
+    role: '副盟主',
+    status: '战术支援 · 待命',
+    icon: legacyAllianceAvatarMap.副盟主,
+    dataId: 'war-commander-副盟主'
+  }
 ]
 </script>
 
@@ -37,27 +53,36 @@ const redeemOptions = [
       </div>
     </UiPanelCard>
 
-    <section class="grid">
-      <UiPanelCard title="成员签到">
-        <p>已签到 14 / 20，推荐优先确认主力队与替补队已全部完成签到。</p>
-      </UiPanelCard>
+<section class="grid">
+  <UiPanelCard title="成员签到">
+    <p>已签到 14 / 20，推荐优先确认主力队与替补队已全部完成签到。</p>
+  </UiPanelCard>
 
-      <UiPanelCard title="对阵信息">
-        <p>预计对手：赤霄盟，战区为 3 号焚火谷，占领点数 5 个。</p>
-      </UiPanelCard>
-
-      <UiPanelCard title="战功兑换" wide>
-        <div class="redeem-list">
-          <div v-for="item in redeemOptions" :key="item.name" class="redeem-item">
-            <div>
-              <strong>{{ item.name }}</strong>
-              <p>消耗 {{ item.cost }} 点联盟战功，盟主 / 副盟主可发起兑换。</p>
-            </div>
-            <button type="button">查看兑换</button>
-          </div>
+  <UiPanelCard title="指挥席">
+    <div class="commander-list">
+      <article v-for="commander in commanders" :key="commander.role" class="commander-card" :data-testid="commander.dataId">
+        <img v-if="commander.icon" :src="commander.icon" :alt="`${commander.role} 头像`" />
+        <div>
+          <strong>{{ commander.role }}</strong>
+          <span>{{ commander.status }}</span>
         </div>
-      </UiPanelCard>
-    </section>
+      </article>
+    </div>
+  </UiPanelCard>
+
+  <UiPanelCard title="战功兑换" wide>
+    <div class="redeem-list">
+      <div v-for="item in redeemOptions" :key="item.name" class="redeem-item" :data-testid="`war-redeem-${item.name}`">
+        <img v-if="item.icon" :src="item.icon" :alt="`${item.name} 图标`" />
+        <div>
+          <strong>{{ item.name }}</strong>
+          <p>消耗 {{ item.cost }} 点联盟战功，盟主 / 副盟主可发起兑换。</p>
+        </div>
+        <button type="button">查看兑换</button>
+      </div>
+    </div>
+  </UiPanelCard>
+</section>
   </section>
 </template>
 

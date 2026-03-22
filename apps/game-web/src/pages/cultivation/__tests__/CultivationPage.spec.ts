@@ -13,4 +13,6 @@ test('renders cultivation management modules', () => {
   expect(wrapper.text()).toContain('收益规则')
   expect(wrapper.text()).toContain('修行队伍 = 战斗队伍')
   expect(wrapper.text()).toContain('到期领取')
+  expect(wrapper.find('[data-testid="cultivation-team-烈焰狼王"] img').exists()).toBe(true)
+  expect(wrapper.find('[data-testid="cultivation-reward-幻兽经验 x 2,400"] img').exists()).toBe(true)
 })
