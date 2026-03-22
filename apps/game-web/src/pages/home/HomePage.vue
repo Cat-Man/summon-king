@@ -127,8 +127,10 @@ const messages = [
 .activity-entry img {
   width: 42px;
   height: 42px;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 4px;
   border-radius: 12px;
+  background: #fff;
   border: 2px solid #f8fafc;
 }
 
