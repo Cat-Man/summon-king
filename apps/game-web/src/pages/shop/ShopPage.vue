@@ -2,10 +2,21 @@
 import UiChipGroup from '@/components/ui/UiChipGroup.vue'
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
+import { legacyItemAssets } from '@/assets/legacy'
 
 const goods = [
-  { name: '首充礼包', price: '¥6', desc: '主线推进、火能修行与洗炼资源的起步礼包' },
-  { name: '焚火补给包', price: '¥30', desc: '适合联盟玩法日常补充，覆盖原石与联盟资金' },
+  {
+    name: '首充礼包',
+    price: '¥6',
+    desc: '主线推进、火能修行与洗炼资源的起步礼包',
+    icon: legacyItemAssets.expPillIcon
+  },
+  {
+    name: '焚火补给包',
+    price: '¥30',
+    desc: '适合联盟玩法日常补充，覆盖原石与联盟资金',
+    icon: legacyItemAssets.fireEvolutionStoneIcon
+  },
   { name: '养成冲刺包', price: '¥68', desc: '集中补充修行、庄园与副本效率道具' }
 ]
 
@@ -23,9 +34,12 @@ const paymentSteps = ['创建订单', '拉起支付', '支付回调', '幂等发
     />
 
     <section class="goods-grid">
-      <UiPanelCard v-for="item in goods" :key="item.name">
+      <UiPanelCard v-for="item in goods" :key="item.name" :data-testid="`shop-item-${item.name}`">
         <div class="goods-card">
-          <div>
+          <div class="goods-card__icon" v-if="item.icon">
+            <img :src="item.icon" :alt="`${item.name} 图标`" />
+          </div>
+          <div class="goods-card__meta">
             <h2>{{ item.name }}</h2>
             <p>{{ item.desc }}</p>
           </div>
@@ -56,14 +70,31 @@ const paymentSteps = ['创建订单', '拉起支付', '支付回调', '幂等发
 }
 
 .goods-card {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   gap: 12px;
+  align-items: center;
   background: linear-gradient(180deg, #fff, #f8fafc);
 }
 
 .goods-card h2 {
   margin: 0 0 10px;
+}
+
+.goods-card__icon img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 12px;
+  padding: 6px;
+  border: 1px solid #ede9fe;
+}
+
+.goods-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .goods-card p,

@@ -1,12 +1,23 @@
 <script setup lang="ts">
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
+import { legacyActivityAssets, legacyItemAssets } from '@/assets/legacy'
 
 const signinDays = [
   { day: 'Day 1', reward: '铜钱 x 20k', claimed: true },
   { day: 'Day 2', reward: '洗炼石 x 5', claimed: true },
-  { day: 'Day 3', reward: '焚火晶 x 60', claimed: false },
-  { day: 'Day 4', reward: '幻兽经验丹 x 8', claimed: false }
+  {
+    day: 'Day 3',
+    reward: '焚火晶 x 60',
+    claimed: false,
+    icon: legacyItemAssets.fireEvolutionStoneIcon
+  },
+  {
+    day: 'Day 4',
+    reward: '幻兽经验丹 x 8',
+    claimed: false,
+    icon: legacyItemAssets.expPillIcon
+  }
 ]
 
 const gifts = [
@@ -14,6 +25,8 @@ const gifts = [
   '七日成长礼：进行中，需完成主线',
   '联盟联动礼：加入联盟后开放'
 ]
+
+const giftCenterIcon = legacyActivityAssets.signinGiftIcon
 </script>
 
 <template>
@@ -29,7 +42,13 @@ const gifts = [
     <section class="grid">
       <UiPanelCard title="连续签到">
         <div class="signin-list">
-          <div v-for="item in signinDays" :key="item.day" class="signin-item">
+          <div
+            v-for="item in signinDays"
+            :key="item.day"
+            class="signin-item"
+            :data-testid="`signin-reward-${item.day}`"
+          >
+            <img v-if="item.icon" :src="item.icon" :alt="`${item.reward} 图标`" />
             <strong>{{ item.day }}</strong>
             <span>{{ item.reward }}</span>
             <em>{{ item.claimed ? '已领取' : '待领取' }}</em>
@@ -38,6 +57,10 @@ const gifts = [
       </UiPanelCard>
 
       <UiPanelCard title="礼包中心">
+        <div class="gift-center" data-testid="signin-gift-center-icon">
+          <img v-if="giftCenterIcon" :src="giftCenterIcon" alt="礼包活动" />
+          <span>礼包中心 · 每日热动</span>
+        </div>
         <ul>
           <li v-for="gift in gifts" :key="gift">{{ gift }}</li>
         </ul>
@@ -80,6 +103,16 @@ const gifts = [
   background: #f0fdf4;
 }
 
+.signin-item img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: #fff;
+  align-self: center;
+}
+
 .signin-item span,
 ul {
   color: #4b5563;
@@ -97,6 +130,23 @@ ul {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.gift-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  background: linear-gradient(180deg, #fef9c3, #fefce8);
+}
+
+.gift-center img {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 8px;
 }
 
 .redeem-box {

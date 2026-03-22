@@ -7,6 +7,8 @@ import flameWolfKingIcon from './bb/102209.png'
 import coldBranchDeerIcon from './bb/102220.png'
 import activitySparkIcon from './huodong/s1.png'
 import signinGiftIcon from './huodong/60.png'
+import head1Icon from './head/1.png'
+import head2Icon from './head/2.png'
 
 export const legacyUiAssets = {
   copperCoinIcon,
@@ -17,6 +19,16 @@ export const legacyUiAssets = {
 export const legacyActivityAssets = {
   activitySparkIcon,
   signinGiftIcon
+}
+
+export const legacyHeadAssets = {
+  head1Icon,
+  head2Icon
+}
+
+export const legacyAllianceAvatarMap: Record<string, string> = {
+  盟主: head1Icon,
+  副盟主: head2Icon
 }
 
 export const legacyItemAssets = {

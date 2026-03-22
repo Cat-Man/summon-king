@@ -2,6 +2,7 @@
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
 import UiStatGrid from '@/components/ui/UiStatGrid.vue'
+import { legacyAllianceAvatarMap, legacyActivityAssets } from '@/assets/legacy'
 
 const overview = [
   { label: '我的职位', value: '副盟主' },
@@ -20,6 +21,11 @@ const activities = [
   '09:30 盟主发布了今晚盟战签到提醒',
   '10:10 成员「烈焰狼王」完成火能修行领取',
   '11:20 联盟建筑「焚火塔」升级完成'
+]
+
+const members = [
+  { name: '盟主', title: '主战指挥', note: '在线 · 侦查中' },
+  { name: '副盟主', title: '资源调配', note: '待命 · 计划补给' }
 ]
 </script>
 
@@ -60,6 +66,28 @@ const activities = [
         </div>
       </UiPanelCard>
 
+      <UiPanelCard title="值班成员">
+        <div class="member-roster">
+          <article
+            v-for="member in members"
+            :key="member.name"
+            class="member-card"
+            :data-testid="`alliance-member-avatar-${member.name}`"
+          >
+            <img
+              :src="legacyAllianceAvatarMap[member.name]"
+              :alt="`${member.name} 头像`"
+              class="member-avatar"
+            />
+            <div>
+              <strong>{{ member.name }}</strong>
+              <p>{{ member.title }}</p>
+              <small>{{ member.note }}</small>
+            </div>
+          </article>
+        </div>
+      </UiPanelCard>
+
       <UiPanelCard title="联盟动态">
         <ul class="activity-list">
           <li v-for="item in activities" :key="item">{{ item }}</li>
@@ -68,6 +96,10 @@ const activities = [
 
       <UiPanelCard title="聊天室入口">
         <p>支持快速进入联盟频道，查看战前安排、成员求助与活动通知。</p>
+        <div class="chat-entry" data-testid="alliance-chat-entry-icon">
+          <img :src="legacyActivityAssets.signinGiftIcon" alt="活动入口" />
+          <span>本轮聊天室已有火能修行分享，点击查看最新贴纸</span>
+        </div>
         <button type="button" class="ghost-button">进入联盟频道</button>
       </UiPanelCard>
     </section>
@@ -136,6 +168,52 @@ const activities = [
   border-radius: 14px;
   background: #f8fafc;
   line-height: 1.5;
+}
+
+.member-roster {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.member-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #eef2ff;
+  align-items: center;
+}
+
+.member-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #cbd5f5;
+}
+
+.member-card small {
+  color: #4b5563;
+  font-size: 12px;
+  display: block;
+  margin-top: 4px;
+}
+
+.chat-entry {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f9fafb;
+  margin-bottom: 10px;
+}
+
+.chat-entry img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .ghost-button {
