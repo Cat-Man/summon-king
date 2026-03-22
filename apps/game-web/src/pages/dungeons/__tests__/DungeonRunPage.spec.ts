@@ -13,4 +13,6 @@ test('renders dungeon expectation management modules', () => {
   expect(wrapper.text()).toContain('经验门槛')
   expect(wrapper.text()).toContain('地图主题')
   expect(wrapper.text()).toContain('剩余次数')
+  expect(wrapper.find('[data-testid="dungeon-reward-火系进化石"] img').exists()).toBe(true)
+  expect(wrapper.find('[data-testid="dungeon-reward-幻兽经验丹"] img').exists()).toBe(true)
 })

@@ -3,8 +3,22 @@ import UiChipGroup from '@/components/ui/UiChipGroup.vue'
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
 import UiStatGrid from '@/components/ui/UiStatGrid.vue'
+import { legacyItemAssets } from '@/assets/legacy'
 
-const rewards = ['火系进化石', '幻兽经验丹', '铜钱奖励', 'Boss 首通宝箱']
+const rewardDetails = [
+  {
+    label: '火系进化石',
+    icon: legacyItemAssets.fireEvolutionStoneIcon,
+    note: '进化主战幻兽必备'
+  },
+  {
+    label: '幻兽经验丹',
+    icon: legacyItemAssets.expPillIcon,
+    note: '副本快速补位'
+  }
+]
+
+const rewards = [...rewardDetails.map((detail) => detail.label), '铜钱奖励', 'Boss 首通宝箱']
 
 const expectations = [
   { label: '副本名称', value: '青木林地' },
@@ -37,6 +51,20 @@ const expectations = [
 
       <UiPanelCard title="Boss 主要奖励" wide>
         <UiChipGroup :items="rewards" tone="orange" min-width="160px" />
+        <div class="reward-grid">
+          <article
+            v-for="detail in rewardDetails"
+            :key="detail.label"
+            class="reward-card"
+            :data-testid="`dungeon-reward-${detail.label}`"
+          >
+            <img v-if="detail.icon" :src="detail.icon" :alt="`${detail.label} 图标`" />
+            <div>
+              <strong>{{ detail.label }}</strong>
+              <p>{{ detail.note }}</p>
+            </div>
+          </article>
+        </div>
       </UiPanelCard>
     </section>
   </section>
@@ -54,6 +82,32 @@ const expectations = [
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
+}
+
+.reward-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.reward-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border-radius: 14px;
+  background: #fef9f2;
+  border: 1px solid #fde9c9;
+}
+
+.reward-card img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  padding: 4px;
+  border-radius: 12px;
+  background: #fff;
 }
 
 @media (max-width: 768px) {

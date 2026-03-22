@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
+import { legacyItemAssets } from '@/assets/legacy'
 
 const currentPrivileges = [
   '每日宝箱可领 1 次',
@@ -13,6 +14,21 @@ const nextPrivileges = [
   '战骨背包容量 +20',
   '副本重置次数 +1',
   '火能修行房间上限 +1'
+]
+
+const vipRewardCards = [
+  {
+    id: 'vip-daily-chest',
+    title: '每日宝箱',
+    description: '今日状态：未领取',
+    icon: legacyItemAssets.expPillIcon
+  },
+  {
+    id: 'vip-welcome-pack',
+    title: '见面礼包',
+    description: 'VIP 4 礼包已解锁，可查看铜钱、焚火晶与洗炼石内容。',
+    icon: legacyItemAssets.fireEvolutionStoneIcon
+  }
 ]
 </script>
 
@@ -28,13 +44,19 @@ const nextPrivileges = [
     />
 
     <section class="status-grid">
-      <UiPanelCard title="每日宝箱">
-        <p>今日状态：未领取</p>
-        <button type="button">立即领取</button>
-      </UiPanelCard>
-
-      <UiPanelCard title="见面礼包">
-        <p>VIP 4 礼包已解锁，可查看铜钱、焚火晶与洗炼石内容。</p>
+      <UiPanelCard
+        v-for="card in vipRewardCards"
+        :key="card.id"
+        :title="card.title"
+        :data-testid="card.id"
+      >
+        <div class="reward-card">
+          <img v-if="card.icon" :src="card.icon" :alt="`${card.title} 图标`" />
+          <div>
+            <p>{{ card.description }}</p>
+            <button v-if="card.id === 'vip-daily-chest'" type="button">立即领取</button>
+          </div>
+        </div>
       </UiPanelCard>
     </section>
 
@@ -67,6 +89,26 @@ const nextPrivileges = [
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.reward-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.reward-card img {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid #f8e3ab;
+  background: #fff7e6;
+}
+
+.reward-card button {
+  margin-top: 6px;
 }
 
 ul {
