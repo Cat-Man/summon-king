@@ -13,4 +13,7 @@ test('renders pet catalog overview and template cards', () => {
   expect(wrapper.text()).toContain('技能池')
   expect(wrapper.text()).toContain('来源')
   expect(wrapper.text()).toContain('最低/满资质')
+  expect(wrapper.find('[data-testid="pet-card-烈焰狼王"] img').exists()).toBe(true)
+  expect(wrapper.find('[data-testid="pet-card-烈焰狼王"] img').attributes('alt')).toContain('烈焰狼王')
+  expect(wrapper.find('[data-testid="pet-card-寒枝鹿灵"] img').exists()).toBe(true)
 })

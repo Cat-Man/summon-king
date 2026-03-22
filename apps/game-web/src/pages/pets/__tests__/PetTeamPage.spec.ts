@@ -11,4 +11,6 @@ test('renders team overview and pet roster modules', () => {
   expect(wrapper.text()).toContain('主养成目标')
   expect(wrapper.text()).toContain('上阵策略')
   expect(wrapper.text()).toContain('综合战力')
+  expect(wrapper.find('[data-testid="team-slot-1号位"] img').exists()).toBe(true)
+  expect(wrapper.find('[data-testid="roster-item-烈焰狼王"] img').exists()).toBe(true)
 })

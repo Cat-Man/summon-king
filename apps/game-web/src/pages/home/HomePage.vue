@@ -4,6 +4,8 @@ import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
 import UiStatGrid from '@/components/ui/UiStatGrid.vue'
 
+import { legacyActivityAssets, legacyResourceIconMap, legacyUiAssets } from '@/assets/legacy'
+
 const dailyTodos = [
   { title: '签到状态', value: '今日未签', action: '前往签到' },
   { title: '当前修行状态', value: '还有 18 分钟可领取', action: '查看修行' },
@@ -18,6 +20,18 @@ const resources = [
   { label: '元宝', value: '1,280' },
   { label: '声望', value: '540' }
 ]
+
+const resourceIcons = [
+  { label: '铜钱', value: '286,400', icon: legacyResourceIconMap['铜钱'] },
+  { label: '元宝', value: '1,280', icon: legacyResourceIconMap['元宝'] }
+]
+
+const activityEntry = {
+  title: '今日活动',
+  description: '夺宝双倍',
+  note: '21:00 开始',
+  icon: legacyActivityAssets.activitySparkIcon
+}
 
 const entries = ['世界地图', '联盟', '幻兽', '背包', '竞技场', '庄园', '修行', '排行']
 
@@ -49,6 +63,24 @@ const messages = [
       </div>
     </UiPanelCard>
 
+    <section class="resource-strip">
+      <article v-for="res in resourceIcons" :key="res.label" class="resource-chip">
+        <img :src="res.icon" :alt="`${res.label}图标`" :data-testid="`resource-icon-${res.label}`" />
+        <div>
+          <strong>{{ res.label }}</strong>
+          <span>{{ res.value }}</span>
+        </div>
+      </article>
+      <article class="activity-entry" data-testid="activity-entry-icon" :style="{ backgroundImage: `url(${legacyUiAssets.sectionTitleBg})` }">
+        <img :src="activityEntry.icon" alt="活动入口图标" />
+        <div>
+          <strong>{{ activityEntry.title }}</strong>
+          <p>{{ activityEntry.description }}</p>
+          <small>{{ activityEntry.note }}</small>
+        </div>
+      </article>
+    </section>
+
     <section class="content-grid">
       <UiPanelCard title="资源总览">
         <UiStatGrid :items="resources" min-width="110px" />
@@ -66,13 +98,69 @@ const messages = [
     </section>
   </section>
 </template>
-
 <style scoped>
 .home-page {
   display: flex;
   flex-direction: column;
   gap: 16px;
   color: #1f2937;
+}
+
+.resource-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.resource-chip,
+.activity-entry {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgb(15 23 42 / 12%);
+}
+
+.resource-chip img,
+.activity-entry img {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid #f8fafc;
+}
+
+.resource-chip strong {
+  font-size: 14px;
+}
+
+.resource-chip span {
+  color: #374151;
+  font-size: 12px;
+}
+
+.activity-entry {
+  background-size: cover;
+  background-position: center;
+  padding: 16px;
+}
+
+.activity-entry div strong {
+  display: block;
+  font-size: 14px;
+}
+
+.activity-entry div p {
+  margin: 0;
+  font-size: 12px;
+  color: #1f2937;
+}
+
+.activity-entry div small {
+  color: #0f172a;
+  font-size: 11px;
 }
 
 .todo-list,
@@ -118,6 +206,10 @@ const messages = [
 }
 
 @media (max-width: 768px) {
+  .resource-strip {
+    grid-template-columns: 1fr;
+  }
+
   .content-grid {
     grid-template-columns: 1fr;
   }

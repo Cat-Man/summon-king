@@ -2,6 +2,7 @@
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
 import UiStatGrid from '@/components/ui/UiStatGrid.vue'
+import { legacyPetIconMap } from '@/assets/legacy'
 
 const overview = [
   { label: '已拥有', value: '12' },
@@ -42,6 +43,11 @@ const pets = [
     source: '后续地图 / 召唤球'
   }
 ]
+
+const petsWithIcons = pets.map((pet) => ({
+  ...pet,
+  icon: legacyPetIconMap[pet.name] ?? undefined
+}))
 </script>
 
 <template>
@@ -68,7 +74,14 @@ const pets = [
 
       <UiPanelCard title="图鉴列表" wide>
         <div class="catalog-grid">
-          <article v-for="pet in pets" :key="pet.name" class="catalog-item">
+          <article v-for="pet in petsWithIcons" :key="pet.name" class="catalog-item">
+            <div
+              v-if="pet.icon"
+              class="catalog-item__avatar-wrapper"
+              :data-testid="`pet-card-${pet.name}`"
+            >
+              <img :src="pet.icon" :alt="`${pet.name} 头像`" class="catalog-item__avatar" />
+            </div>
             <header class="catalog-item__header">
               <strong>{{ pet.name }}</strong>
               <span :class="['status', pet.status === '已拥有' ? 'status--owned' : 'status--locked']">
@@ -123,6 +136,14 @@ const pets = [
   gap: 8px;
 }
 
+.catalog-item__avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 8px;
+}
+
 .catalog-item__header {
   display: flex;
   justify-content: space-between;
@@ -141,6 +162,14 @@ const pets = [
 .catalog-item p span {
   color: #6b7280;
   font-size: 12px;
+}
+
+.catalog-item__avatar-wrapper {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 8px;
 }
 
 .status {

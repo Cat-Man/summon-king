@@ -3,6 +3,8 @@ import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
 import UiStatGrid from '@/components/ui/UiStatGrid.vue'
 
+import { legacyInventoryIconMap } from '@/assets/legacy'
+
 const wallet = [
   { label: '铜钱', value: '286,400' },
   { label: '元宝', value: '1,280' },
@@ -10,9 +12,14 @@ const wallet = [
   { label: '活力', value: '86 / 120' }
 ]
 
+const walletResources = [
+  { label: '铜钱', value: '286,400', icon: legacyInventoryIconMap['铜钱'] },
+  { label: '元宝', value: '1,280', icon: legacyInventoryIconMap['元宝'] }
+]
+
 const items = [
-  { name: '中级经验丹', count: 'x12', action: '可直接喂给主力幻兽' },
-  { name: '火系进化石', count: 'x6', action: '烈焰狼王升境材料' },
+  { name: '中级经验丹', count: 'x12', action: '可直接喂给主力幻兽', icon: legacyInventoryIconMap['中级经验丹'] },
+  { name: '火系进化石', count: 'x6', action: '烈焰狼王升境材料', icon: legacyInventoryIconMap['火系进化石'] },
   { name: '强化石', count: 'x48', action: '用于战骨与装备强化' },
   { name: '召唤球碎片', count: 'x18', action: '可合成低阶召唤球' }
 ]
@@ -37,15 +44,37 @@ const rules = [
 
     <section class="grid">
       <UiPanelCard title="资源钱包">
+        <div class="wallet-icons">
+          <article
+            v-for="res in walletResources"
+            :key="res.label"
+            class="wallet-icon"
+            :data-testid="`wallet-icon-${res.label}`"
+          >
+            <img :src="res.icon" :alt="`${res.label} 图标`" />
+            <div>
+              <strong>{{ res.label }}</strong>
+              <span>{{ res.value }}</span>
+            </div>
+          </article>
+        </div>
         <UiStatGrid :items="wallet" tone="warm" min-width="130px" />
       </UiPanelCard>
 
       <UiPanelCard title="普通背包">
         <div class="item-list">
-          <article v-for="item in items" :key="item.name" class="item-card">
+          <article
+            v-for="item in items"
+            :key="item.name"
+            class="item-card"
+            :data-testid="`inventory-item-${item.name}`"
+          >
             <div class="item-card__top">
-              <strong>{{ item.name }}</strong>
-              <span>{{ item.count }}</span>
+              <img v-if="item.icon" :src="item.icon" :alt="`${item.name} 图标`" />
+              <div>
+                <strong>{{ item.name }}</strong>
+                <span>{{ item.count }}</span>
+              </div>
             </div>
             <p>{{ item.action }}</p>
           </article>
@@ -97,12 +126,43 @@ const rules = [
   background: #f8fafc;
 }
 
-.item-card__top {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 6px;
-}
+  .wallet-icons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .wallet-icon {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: #faf5ff;
+  }
+
+  .wallet-icon img {
+    width: 32px;
+    height: 32px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .item-card__top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  .item-card__top img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 6px 16px rgb(15 23 42 / 15%);
+  }
 
 .item-card p,
 .text-list,

@@ -3,6 +3,7 @@ import UiChipGroup from '@/components/ui/UiChipGroup.vue'
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
 import UiStatGrid from '@/components/ui/UiStatGrid.vue'
+import { legacyPetIconMap } from '@/assets/legacy'
 
 const overview = [
   { label: '已上阵', value: '5 / 5' },
@@ -30,6 +31,16 @@ const pets = [
 ]
 
 const strategies = ['保存阵容', '支持上下阵', '支持排序调位', '按综合战力筛选']
+
+const normalizeSlotId = (slot: string) => slot.replace(/\s+/g, '')
+const teamWithIcons = team.map((member) => ({
+  ...member,
+  icon: legacyPetIconMap[member.name] ?? undefined
+}))
+const rosterWithIcons = pets.map((pet) => ({
+  ...pet,
+  icon: legacyPetIconMap[pet.name] ?? undefined
+}))
 </script>
 
 <template>
@@ -48,7 +59,14 @@ const strategies = ['保存阵容', '支持上下阵', '支持排序调位', '�
     <section class="grid">
       <UiPanelCard title="当前战斗队">
         <div class="team-list">
-          <article v-for="item in team" :key="item.slot" class="team-item">
+          <article v-for="item in teamWithIcons" :key="item.slot" class="team-item">
+            <div
+              v-if="item.icon"
+              class="team-item__avatar-wrapper"
+              :data-testid="`team-slot-${normalizeSlotId(item.slot)}`"
+            >
+              <img :src="item.icon" :alt="`${item.name} 头像`" class="team-item__avatar" />
+            </div>
             <div>
               <span class="subtle">{{ item.slot }}</span>
               <strong>{{ item.name }}</strong>
@@ -69,7 +87,14 @@ const strategies = ['保存阵容', '支持上下阵', '支持排序调位', '�
 
       <UiPanelCard title="幻兽栏" wide>
         <div class="roster-grid">
-          <article v-for="pet in pets" :key="pet.name" class="roster-item">
+          <article v-for="pet in rosterWithIcons" :key="pet.name" class="roster-item">
+            <div
+              v-if="pet.icon"
+              class="roster-item__avatar-wrapper"
+              :data-testid="`roster-item-${pet.name}`"
+            >
+              <img :src="pet.icon" :alt="`${pet.name} 头像`" class="roster-item__avatar" />
+            </div>
             <strong>{{ pet.name }}</strong>
             <span>{{ pet.level }}</span>
             <em>{{ pet.status }}</em>
@@ -127,6 +152,22 @@ const strategies = ['保存阵容', '支持上下阵', '支持排序调位', '�
 .roster-item {
   display: grid;
   gap: 6px;
+}
+
+.team-item__avatar-wrapper,
+.roster-item__avatar-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.team-item__avatar,
+.roster-item__avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .focus-card p,

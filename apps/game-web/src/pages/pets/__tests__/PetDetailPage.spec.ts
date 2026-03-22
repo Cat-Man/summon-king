@@ -12,4 +12,6 @@ test('renders pet detail growth hub modules', () => {
   expect(wrapper.text()).toContain('进化/升境')
   expect(wrapper.text()).toContain('重生/放生')
   expect(wrapper.text()).toContain('来源说明')
+  expect(wrapper.find('[data-testid="pet-detail-hero-art"]').exists()).toBe(true)
+  expect(wrapper.find('[data-testid="pet-detail-evolution-cost"]').text()).toContain('火系进化石')
 })
