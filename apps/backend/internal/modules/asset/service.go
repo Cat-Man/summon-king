@@ -25,8 +25,8 @@ func (s *Service) GetInventory(ctx context.Context, playerID int64) ([]Inventory
 	return s.repo.ListInventory(ctx, playerID)
 }
 
-func (s *Service) GetResourceChangeLogs(ctx context.Context, playerID int64, limit int) ([]ResourceChangeLog, error) {
-	return s.repo.ListResourceChangeLogs(ctx, playerID, limit)
+func (s *Service) GetResourceChangeLogs(ctx context.Context, playerID int64, query ResourceChangeLogQuery) (ResourceChangeLogPage, error) {
+	return s.repo.ListResourceChangeLogs(ctx, playerID, query)
 }
 
 func (s *Service) GrantReward(ctx context.Context, grant RewardGrant) (GrantRewardResult, error) {

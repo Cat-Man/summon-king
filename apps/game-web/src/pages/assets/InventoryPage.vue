@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
@@ -15,6 +15,7 @@ import {
 } from '@/services/inventory-dashboard'
 import type {
   InventoryItemCard,
+  InventoryLogChangeType,
   InventoryLogItem
 } from '@/services/inventory-dashboard.types'
 import { useSessionStore } from '@/stores/session'
@@ -27,9 +28,25 @@ const pendingItemId = ref('')
 const unlockedHighValueItemIds = ref<string[]>([])
 const pendingSellItemId = ref('')
 const inventoryLogs = ref<InventoryLogItem[]>([])
+const logsPage = ref(1)
+const logsPageSize = ref(2)
+const logsTotal = ref(0)
+const logsChangeType = ref<InventoryLogChangeType>('all')
 const logsVisible = ref(false)
 const logsLoading = ref(false)
 const logsError = ref('')
+
+const logFilterOptions: Array<{ value: InventoryLogChangeType; label: string }> = [
+  { value: 'all', label: '全部' },
+  { value: 'grant_reward', label: '发放奖励' },
+  { value: 'inventory_use', label: '使用道具' },
+  { value: 'inventory_sell', label: '出售道具' }
+]
+
+const logsTotalPages = computed(() => {
+  const totalPages = Math.ceil(logsTotal.value / logsPageSize.value)
+  return Math.max(1, totalPages)
+})
 
 onMounted(async () => {
   try {
@@ -117,11 +134,17 @@ async function refreshInventoryLogs() {
   logsError.value = ''
 
   try {
-    inventoryLogs.value = await loadRecentAssetLogs({
+    const result = await loadRecentAssetLogs({
       dataSource: runtimeConfig.gameDataSource,
       sessionStore,
-      limit: 5
+      page: logsPage.value,
+      pageSize: logsPageSize.value,
+      changeType: logsChangeType.value
     })
+    inventoryLogs.value = result.items
+    logsTotal.value = result.total
+    logsPage.value = result.page
+    logsPageSize.value = result.pageSize
   } catch (error) {
     logsError.value = error instanceof Error ? error.message : '流水加载失败'
   } finally {
@@ -145,6 +168,38 @@ async function confirmSell() {
 
 async function showInventoryLogs() {
   logsVisible.value = true
+  logsPage.value = 1
+  await refreshInventoryLogs()
+}
+
+async function changeLogFilter(changeType: InventoryLogChangeType) {
+  if (logsChangeType.value === changeType && logsVisible.value) {
+    return
+  }
+
+  logsChangeType.value = changeType
+  logsPage.value = 1
+
+  if (logsVisible.value) {
+    await refreshInventoryLogs()
+  }
+}
+
+async function goToPreviousLogsPage() {
+  if (logsPage.value <= 1 || logsLoading.value) {
+    return
+  }
+
+  logsPage.value -= 1
+  await refreshInventoryLogs()
+}
+
+async function goToNextLogsPage() {
+  if (logsPage.value >= logsTotalPages.value || logsLoading.value) {
+    return
+  }
+
+  logsPage.value += 1
   await refreshInventoryLogs()
 }
 </script>
@@ -280,6 +335,19 @@ async function showInventoryLogs() {
         <p v-else-if="logsError" class="error-banner">{{ logsError }}</p>
         <div v-else-if="logsVisible" class="log-list">
           <h3 class="log-list__title">最近流水</h3>
+          <div class="log-filter-row">
+            <button
+              v-for="option in logFilterOptions"
+              :key="option.value"
+              type="button"
+              class="ghost-button log-filter-button"
+              :data-testid="`inventory-log-filter-${option.value}`"
+              :disabled="logsLoading"
+              @click="changeLogFilter(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
           <article v-for="log in inventoryLogs" :key="log.id" class="log-card">
             <strong>{{ log.title }}</strong>
             <span>{{ log.changeTypeText }}</span>
@@ -288,6 +356,27 @@ async function showInventoryLogs() {
             <small>铜钱 {{ formatDelta(log.coinsDelta) }} · 元宝 {{ formatDelta(log.diamondsDelta) }}</small>
             <small>{{ log.createdAtLabel }}</small>
           </article>
+          <div class="log-pagination">
+            <button
+              type="button"
+              class="ghost-button log-pager-button"
+              data-testid="inventory-log-prev-page"
+              :disabled="logsLoading || logsPage <= 1"
+              @click="goToPreviousLogsPage"
+            >
+              上一页
+            </button>
+            <span data-testid="inventory-log-page">第 {{ logsPage }} / {{ logsTotalPages }} 页</span>
+            <button
+              type="button"
+              class="ghost-button log-pager-button"
+              data-testid="inventory-log-next-page"
+              :disabled="logsLoading || logsPage >= logsTotalPages"
+              @click="goToNextLogsPage"
+            >
+              下一页
+            </button>
+          </div>
         </div>
       </UiPanelCard>
     </section>
@@ -360,6 +449,19 @@ async function showInventoryLogs() {
 
 .log-list {
   margin-top: 12px;
+}
+
+.log-filter-row,
+.log-pagination {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.log-filter-button,
+.log-pager-button {
+  margin-top: 0;
 }
 
 .log-list__title {

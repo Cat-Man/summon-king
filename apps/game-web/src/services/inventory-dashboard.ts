@@ -11,7 +11,9 @@ import {
 import type {
   InventoryDashboardData,
   InventoryItemCard,
+  InventoryLogChangeType,
   InventoryLogItem,
+  InventoryLogPage,
   InventoryWalletResource,
   InventoryWalletStat
 } from './inventory-dashboard.types'
@@ -47,13 +49,22 @@ interface ResourceChangeLogResponse {
   created_at: string
 }
 
+interface ResourceChangeLogPageResponse {
+  items: ResourceChangeLogResponse[]
+  total: number
+  page: number
+  page_size: number
+}
+
 interface LoadInventoryDashboardOptions {
   dataSource?: GameDataSource
   sessionStore: SessionStoreLike
 }
 
 interface LoadRecentAssetLogsOptions extends LoadInventoryDashboardOptions {
-  limit?: number
+  page: number
+  pageSize: number
+  changeType: InventoryLogChangeType
 }
 
 interface InventoryOperateOptions extends LoadInventoryDashboardOptions {
@@ -227,23 +238,35 @@ export async function loadInventoryDashboard({
 export async function loadRecentAssetLogs({
   dataSource = runtimeConfig.gameDataSource,
   sessionStore,
-  limit = 5
-}: LoadRecentAssetLogsOptions): Promise<InventoryLogItem[]> {
+  page,
+  pageSize,
+  changeType
+}: LoadRecentAssetLogsOptions): Promise<InventoryLogPage> {
   if (dataSource === 'mock') {
-    return createMockInventoryLogs(limit)
+    return createMockInventoryLogs({
+      page,
+      pageSize,
+      changeType
+    })
   }
 
   const session = await sessionStore.ensureGuestSession()
   const headers = session.token ? { Authorization: `Bearer ${session.token}` } : undefined
-  const logs = await request<ResourceChangeLogResponse[]>(
-    `/player/assets/logs?player_id=${session.player_id}&limit=${limit}`,
+  const backendChangeType = changeType === 'all' ? '' : changeType
+  const logs = await request<ResourceChangeLogPageResponse>(
+    `/player/assets/logs?player_id=${session.player_id}&page=${page}&page_size=${pageSize}&change_type=${backendChangeType}`,
     { headers }
   )
 
-  return adaptInventoryLogs(logs)
+  return {
+    items: adaptInventoryLogs(logs.items),
+    total: logs.total,
+    page: logs.page,
+    pageSize: logs.page_size
+  }
 }
 
-export async function loadInventoryLogs(options: LoadRecentAssetLogsOptions): Promise<InventoryLogItem[]> {
+export async function loadInventoryLogs(options: LoadRecentAssetLogsOptions): Promise<InventoryLogPage> {
   return loadRecentAssetLogs(options)
 }
 

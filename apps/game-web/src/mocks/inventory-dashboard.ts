@@ -2,6 +2,8 @@ import { legacyInventoryIconMap } from '@/assets/legacy'
 
 import type {
   InventoryDashboardData,
+  InventoryLogChangeType,
+  InventoryLogPage,
   InventoryLogEntry
 } from '@/services/inventory-dashboard.types'
 
@@ -192,11 +194,30 @@ function formatMockLogDelta(log: MockResourceLogState): string {
   return '无货币变化'
 }
 
-export function createMockInventoryLogs(limit = 5): InventoryLogEntry[] {
-  return mockInventoryState.logs
+interface CreateMockInventoryLogsOptions {
+  page: number
+  pageSize: number
+  changeType: InventoryLogChangeType
+}
+
+export function createMockInventoryLogs({
+  page,
+  pageSize,
+  changeType
+}: CreateMockInventoryLogsOptions): InventoryLogPage {
+  const filteredLogs =
+    changeType === 'all'
+      ? mockInventoryState.logs
+      : mockInventoryState.logs.filter((log) => log.changeType === changeType)
+  const sortedLogs = filteredLogs
     .slice()
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
-    .slice(0, limit)
+  const safePageSize = Math.max(1, pageSize)
+  const total = sortedLogs.length
+  const pageCount = Math.max(1, Math.ceil(total / safePageSize))
+  const safePage = Math.min(Math.max(1, page), pageCount)
+  const pagedItems: InventoryLogEntry[] = sortedLogs
+    .slice((safePage - 1) * safePageSize, safePage * safePageSize)
     .map((log) => ({
       id: `${log.changeType}-${log.bizId}-${log.createdAt}`,
       createdAt: log.createdAt,
@@ -209,6 +230,13 @@ export function createMockInventoryLogs(limit = 5): InventoryLogEntry[] {
       delta: formatMockLogDelta(log),
       createdAtLabel: log.createdAt
     }))
+
+  return {
+    items: pagedItems,
+    total,
+    page: safePage,
+    pageSize: safePageSize
+  }
 }
 
 export function createMockInventoryDashboard(): InventoryDashboardData {

@@ -123,23 +123,44 @@ test('useInventoryItem should update mock dashboard and decrement item quantity'
   expect(result.dashboard.items.find((item) => item.name === '中级经验丹')?.count).toBe('x11')
 })
 
-test('loadRecentAssetLogs should return latest 5 logs in mock mode', async () => {
+test('loadRecentAssetLogs should return paged logs in mock mode', async () => {
   setActivePinia(createPinia())
   const sessionStore = useSessionStore()
 
   const result = await loadRecentAssetLogs({
     dataSource: 'mock',
     sessionStore,
-    limit: 5
+    page: 1,
+    pageSize: 2,
+    changeType: 'all'
   })
 
-  expect(result).toHaveLength(5)
-  expect(result.map((entry) => entry.changeType)).toEqual(
-    expect.arrayContaining(['grant_reward', 'inventory_use', 'inventory_sell'])
-  )
-  expect(result.map((entry) => entry.changeTypeText)).toEqual(
-    expect.arrayContaining(['发放奖励', '使用道具', '出售道具'])
-  )
+  expect(result.total).toBe(5)
+  expect(result.page).toBe(1)
+  expect(result.pageSize).toBe(2)
+  expect(result.items).toHaveLength(2)
+  expect(result.items[0]?.changeType).toBe('inventory_sell')
+  expect(result.items[1]?.changeType).toBe('inventory_use')
+})
+
+test('loadRecentAssetLogs should support changeType filter in mock mode', async () => {
+  setActivePinia(createPinia())
+  const sessionStore = useSessionStore()
+
+  const result = await loadRecentAssetLogs({
+    dataSource: 'mock',
+    sessionStore,
+    page: 1,
+    pageSize: 5,
+    changeType: 'inventory_use'
+  })
+
+  expect(result.total).toBe(2)
+  expect(result.page).toBe(1)
+  expect(result.pageSize).toBe(5)
+  expect(result.items).toHaveLength(2)
+  expect(result.items.every((entry) => entry.changeType === 'inventory_use')).toBe(true)
+  expect(result.items.map((entry) => entry.changeTypeText)).toEqual(['使用道具', '使用道具'])
 })
 
 test('loadRecentAssetLogs should map backend resource logs for assets page', async () => {
@@ -154,26 +175,31 @@ test('loadRecentAssetLogs should map backend resource logs for assets page', asy
       json: async () => ({
         code: 0,
         message: 'ok',
-        data: [
-          {
-            player_id: 1001,
-            change_type: 'grant_reward',
-            biz_id: 'signin-1',
-            coins_delta: 100,
-            diamonds_delta: 0,
-            reason: 'daily_signin',
-            created_at: '2026-03-23T09:00:00Z'
-          },
-          {
-            player_id: 1001,
-            change_type: 'inventory_sell',
-            biz_id: 'summon_scroll',
-            coins_delta: 50,
-            diamonds_delta: 0,
-            reason: 'inventory_sell',
-            created_at: '2026-03-23T09:00:01Z'
-          }
-        ],
+        data: {
+          items: [
+            {
+              player_id: 1001,
+              change_type: 'grant_reward',
+              biz_id: 'signin-1',
+              coins_delta: 100,
+              diamonds_delta: 0,
+              reason: 'daily_signin',
+              created_at: '2026-03-23T09:00:00Z'
+            },
+            {
+              player_id: 1001,
+              change_type: 'inventory_sell',
+              biz_id: 'summon_scroll',
+              coins_delta: 50,
+              diamonds_delta: 0,
+              reason: 'inventory_sell',
+              created_at: '2026-03-23T09:00:01Z'
+            }
+          ],
+          total: 7,
+          page: 2,
+          page_size: 3
+        },
         trace_id: 'trace-logs-1'
       })
     })
@@ -183,26 +209,72 @@ test('loadRecentAssetLogs should map backend resource logs for assets page', asy
   const result = await loadRecentAssetLogs({
     dataSource: 'api',
     sessionStore,
-    limit: 5
+    page: 2,
+    pageSize: 3,
+    changeType: 'inventory_sell'
   })
 
   expect(fetchMock).toHaveBeenCalledTimes(1)
   expect(fetchMock).toHaveBeenCalledWith(
-    '/api/v1/player/assets/logs?player_id=1001&limit=5',
+    '/api/v1/player/assets/logs?player_id=1001&page=2&page_size=3&change_type=inventory_sell',
     expect.objectContaining({
       headers: expect.objectContaining({
         Authorization: 'Bearer guest-token-1001'
       })
     })
   )
-  expect(result[0]?.changeType).toBe('inventory_sell')
-  expect(result[0]?.changeTypeText).toBe('出售道具')
-  expect(result[0]?.reason).toBe('inventory_sell')
-  expect(result[0]?.coinsDelta).toBe(50)
-  expect(result[0]?.diamondsDelta).toBe(0)
-  expect(result[0]?.title).toBe('出售召唤卷轴')
-  expect(result[0]?.delta).toBe('+50 铜钱')
-  expect(result[1]?.title).toBe('发放奖励')
+  expect(result.total).toBe(7)
+  expect(result.page).toBe(2)
+  expect(result.pageSize).toBe(3)
+  expect(result.items[0]?.changeType).toBe('inventory_sell')
+  expect(result.items[0]?.changeTypeText).toBe('出售道具')
+  expect(result.items[0]?.reason).toBe('inventory_sell')
+  expect(result.items[0]?.coinsDelta).toBe(50)
+  expect(result.items[0]?.diamondsDelta).toBe(0)
+  expect(result.items[0]?.title).toBe('出售召唤卷轴')
+  expect(result.items[0]?.delta).toBe('+50 铜钱')
+  expect(result.items[1]?.title).toBe('发放奖励')
+})
+
+test('loadRecentAssetLogs should not send all sentinel to backend filter', async () => {
+  setActivePinia(createPinia())
+  const sessionStore = useSessionStore()
+  sessionStore.setSession(1001, 'guest-token-1001')
+
+  const fetchMock = vi.fn().mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({
+      code: 0,
+      message: 'ok',
+      data: {
+        items: [],
+        total: 0,
+        page: 1,
+        page_size: 2
+      },
+      trace_id: 'trace-logs-all-1'
+    })
+  })
+
+  vi.stubGlobal('fetch', fetchMock)
+
+  await loadRecentAssetLogs({
+    dataSource: 'api',
+    sessionStore,
+    page: 1,
+    pageSize: 2,
+    changeType: 'all'
+  })
+
+  expect(fetchMock).toHaveBeenCalledTimes(1)
+  expect(fetchMock).toHaveBeenCalledWith(
+    '/api/v1/player/assets/logs?player_id=1001&page=1&page_size=2&change_type=',
+    expect.objectContaining({
+      headers: expect.objectContaining({
+        Authorization: 'Bearer guest-token-1001'
+      })
+    })
+  )
 })
 
 test('sellInventoryItem should post to backend and refresh wallet and inventory dashboard', async () => {

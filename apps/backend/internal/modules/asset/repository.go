@@ -17,7 +17,7 @@ var (
 type Repository interface {
 	GetWallet(ctx context.Context, playerID int64) (Wallet, error)
 	ListInventory(ctx context.Context, playerID int64) ([]InventoryItem, error)
-	ListResourceChangeLogs(ctx context.Context, playerID int64, limit int) ([]ResourceChangeLog, error)
+	ListResourceChangeLogs(ctx context.Context, playerID int64, query ResourceChangeLogQuery) (ResourceChangeLogPage, error)
 	GrantRewardIdempotent(ctx context.Context, grant RewardGrant, now time.Time) (GrantRewardResult, error)
 	UseInventoryItem(ctx context.Context, req InventoryOperateRequest, now time.Time) (InventoryOperateResult, error)
 	SellInventoryItem(ctx context.Context, req InventoryOperateRequest, now time.Time) (InventoryOperateResult, error)
@@ -58,12 +58,17 @@ func (r *MemoryRepository) ListInventory(_ context.Context, playerID int64) ([]I
 	return result, nil
 }
 
-func (r *MemoryRepository) ListResourceChangeLogs(_ context.Context, playerID int64, limit int) ([]ResourceChangeLog, error) {
+func (r *MemoryRepository) ListResourceChangeLogs(_ context.Context, playerID int64, query ResourceChangeLogQuery) (ResourceChangeLogPage, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	if limit <= 0 {
-		limit = 20
+	page := query.Page
+	if page <= 0 {
+		page = 1
+	}
+	pageSize := query.PageSize
+	if pageSize <= 0 {
+		pageSize = 20
 	}
 
 	logs := r.resourceChangeLog[playerID]
@@ -72,10 +77,41 @@ func (r *MemoryRepository) ListResourceChangeLogs(_ context.Context, playerID in
 	sort.Slice(result, func(i, j int) bool {
 		return result[i].CreatedAt.After(result[j].CreatedAt)
 	})
-	if len(result) > limit {
-		result = result[:limit]
+
+	if query.ChangeType != "" {
+		filtered := make([]ResourceChangeLog, 0, len(result))
+		for _, item := range result {
+			if item.ChangeType == query.ChangeType {
+				filtered = append(filtered, item)
+			}
+		}
+		result = filtered
 	}
-	return result, nil
+
+	total := len(result)
+	start := (page - 1) * pageSize
+	if start >= total {
+		return ResourceChangeLogPage{
+			Items:    []ResourceChangeLog{},
+			Total:    total,
+			Page:     page,
+			PageSize: pageSize,
+		}, nil
+	}
+
+	end := start + pageSize
+	if end > total {
+		end = total
+	}
+	items := make([]ResourceChangeLog, end-start)
+	copy(items, result[start:end])
+
+	return ResourceChangeLogPage{
+		Items:    items,
+		Total:    total,
+		Page:     page,
+		PageSize: pageSize,
+	}, nil
 }
 
 func (r *MemoryRepository) GrantRewardIdempotent(_ context.Context, grant RewardGrant, now time.Time) (GrantRewardResult, error) {

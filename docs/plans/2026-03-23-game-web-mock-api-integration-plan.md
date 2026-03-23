@@ -638,3 +638,15 @@ git diff --check
 - 浏览器点击 `查看最近流水` → 成功触发 `GET /api/v1/player/assets/logs?player_id=2&limit=5 [200]`，初始游客无流水，面板仅展示标题
 - 浏览器点击 `中级经验丹 -> 使用1个` → 成功提示 `已使用 1 个中级经验丹`，库存刷新为 `x4`，流水面板自动新增 `使用中级经验丹 / 使用道具 / 原因：inventory_use`
 - 浏览器点击 `召唤卷轴 -> 解除锁定 -> 出售1个 -> 确认出售` → 成功提示 `已出售 1 个召唤卷轴`，铜钱更新为 `50`，背包容量变为 `1 / 30`，流水面板自动新增 `出售召唤卷轴 / 出售道具 / 原因：inventory_sell / +50 铜钱`
+- `pnpm --dir apps/game-web exec vitest run src/services/__tests__/inventory-dashboard.spec.ts src/pages/assets/__tests__/InventoryPage.spec.ts` → 先 FAIL（新增流水分页/筛选契约测试，服务与页面均未实现）
+- 同一命令二次执行 → PASS（16 tests），`loadRecentAssetLogs` 已改为 `{ page, pageSize, changeType } -> { items, total, page, pageSize }`，页面补齐筛选与上一页/下一页
+- `pnpm --dir apps/game-web test` → PASS（24 files / 42 tests）
+- `pnpm --dir apps/game-web lint` → PASS
+- `pnpm --dir apps/game-web build` → PASS
+- 真实浏览器 `api` 模式二次 smoke 发现契约偏差：前端将 `changeType=all` 原样发送为 `change_type=all`，后端按精确类型过滤，导致使用/出售成功后流水查询仍返回空列表
+- `pnpm --dir apps/game-web exec vitest run src/services/__tests__/inventory-dashboard.spec.ts` → 先 FAIL（新增回归测试，要求 API 模式下 `all` 转为空过滤值），补最小实现后 PASS（8 tests）
+- 再次启动 `HTTP_PORT=18080 go run ./cmd/api` 与 `VITE_GAME_DATA_SOURCE=api VITE_DEV_API_PROXY_TARGET=http://127.0.0.1:18080 pnpm --dir apps/game-web dev --host 127.0.0.1 --port 4176`
+- 浏览器打开 `http://127.0.0.1:4176/assets` → 成功触发 `GET /api/v1/player/assets/logs?player_id=4&page=1&page_size=2&change_type= [200]`，初始游客无流水
+- 浏览器点击 `中级经验丹 -> 使用1个` → 成功提示 `已使用 1 个中级经验丹`，库存刷新为 `x4`，流水面板展示 `使用中级经验丹 / 使用道具 / 原因：inventory_use`
+- 浏览器点击 `召唤卷轴 -> 解除锁定 -> 出售1个 -> 确认出售` → 成功提示 `已出售 1 个召唤卷轴`，铜钱更新为 `50`，背包容量变为 `1 / 30`，流水面板展示 `出售召唤卷轴 / 出售道具 / +50 铜钱`
+- 浏览器点击 `出售道具` 筛选 → 成功触发 `GET /api/v1/player/assets/logs?player_id=4&page=1&page_size=2&change_type=inventory_sell [200]`，仅展示出售流水 1 条

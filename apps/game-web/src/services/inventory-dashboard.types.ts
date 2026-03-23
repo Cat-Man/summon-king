@@ -41,6 +41,15 @@ export interface InventoryLogItem {
   createdAtLabel: string
 }
 
+export type InventoryLogChangeType = 'all' | 'grant_reward' | 'inventory_use' | 'inventory_sell'
+
+export interface InventoryLogPage {
+  items: InventoryLogItem[]
+  total: number
+  page: number
+  pageSize: number
+}
+
 export type InventoryLogEntry = InventoryLogItem
 
 export interface InventoryDashboardData {

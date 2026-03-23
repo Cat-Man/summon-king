@@ -42,6 +42,19 @@ type ResourceChangeLog struct {
 	CreatedAt     time.Time `json:"created_at"`
 }
 
+type ResourceChangeLogQuery struct {
+	Page       int    `json:"page"`
+	PageSize   int    `json:"page_size"`
+	ChangeType string `json:"change_type"`
+}
+
+type ResourceChangeLogPage struct {
+	Items    []ResourceChangeLog `json:"items"`
+	Total    int                 `json:"total"`
+	Page     int                 `json:"page"`
+	PageSize int                 `json:"page_size"`
+}
+
 type RewardClaimLog struct {
 	PlayerID  int64     `json:"player_id"`
 	BizID     string    `json:"biz_id"`

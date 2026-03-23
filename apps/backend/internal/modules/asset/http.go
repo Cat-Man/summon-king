@@ -64,17 +64,36 @@ func (h *Handler) logs(c *gin.Context) {
 		return
 	}
 
-	limit := 0
-	if rawLimit := c.Query("limit"); rawLimit != "" {
-		parsedLimit, err := strconv.Atoi(rawLimit)
-		if err != nil {
-			c.JSON(stdhttp.StatusBadRequest, httpx.Error(4005, "invalid limit", middleware.GetTraceID(c)))
+	page := 1
+	if rawPage := c.Query("page"); rawPage != "" {
+		parsedPage, err := strconv.Atoi(rawPage)
+		if err != nil || parsedPage <= 0 {
+			c.JSON(stdhttp.StatusBadRequest, httpx.Error(4005, "invalid page", middleware.GetTraceID(c)))
 			return
 		}
-		limit = parsedLimit
+		page = parsedPage
 	}
 
-	logs, err := h.service.GetResourceChangeLogs(c.Request.Context(), playerID, limit)
+	pageSize := 20
+	if rawPageSize := c.Query("page_size"); rawPageSize != "" {
+		parsedPageSize, err := strconv.Atoi(rawPageSize)
+		if err != nil || parsedPageSize <= 0 {
+			c.JSON(stdhttp.StatusBadRequest, httpx.Error(4006, "invalid page_size", middleware.GetTraceID(c)))
+			return
+		}
+		pageSize = parsedPageSize
+	}
+
+	changeType := c.Query("change_type")
+	if changeType == "all" {
+		changeType = ""
+	}
+
+	logs, err := h.service.GetResourceChangeLogs(c.Request.Context(), playerID, ResourceChangeLogQuery{
+		Page:       page,
+		PageSize:   pageSize,
+		ChangeType: changeType,
+	})
 	if err != nil {
 		c.JSON(stdhttp.StatusInternalServerError, httpx.Error(5004, "failed to get resource logs", middleware.GetTraceID(c)))
 		return

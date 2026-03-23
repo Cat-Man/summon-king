@@ -102,7 +102,7 @@ test('confirming sell updates wallet and removes sold item', async () => {
   expect(wrapper.text()).toContain('已出售')
 })
 
-test('clicking recent logs loads and renders asset change history', async () => {
+test('clicking recent logs loads first page and shows pager', async () => {
   const wrapper = mountInventoryPage()
 
   await flushPromises()
@@ -110,9 +110,47 @@ test('clicking recent logs loads and renders asset change history', async () => 
   await flushPromises()
 
   expect(wrapper.text()).toContain('最近流水')
+  expect(wrapper.text()).toContain('第 1 / 3 页')
   expect(wrapper.text()).toContain('出售召唤卷轴')
   expect(wrapper.text()).toContain('出售道具')
-  expect(wrapper.text()).toContain('原因：inventory_sell')
-  expect(wrapper.text()).toContain('+50 铜钱')
-  expect(wrapper.text()).toContain('元宝 +0')
+  expect(wrapper.find('[data-testid="inventory-log-filter-all"]').exists()).toBe(true)
+  expect(wrapper.find('[data-testid="inventory-log-next-page"]').exists()).toBe(true)
+  expect(wrapper.find('[data-testid="inventory-log-prev-page"]').exists()).toBe(true)
+})
+
+test('switching log filter resets page to first page', async () => {
+  const wrapper = mountInventoryPage()
+
+  await flushPromises()
+  await wrapper.get('[data-testid="view-inventory-logs"]').trigger('click')
+  await flushPromises()
+  await wrapper.get('[data-testid="inventory-log-next-page"]').trigger('click')
+  await flushPromises()
+
+  expect(wrapper.text()).toContain('第 2 / 3 页')
+
+  await wrapper.get('[data-testid="inventory-log-filter-grant_reward"]').trigger('click')
+  await flushPromises()
+
+  expect(wrapper.text()).toContain('第 1 / 1 页')
+  expect(wrapper.text()).toContain('发放奖励')
+  expect(wrapper.text()).not.toContain('出售召唤卷轴')
+})
+
+test('log pager supports next and previous page', async () => {
+  const wrapper = mountInventoryPage()
+
+  await flushPromises()
+  await wrapper.get('[data-testid="view-inventory-logs"]').trigger('click')
+  await flushPromises()
+
+  expect(wrapper.text()).toContain('第 1 / 3 页')
+
+  await wrapper.get('[data-testid="inventory-log-next-page"]').trigger('click')
+  await flushPromises()
+  expect(wrapper.text()).toContain('第 2 / 3 页')
+
+  await wrapper.get('[data-testid="inventory-log-prev-page"]').trigger('click')
+  await flushPromises()
+  expect(wrapper.text()).toContain('第 1 / 3 页')
 })
