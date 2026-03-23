@@ -23,6 +23,8 @@ export interface InventoryItemCard {
   name: string
   count: string
   action: string
+  sellPrice: number
+  isHighValue: boolean
   icon?: string
 }
 

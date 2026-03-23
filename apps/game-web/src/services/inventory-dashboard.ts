@@ -58,6 +58,7 @@ interface InventoryOperateResult {
 interface InventoryCatalogMeta {
   name: string
   action: string
+  highValue?: boolean
   icon?: string
 }
 
@@ -69,7 +70,8 @@ const inventoryCatalog: Record<string, InventoryCatalogMeta> = {
   },
   summon_scroll: {
     name: '召唤卷轴',
-    action: '可召唤随机幻兽'
+    action: '可召唤随机幻兽',
+    highValue: true
   },
   fire_evolution_stone: {
     name: '火系进化石',
@@ -109,6 +111,8 @@ function adaptInventoryItem(item: InventoryResponseItem): InventoryItemCard {
     name: meta?.name ?? item.item_name,
     count: `x${item.quantity}`,
     action: meta?.action ?? '暂无使用说明',
+    sellPrice: item.sell_price,
+    isHighValue: meta?.highValue ?? item.sell_price >= 50,
     icon: meta?.icon
   }
 }

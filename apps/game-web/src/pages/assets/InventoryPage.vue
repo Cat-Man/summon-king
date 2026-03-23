@@ -12,6 +12,7 @@ import {
   sellInventoryItem,
   useInventoryItem
 } from '@/services/inventory-dashboard'
+import type { InventoryItemCard } from '@/services/inventory-dashboard.types'
 import { useSessionStore } from '@/stores/session'
 
 const sessionStore = useSessionStore()
@@ -19,6 +20,8 @@ const dashboard = ref(createMockInventoryDashboard())
 const loadError = ref('')
 const operationMessage = ref('')
 const pendingItemId = ref('')
+const unlockedHighValueItemIds = ref<string[]>([])
+const pendingSellItemId = ref('')
 
 onMounted(async () => {
   try {
@@ -58,6 +61,55 @@ async function mutateInventory(action: 'use' | 'sell', itemId: string) {
     pendingItemId.value = ''
   }
 }
+
+function isItemUnlocked(itemId: string) {
+  return unlockedHighValueItemIds.value.includes(itemId)
+}
+
+function isItemLocked(item: InventoryItemCard) {
+  return item.isHighValue && !isItemUnlocked(item.itemId)
+}
+
+function toggleItemLock(item: InventoryItemCard) {
+  if (!item.isHighValue) {
+    return
+  }
+
+  if (isItemUnlocked(item.itemId)) {
+    unlockedHighValueItemIds.value = unlockedHighValueItemIds.value.filter((entry) => entry !== item.itemId)
+    return
+  }
+
+  unlockedHighValueItemIds.value = [...unlockedHighValueItemIds.value, item.itemId]
+}
+
+function openSellConfirmation(item: InventoryItemCard) {
+  if (isItemLocked(item)) {
+    return
+  }
+
+  pendingSellItemId.value = item.itemId
+  operationMessage.value = ''
+  loadError.value = ''
+}
+
+function closeSellConfirmation() {
+  pendingSellItemId.value = ''
+}
+
+function getPendingSellItem() {
+  return dashboard.value.items.find((item) => item.itemId === pendingSellItemId.value) ?? null
+}
+
+async function confirmSell() {
+  const pendingSellItem = getPendingSellItem()
+  if (!pendingSellItem) {
+    return
+  }
+
+  closeSellConfirmation()
+  await mutateInventory('sell', pendingSellItem.itemId)
+}
 </script>
 
 <template>
@@ -73,6 +125,34 @@ async function mutateInventory(action: 'use' | 'sell', itemId: string) {
 
     <p v-if="loadError" class="error-banner">{{ loadError }}</p>
     <p v-if="operationMessage" class="success-banner">{{ operationMessage }}</p>
+    <section
+      v-if="getPendingSellItem()"
+      class="sell-confirmation"
+      data-testid="sell-confirmation"
+    >
+      <div>
+        <strong>确认出售 {{ getPendingSellItem()?.name }}</strong>
+        <p>预计获得 {{ getPendingSellItem()?.sellPrice }} 铜钱</p>
+      </div>
+      <div class="sell-confirmation__actions">
+        <button
+          type="button"
+          class="action-button action-button--ghost"
+          data-testid="sell-cancel"
+          @click="closeSellConfirmation"
+        >
+          取消出售
+        </button>
+        <button
+          type="button"
+          class="action-button action-button--sell"
+          data-testid="sell-confirm"
+          @click="confirmSell"
+        >
+          确认出售
+        </button>
+      </div>
+    </section>
 
     <section class="grid">
       <UiPanelCard title="资源钱包">
@@ -109,6 +189,7 @@ async function mutateInventory(action: 'use' | 'sell', itemId: string) {
               </div>
             </div>
             <p>{{ item.action }}</p>
+            <p v-if="item.isHighValue" class="item-card__warning">高价值道具，默认锁定</p>
             <div class="item-card__actions">
               <button
                 type="button"
@@ -123,10 +204,19 @@ async function mutateInventory(action: 'use' | 'sell', itemId: string) {
                 type="button"
                 class="action-button action-button--sell"
                 :data-testid="`inventory-sell-${item.name}`"
-                :disabled="pendingItemId === item.itemId"
-                @click="mutateInventory('sell', item.itemId)"
+                :disabled="pendingItemId === item.itemId || isItemLocked(item)"
+                @click="openSellConfirmation(item)"
               >
                 出售1个
+              </button>
+              <button
+                v-if="item.isHighValue"
+                type="button"
+                class="action-button action-button--lock"
+                :data-testid="`inventory-lock-${item.name}`"
+                @click="toggleItemLock(item)"
+              >
+                {{ isItemLocked(item) ? '解除锁定' : '重新锁定' }}
               </button>
             </div>
           </article>
@@ -171,6 +261,22 @@ async function mutateInventory(action: 'use' | 'sell', itemId: string) {
   color: #047857;
 }
 
+.sell-confirmation {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff7ed, #fffbeb);
+  border: 1px solid #fdba74;
+}
+
+.sell-confirmation__actions {
+  display: flex;
+  gap: 10px;
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -192,6 +298,11 @@ async function mutateInventory(action: 'use' | 'sell', itemId: string) {
   padding: 14px;
   border-radius: 16px;
   background: #f8fafc;
+}
+
+.item-card__warning {
+  color: #b45309;
+  font-size: 13px;
 }
 
 .item-card__actions {
@@ -278,12 +389,28 @@ async function mutateInventory(action: 'use' | 'sell', itemId: string) {
   color: #b91c1c;
 }
 
+.action-button--ghost {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.action-button--lock {
+  background: #fef3c7;
+  color: #b45309;
+}
+
 .action-button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 @media (max-width: 768px) {
+  .sell-confirmation,
+  .sell-confirmation__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .grid {
     grid-template-columns: 1fr;
   }

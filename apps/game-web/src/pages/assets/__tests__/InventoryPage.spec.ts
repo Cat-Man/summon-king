@@ -56,11 +56,45 @@ test('clicking use action updates inventory quantity and shows feedback', async 
   expect(wrapper.text()).toContain('已使用')
 })
 
-test('clicking sell action updates wallet and removes sold item', async () => {
+test('high value item is locked by default before selling', async () => {
   const wrapper = mountInventoryPage()
 
   await flushPromises()
+
+  expect(wrapper.find('[data-testid="inventory-lock-召唤卷轴"]').text()).toContain('解除锁定')
+  expect(wrapper.get('[data-testid="inventory-sell-召唤卷轴"]').attributes()).toHaveProperty(
+    'disabled'
+  )
+  expect(wrapper.text()).toContain('高价值道具，默认锁定')
+})
+
+test('selling item requires confirmation and can be cancelled', async () => {
+  const wrapper = mountInventoryPage()
+
+  await flushPromises()
+  await wrapper.get('[data-testid="inventory-lock-召唤卷轴"]').trigger('click')
   await wrapper.get('[data-testid="inventory-sell-召唤卷轴"]').trigger('click')
+  await flushPromises()
+
+  expect(wrapper.find('[data-testid="sell-confirmation"]').exists()).toBe(true)
+  expect(wrapper.text()).toContain('预计获得 50 铜钱')
+
+  await wrapper.get('[data-testid="sell-cancel"]').trigger('click')
+  await flushPromises()
+
+  expect(wrapper.find('[data-testid="sell-confirmation"]').exists()).toBe(false)
+  expect(wrapper.find('[data-testid="inventory-item-召唤卷轴"]').exists()).toBe(true)
+  expect(wrapper.find('[data-testid="wallet-icon-铜钱"]').text()).toContain('0')
+})
+
+test('confirming sell updates wallet and removes sold item', async () => {
+  const wrapper = mountInventoryPage()
+
+  await flushPromises()
+  await wrapper.get('[data-testid="inventory-lock-召唤卷轴"]').trigger('click')
+  await wrapper.get('[data-testid="inventory-sell-召唤卷轴"]').trigger('click')
+  await flushPromises()
+  await wrapper.get('[data-testid="sell-confirm"]').trigger('click')
   await flushPromises()
 
   expect(wrapper.find('[data-testid="wallet-icon-铜钱"]').text()).toContain('50')

@@ -17,6 +17,7 @@ interface MockInventoryState {
 interface MockCatalogMeta {
   name: string
   action: string
+  highValue?: boolean
   icon?: string
 }
 
@@ -37,7 +38,8 @@ const mockCatalog: Record<string, MockCatalogMeta> = {
   },
   summon_scroll: {
     name: '召唤卷轴',
-    action: '可召唤随机幻兽'
+    action: '可召唤随机幻兽',
+    highValue: true
   }
 }
 
@@ -113,6 +115,8 @@ export function createMockInventoryDashboard(): InventoryDashboardData {
         name: meta.name,
         count: `x${item.quantity}`,
         action: meta.action,
+        sellPrice: item.sellPrice,
+        isHighValue: Boolean(meta.highValue),
         icon: meta.icon
       }
     }),
