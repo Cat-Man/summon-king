@@ -650,3 +650,15 @@ git diff --check
 - 浏览器点击 `中级经验丹 -> 使用1个` → 成功提示 `已使用 1 个中级经验丹`，库存刷新为 `x4`，流水面板展示 `使用中级经验丹 / 使用道具 / 原因：inventory_use`
 - 浏览器点击 `召唤卷轴 -> 解除锁定 -> 出售1个 -> 确认出售` → 成功提示 `已出售 1 个召唤卷轴`，铜钱更新为 `50`，背包容量变为 `1 / 30`，流水面板展示 `出售召唤卷轴 / 出售道具 / +50 铜钱`
 - 浏览器点击 `出售道具` 筛选 → 成功触发 `GET /api/v1/player/assets/logs?player_id=4&page=1&page_size=2&change_type=inventory_sell [200]`，仅展示出售流水 1 条
+- `go test ./internal/modules/player -run 'TestGetHomeIndex_UsesAssetWalletSnapshot|TestGetHomeIndex_AggregatesDashboardBlocks|TestHandler_IndexReturnsHomeDashboardBlocks|TestHandler_IndexRequiresPlayerID' -v` → PASS
+- `pnpm --dir apps/game-web exec vitest run src/services/__tests__/home-dashboard.spec.ts src/pages/home/__tests__/HomePage.spec.ts` → 先 FAIL（API 模式仍复用 mock 工作台内容，且首页首屏会闪现 `游客1001`），补首页聚合 DTO 映射与空初始态后 PASS（5 tests）
+- 首页后端聚合已扩展为 `daily_todos/resources/resource_icons/messages/entries/activity_entry`，并接入 `pet/commerce/dungeon` reader 以提供更真实的首页工作台数据
+- 首页前端 API 模式不再以 `createMockHomeDashboard()` 作为基底，只保留 mock 模式专用数据；页面初始态改为空安全态，避免 API 模式首屏闪现 mock 文案
+- `pnpm --dir apps/game-web test` → PASS（24 files / 44 tests）
+- `pnpm --dir apps/game-web lint` → PASS
+- `pnpm --dir apps/game-web build` → PASS
+- `go test ./...` in `apps/backend` → PASS
+- `git diff --check` → PASS
+- 临时启动 `HTTP_PORT=18080 go run ./cmd/api` 与 `VITE_GAME_DATA_SOURCE=api VITE_DEV_API_PROXY_TARGET=http://127.0.0.1:18080 pnpm --dir apps/game-web dev --host 127.0.0.1 --port 4177`
+- 浏览器打开 `http://127.0.0.1:4177/` → 首页成功进入 `api` 模式；页面展示 `游客1`、`签到状态 / 今日未签`、`当前推荐副本 / 青云城 · Boss 可挑战`、`战力 / 450`
+- DevTools Network 确认首页真实请求链路：`POST /api/v1/player/auth/login [200]`，随后 `GET /api/v1/player/home/index?player_id=1 [200]`

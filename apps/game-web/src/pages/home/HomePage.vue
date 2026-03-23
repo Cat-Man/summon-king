@@ -8,12 +8,11 @@ import UiStatGrid from '@/components/ui/UiStatGrid.vue'
 
 import { legacyUiAssets } from '@/assets/legacy'
 import { runtimeConfig } from '@/config/runtime'
-import { createMockHomeDashboard } from '@/mocks/home-dashboard'
-import { loadHomeDashboard } from '@/services/home-dashboard'
+import { createInitialHomeDashboard, loadHomeDashboard } from '@/services/home-dashboard'
 import { useSessionStore } from '@/stores/session'
 
 const sessionStore = useSessionStore()
-const dashboard = ref(createMockHomeDashboard())
+const dashboard = ref(createInitialHomeDashboard())
 const loadError = ref('')
 
 onMounted(async () => {

@@ -24,6 +24,7 @@ type Repository interface {
 	SaveDungeonRun(ctx context.Context, run DungeonRun) error
 	StartCultivation(ctx context.Context, playerID int64, mapID string, hours int, now time.Time) (CultivationRecord, error)
 	GetCultivation(ctx context.Context, playerID int64, recordID string) (CultivationRecord, error)
+	GetLatestCultivation(ctx context.Context, playerID int64) (CultivationRecord, bool, error)
 	SaveCultivation(ctx context.Context, record CultivationRecord) error
 }
 
@@ -126,6 +127,26 @@ func (r *MemoryRepository) GetCultivation(_ context.Context, playerID int64, rec
 		return CultivationRecord{}, ErrCultivationNotFound
 	}
 	return record, nil
+}
+
+func (r *MemoryRepository) GetLatestCultivation(_ context.Context, playerID int64) (CultivationRecord, bool, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	var (
+		latest CultivationRecord
+		found  bool
+	)
+	for _, record := range r.cultivations {
+		if record.PlayerID != playerID {
+			continue
+		}
+		if !found || record.StartedAt.After(latest.StartedAt) {
+			latest = record
+			found = true
+		}
+	}
+	return latest, found, nil
 }
 
 func (r *MemoryRepository) SaveCultivation(_ context.Context, record CultivationRecord) error {

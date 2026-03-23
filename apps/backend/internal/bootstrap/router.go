@@ -28,13 +28,18 @@ func SetupRouter() *gin.Engine {
 	accountRepo := accountmod.NewMemoryRepository()
 	assetRepo := assetmod.NewMemoryRepository()
 	accountService := accountmod.NewService(accountRepo)
-	playerService := playermod.NewService(playermod.NewRepository(accountRepo, assetRepo))
 	assetService := assetmod.NewService(assetRepo)
 	petService := petmod.NewService(petmod.NewMemoryRepository())
 	dungeonService := dungeonmod.NewService(dungeonmod.NewMemoryRepository())
 	growthService := growthmod.NewService(growthmod.NewMemoryRepository())
 	allianceService := alliancemod.NewService(alliancemod.NewMemoryRepository())
 	commerceService := commercemod.NewService(commercemod.NewMemoryRepository())
+	playerService := playermod.NewService(
+		playermod.NewRepository(accountRepo, assetRepo),
+		playermod.WithPetReader(petService),
+		playermod.WithDungeonReader(dungeonService),
+		playermod.WithCommerceReader(commerceService),
+	)
 	configService := configmod.NewService()
 	gmService := gmmod.NewService()
 	wxminiService := wxminimod.NewService()

@@ -55,3 +55,7 @@ func (s *Service) ClaimBossReward(ctx context.Context, runID string) (DungeonRun
 	}
 	return run, nil
 }
+
+func (s *Service) GetLatestCultivation(ctx context.Context, playerID int64) (CultivationRecord, bool, error) {
+	return s.repo.GetLatestCultivation(ctx, playerID)
+}

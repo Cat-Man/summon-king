@@ -41,6 +41,10 @@ func (s *Service) GetVIPState(ctx context.Context, playerID int64) VIPState {
 	return s.repo.GetVIPState(ctx, playerID)
 }
 
+func (s *Service) GetGiftState(ctx context.Context, playerID int64) GiftState {
+	return s.repo.GetGiftState(ctx, playerID)
+}
+
 func (s *Service) CreateOrder(ctx context.Context, playerID int64, idemKey string, productID int64) (Order, error) {
 	return s.repo.CreateOrder(ctx, playerID, idemKey, productID, s.now())
 }

@@ -15,6 +15,26 @@ export interface HomeIndexResponse {
   coin: number
   diamond: number
   last_login_at: string
+  daily_todos: Array<{
+    title: string
+    value: string
+    action: string
+  }>
+  resources: Array<{
+    label: string
+    value: string
+  }>
+  resource_icons: Array<{
+    label: string
+    value: string
+  }>
+  messages: string[]
+  entries: string[]
+  activity_entry: {
+    title: string
+    description: string
+    note: string
+  }
 }
 
 export const useSessionStore = defineStore('session', {

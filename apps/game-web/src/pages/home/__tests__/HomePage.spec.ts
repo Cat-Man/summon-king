@@ -7,6 +7,34 @@ import { loadHomeDashboard } from '@/services/home-dashboard'
 import HomePage from '../HomePage.vue'
 
 vi.mock('@/services/home-dashboard', () => ({
+  createInitialHomeDashboard: () => ({
+    hero: {
+      eyebrow: '今日工作台',
+      title: '召唤之王',
+      description: '',
+      tone: 'navy' as const,
+      metaLabel: '当前角色',
+      metaValue: ''
+    },
+    dailyTodos: [],
+    resources: [
+      { label: '等级', value: '' },
+      { label: '战力', value: '' },
+      { label: '活力', value: '' },
+      { label: '铜钱', value: '' },
+      { label: '元宝', value: '' },
+      { label: '声望', value: '' }
+    ],
+    resourceIcons: [],
+    activityEntry: {
+      title: '',
+      description: '',
+      note: '',
+      icon: ''
+    },
+    entries: [],
+    messages: []
+  }),
   loadHomeDashboard: vi.fn()
 }))
 
@@ -26,8 +54,10 @@ beforeEach(() => {
   vi.mocked(loadHomeDashboard).mockResolvedValue(createMockHomeDashboard())
 })
 
-test('renders home workstation modules', () => {
+test('renders home workstation modules', async () => {
   const wrapper = mountHomePage()
+
+  await flushPromises()
 
   expect(wrapper.text()).toContain('每日必做')
   expect(wrapper.text()).toContain('签到状态')
@@ -58,4 +88,14 @@ test('loads guest summary asynchronously and renders dynamic profile', async () 
   expect(loadHomeDashboard).toHaveBeenCalledTimes(1)
   expect(wrapper.text()).toContain('联调游客2002')
   expect(wrapper.text()).toContain('Lv.7')
+})
+
+test('does not render mock guest copy before dashboard load resolves', () => {
+  vi.mocked(loadHomeDashboard).mockReturnValueOnce(new Promise(() => {}) as ReturnType<typeof loadHomeDashboard>)
+
+  const wrapper = mountHomePage()
+
+  expect(wrapper.text()).not.toContain('游客1001')
+  expect(wrapper.text()).not.toContain('今日未签')
+  expect(wrapper.text()).not.toContain('世界消息：青木林地今日双倍经验已开启')
 })
