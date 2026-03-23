@@ -35,6 +35,15 @@ export function createMockHomeDashboard(): HomeDashboardData {
       note: '21:00 开始',
       icon: legacyActivityAssets.activitySparkIcon
     },
+    cultivationSummary: {
+      action: '查看修行',
+      items: [
+        { label: '修行地图', value: '青木林地', subtext: '进行中' },
+        { label: '结束时间', value: '13:40', subtext: '剩余 18 分钟' },
+        { label: '铜钱收益', value: '240' },
+        { label: '幻兽经验', value: '160' }
+      ]
+    },
     entries: ['世界地图', '联盟', '幻兽', '背包', '竞技场', '庄园', '修行', '排行'],
     messages: [
       '世界消息：青木林地今日双倍经验已开启',

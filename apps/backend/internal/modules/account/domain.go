@@ -18,9 +18,11 @@ type PlayerProfile struct {
 }
 
 type PlayerWallet struct {
-	PlayerID int64 `json:"player_id"`
-	Coin     int64 `json:"coin"`
-	Diamond  int64 `json:"diamond"`
+	PlayerID   int64 `json:"player_id"`
+	Coin       int64 `json:"coin"`
+	Diamond    int64 `json:"diamond"`
+	Vitality   int   `json:"vitality"`
+	Reputation int64 `json:"reputation"`
 }
 
 type PlayerDailyState struct {

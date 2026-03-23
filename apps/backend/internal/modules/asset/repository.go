@@ -244,7 +244,11 @@ func (r *MemoryRepository) SellInventoryItem(_ context.Context, req InventoryOpe
 func (r *MemoryRepository) ensureWalletUnlocked(playerID int64) Wallet {
 	wallet, ok := r.wallets[playerID]
 	if !ok {
-		wallet = Wallet{PlayerID: playerID}
+		wallet = Wallet{
+			PlayerID:   playerID,
+			Vitality:   120,
+			Reputation: 0,
+		}
 		r.wallets[playerID] = wallet
 	}
 	return wallet

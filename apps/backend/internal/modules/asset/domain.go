@@ -18,10 +18,12 @@ var defaultInventory = []InventoryItem{
 }
 
 type Wallet struct {
-	PlayerID  int64     `json:"player_id"`
-	Coins     int64     `json:"coins"`
-	Diamonds  int64     `json:"diamonds"`
-	UpdatedAt time.Time `json:"updated_at"`
+	PlayerID   int64     `json:"player_id"`
+	Coins      int64     `json:"coins"`
+	Diamonds   int64     `json:"diamonds"`
+	Vitality   int       `json:"vitality"`
+	Reputation int64     `json:"reputation"`
+	UpdatedAt  time.Time `json:"updated_at"`
 }
 
 type InventoryItem struct {

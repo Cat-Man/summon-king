@@ -662,3 +662,18 @@ git diff --check
 - 临时启动 `HTTP_PORT=18080 go run ./cmd/api` 与 `VITE_GAME_DATA_SOURCE=api VITE_DEV_API_PROXY_TARGET=http://127.0.0.1:18080 pnpm --dir apps/game-web dev --host 127.0.0.1 --port 4177`
 - 浏览器打开 `http://127.0.0.1:4177/` → 首页成功进入 `api` 模式；页面展示 `游客1`、`签到状态 / 今日未签`、`当前推荐副本 / 青云城 · Boss 可挑战`、`战力 / 450`
 - DevTools Network 确认首页真实请求链路：`POST /api/v1/player/auth/login [200]`，随后 `GET /api/v1/player/home/index?player_id=1 [200]`
+- `go test ./internal/modules/player -run 'TestGetHomeIndex|TestHandler_IndexReturnsHomeDashboardBlocks' -v` → 先 FAIL（缺 `WithNow`/`cultivation_summary` 与动态活动入口字段），补首页联调第二段实现后 PASS（5 tests）
+- `pnpm --dir apps/game-web exec vitest run src/services/__tests__/home-dashboard.spec.ts` → 先 FAIL（缺 `cultivationSummary` 映射），补首页修行摘要 view model 后 PASS（2 tests）
+- `pnpm --dir apps/game-web exec vitest run src/pages/home/__tests__/HomePage.spec.ts` → 先 FAIL（缺“修行收益速览”卡片），补页面渲染后 PASS（4 tests）
+- 首页第二段已补齐：`activity_entry` 改为动态业务入口，`cultivation_summary` 新增 `status/map_name/started_at/finished_at/remaining_seconds/reward_coins/reward_pet_exp/action`，首页新增“修行收益速览”卡片
+- 首页资源摘要第二段已补齐：`活力` 从玩家体力基值叠加修行消耗推导，`声望` 从等级/解锁城市/签到天数推导，不再返回固定 `120 / 120` 与 `0`
+- 真实浏览器 smoke 首轮发现首页 `idle` 修行摘要展示层问题：页面直接显示原始状态 `idle` 与零时间 `0001-01-01 00:00`
+- `pnpm --dir apps/game-web exec vitest run src/services/__tests__/home-dashboard.spec.ts` → 先 FAIL（新增 `idle` 状态回归用例），补 `idle -> 待开始 / 未开始 / 可立即开启` 展示映射后 PASS（3 tests）
+- 浏览器重新打开 `http://127.0.0.1:4178/` → 首页 `api` 模式空修行状态已修正；页面显示 `修行地图 / 青云城 / 待开始`、`结束时间 / 未开始 / 可立即开启`
+- 在同一浏览器会话内调用 `POST /api/v1/player/cultivation/start [200]` 后重新加载首页数据 → 页面动态切换为运行态，展示 `修行收益 / 火焰山修行进行中 / 剩余 2小时`、`活力 / 100 / 120`、`修行收益速览 / 火焰山 / 进行中 / 240 / 160`
+- DevTools Network 确认本轮首页真实请求链路：`POST /api/v1/player/auth/login [200]`、`GET /api/v1/player/home/index?player_id=2 [200]`、`POST /api/v1/player/cultivation/start [200]`、再次 `GET /api/v1/player/home/index?player_id=2 [200]`
+- `pnpm --dir apps/game-web test` → PASS（24 files / 45 tests）
+- `pnpm --dir apps/game-web lint` → PASS
+- `pnpm --dir apps/game-web build` → PASS
+- `go test ./...` in `apps/backend` → PASS
+- `git diff --check` → PASS

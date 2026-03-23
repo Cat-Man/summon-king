@@ -45,8 +45,85 @@ export function createInitialHomeDashboard(): HomeDashboardData {
       note: '',
       icon: legacyActivityAssets.activitySparkIcon
     },
+    cultivationSummary: {
+      action: '',
+      items: []
+    },
     entries: [],
     messages: []
+  }
+}
+
+function formatIsoMinute(value: string): string {
+  if (!value) {
+    return ''
+  }
+  return value.replace('T', ' ').replace('Z', '').slice(0, 16)
+}
+
+function formatDurationCN(seconds: number): string {
+  if (seconds <= 0) {
+    return '0分'
+  }
+
+  const totalMinutes = Math.ceil(seconds / 60)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  if (hours === 0) {
+    return `${totalMinutes}分`
+  }
+  if (minutes === 0) {
+    return `${hours}小时`
+  }
+  return `${hours}小时${minutes}分`
+}
+
+function formatCultivationStatus(status: string): string {
+  switch (status) {
+    case 'running':
+      return '进行中'
+    case 'claimable':
+      return '可领取'
+    case 'claimed':
+      return '已领取'
+    case 'idle':
+      return '待开始'
+    default:
+      return status
+  }
+}
+
+function createApiCultivationSummary(homeIndex: HomeIndexResponse): HomeDashboardData['cultivationSummary'] {
+  const summary = homeIndex.cultivation_summary
+  if (!summary?.status) {
+    return {
+      action: '',
+      items: []
+    }
+  }
+
+  const statusLabel = formatCultivationStatus(summary.status)
+  const endValue =
+    summary.status === 'idle'
+      ? '未开始'
+      : formatIsoMinute(summary.finished_at)
+  const endSubtext =
+    summary.status === 'running'
+      ? `剩余 ${formatDurationCN(summary.remaining_seconds)}`
+      : summary.status === 'claimable'
+        ? '收益已到期'
+        : summary.status === 'idle'
+          ? '可立即开启'
+          : undefined
+
+  return {
+    action: summary.action,
+    items: [
+      { label: '修行地图', value: summary.map_name, subtext: statusLabel },
+      { label: '结束时间', value: endValue, subtext: endSubtext },
+      { label: '铜钱收益', value: formatNumber(summary.reward_coins) },
+      { label: '幻兽经验', value: formatNumber(summary.reward_pet_exp) }
+    ]
   }
 }
 
@@ -59,7 +136,7 @@ function getResponseIconValue(homeIndex: HomeIndexResponse, label: string): stri
 }
 
 function createApiHomeDashboard(homeIndex: HomeIndexResponse): HomeDashboardData {
-  const dashboard = createMockHomeDashboard()
+  const dashboard = createInitialHomeDashboard()
 
   dashboard.hero = {
     ...dashboard.hero,
@@ -92,21 +169,21 @@ function createApiHomeDashboard(homeIndex: HomeIndexResponse): HomeDashboardData
     return item
   })
 
-  dashboard.resourceIcons = dashboard.resourceIcons.map((item) => {
-    const responseValue = getResponseIconValue(homeIndex, item.label)
+  dashboard.resourceIcons = ['铜钱', '元宝'].map((label) => {
+    const responseValue = getResponseIconValue(homeIndex, label)
     if (responseValue) {
-      return { ...item, value: responseValue }
+      return { label, value: responseValue, icon: legacyResourceIconMap[label] }
     }
 
-    if (item.label === '铜钱') {
-      return { ...item, value: formatNumber(homeIndex.coin) }
+    if (label === '铜钱') {
+      return { label, value: formatNumber(homeIndex.coin), icon: legacyResourceIconMap[label] }
     }
 
-    if (item.label === '元宝') {
-      return { ...item, value: formatNumber(homeIndex.diamond) }
+    if (label === '元宝') {
+      return { label, value: formatNumber(homeIndex.diamond), icon: legacyResourceIconMap[label] }
     }
 
-    return item
+    return { label, value: '', icon: legacyResourceIconMap[label] }
   })
 
   if (homeIndex.messages.length > 0) {
@@ -124,6 +201,7 @@ function createApiHomeDashboard(homeIndex: HomeIndexResponse): HomeDashboardData
       icon: legacyActivityAssets.activitySparkIcon
     }
   }
+  dashboard.cultivationSummary = createApiCultivationSummary(homeIndex)
 
   return dashboard
 }

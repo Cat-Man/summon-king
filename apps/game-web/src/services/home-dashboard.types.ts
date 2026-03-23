@@ -31,12 +31,18 @@ export interface HomeDashboardActivityEntry {
   icon: string
 }
 
+export interface HomeDashboardCultivationSummary {
+  action: string
+  items: Array<{ label: string; value: string; subtext?: string }>
+}
+
 export interface HomeDashboardData {
   hero: HomeDashboardHero
   dailyTodos: HomeDashboardTodo[]
   resources: HomeDashboardResource[]
   resourceIcons: HomeDashboardResourceIcon[]
   activityEntry: HomeDashboardActivityEntry
+  cultivationSummary: HomeDashboardCultivationSummary
   entries: string[]
   messages: string[]
 }

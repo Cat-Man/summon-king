@@ -38,6 +38,8 @@ func (r *repository) GetByPlayerID(ctx context.Context, playerID int64) (account
 		if wallet, err := r.assetRepo.GetWallet(ctx, playerID); err == nil {
 			player.Wallet.Coin = wallet.Coins
 			player.Wallet.Diamond = wallet.Diamonds
+			player.Wallet.Vitality = wallet.Vitality
+			player.Wallet.Reputation = wallet.Reputation
 		}
 	}
 

@@ -32,6 +32,10 @@ vi.mock('@/services/home-dashboard', () => ({
       note: '',
       icon: ''
     },
+    cultivationSummary: {
+      action: '',
+      items: []
+    },
     entries: [],
     messages: []
   }),
@@ -88,6 +92,33 @@ test('loads guest summary asynchronously and renders dynamic profile', async () 
   expect(loadHomeDashboard).toHaveBeenCalledTimes(1)
   expect(wrapper.text()).toContain('联调游客2002')
   expect(wrapper.text()).toContain('Lv.7')
+})
+
+test('renders cultivation summary from backend driven dashboard', async () => {
+  const loadedDashboard = createMockHomeDashboard()
+  loadedDashboard.activityEntry.title = '修行收益'
+  loadedDashboard.activityEntry.description = '火焰山修行进行中'
+  loadedDashboard.activityEntry.note = '剩余 1小时59分'
+  loadedDashboard.cultivationSummary = {
+    action: '查看修行',
+    items: [
+      { label: '修行地图', value: '火焰山', subtext: '进行中' },
+      { label: '结束时间', value: '2026-03-23 10:00', subtext: '剩余 1小时59分' },
+      { label: '铜钱收益', value: '240' },
+      { label: '幻兽经验', value: '160' }
+    ]
+  }
+  vi.mocked(loadHomeDashboard).mockResolvedValueOnce(loadedDashboard)
+
+  const wrapper = mountHomePage()
+
+  await flushPromises()
+
+  expect(wrapper.text()).toContain('修行收益速览')
+  expect(wrapper.text()).toContain('火焰山')
+  expect(wrapper.text()).toContain('铜钱收益')
+  expect(wrapper.text()).toContain('240')
+  expect(wrapper.text()).toContain('查看修行')
 })
 
 test('does not render mock guest copy before dashboard load resolves', () => {

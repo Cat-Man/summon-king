@@ -34,6 +34,17 @@ export interface HomeIndexResponse {
     title: string
     description: string
     note: string
+    action: string
+  }
+  cultivation_summary: {
+    status: string
+    map_name: string
+    started_at: string
+    finished_at: string
+    remaining_seconds: number
+    reward_coins: number
+    reward_pet_exp: number
+    action: string
   }
 }
 

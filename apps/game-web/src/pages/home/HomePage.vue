@@ -73,6 +73,15 @@ onMounted(async () => {
         <UiStatGrid :items="dashboard.resources" min-width="110px" />
       </UiPanelCard>
 
+      <UiPanelCard title="修行收益速览">
+        <template #actions>
+          <span v-if="dashboard.cultivationSummary.action" class="panel-action">
+            {{ dashboard.cultivationSummary.action }}
+          </span>
+        </template>
+        <UiStatGrid :items="dashboard.cultivationSummary.items" tone="mint" min-width="140px" />
+      </UiPanelCard>
+
       <UiPanelCard title="消息流入口">
         <ul class="message-list">
           <li v-for="item in dashboard.messages" :key="item">{{ item }}</li>
@@ -200,6 +209,11 @@ onMounted(async () => {
   flex-direction: column;
   gap: 10px;
   color: #4b5563;
+}
+
+.panel-action {
+  color: #0f766e;
+  font-size: 12px;
 }
 
 @media (max-width: 768px) {

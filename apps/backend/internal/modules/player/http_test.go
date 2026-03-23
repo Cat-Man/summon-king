@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
@@ -39,13 +40,16 @@ func TestHandler_IndexReturnsHomeDashboardBlocks(t *testing.T) {
 	dungeonSvc := dungeon.NewService(dungeon.NewMemoryRepository())
 	commerceSvc := commerce.NewService(commerce.NewMemoryRepository())
 	_ = commerceSvc.ClaimSignin(ctx, playerEntity.PlayerID)
-	_, _ = dungeonSvc.StartCultivation(ctx, playerEntity.PlayerID, "fire-mountain", 2)
+	record, _ := dungeonSvc.StartCultivation(ctx, playerEntity.PlayerID, "fire-mountain", 2)
 
 	playerSvc := NewService(
 		NewRepository(accountRepo, assetRepo),
 		WithPetReader(petSvc),
 		WithDungeonReader(dungeonSvc),
 		WithCommerceReader(commerceSvc),
+		WithNow(func() time.Time {
+			return record.StartedAt.Add(30 * time.Minute)
+		}),
 	)
 
 	router := gin.New()
@@ -83,8 +87,32 @@ func TestHandler_IndexReturnsHomeDashboardBlocks(t *testing.T) {
 	if len(envelope.Data.Entries) == 0 {
 		t.Fatal("expected entries in response")
 	}
-	if envelope.Data.ActivityEntry.Title == "" {
-		t.Fatal("expected activity_entry in response")
+	if envelope.Data.ActivityEntry.Title != "修行收益" {
+		t.Fatalf("expected dynamic activity_entry title 修行收益, got %s", envelope.Data.ActivityEntry.Title)
+	}
+	if envelope.Data.CultivationSummary.MapName == "" {
+		t.Fatal("expected cultivation_summary in response")
+	}
+	if envelope.Data.CultivationSummary.Status != "running" {
+		t.Fatalf("expected cultivation_summary status running, got %s", envelope.Data.CultivationSummary.Status)
+	}
+	if envelope.Data.CultivationSummary.RemainingSeconds != 5400 {
+		t.Fatalf("expected cultivation_summary remaining_seconds 5400, got %d", envelope.Data.CultivationSummary.RemainingSeconds)
+	}
+	if envelope.Data.CultivationSummary.RewardCoins <= 0 {
+		t.Fatalf("expected cultivation_summary.reward_coins > 0, got %d", envelope.Data.CultivationSummary.RewardCoins)
+	}
+	if envelope.Data.CultivationSummary.RewardPetExp <= 0 {
+		t.Fatalf("expected cultivation_summary.reward_pet_exp > 0, got %d", envelope.Data.CultivationSummary.RewardPetExp)
+	}
+
+	vitalityValue := resourceValueByLabel(envelope.Data.Resources, "活力")
+	reputationValue := resourceValueByLabel(envelope.Data.Resources, "声望")
+	if vitalityValue == "120 / 120" {
+		t.Fatalf("expected vitality to be dynamic instead of fixed placeholder, got %s", vitalityValue)
+	}
+	if reputationValue == "0" {
+		t.Fatalf("expected reputation to be dynamic instead of fixed placeholder, got %s", reputationValue)
 	}
 }
 

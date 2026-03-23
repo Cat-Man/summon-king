@@ -39,9 +39,11 @@ func (s *Service) CreateGuestPlayer(ctx context.Context, channel string) (Player
 			Level:    1,
 		},
 		Wallet: PlayerWallet{
-			PlayerID: playerID,
-			Coin:     0,
-			Diamond:  0,
+			PlayerID:   playerID,
+			Coin:       0,
+			Diamond:    0,
+			Vitality:   120,
+			Reputation: 0,
 		},
 		DailyState: PlayerDailyState{
 			PlayerID:    playerID,
