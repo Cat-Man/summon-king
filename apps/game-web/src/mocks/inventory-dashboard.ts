@@ -21,6 +21,7 @@ interface MockInventoryState {
 interface MockResourceLogState {
   changeType: string
   bizId: string
+  reason: string
   coinsDelta: number
   diamondsDelta: number
   createdAt: string
@@ -67,18 +68,44 @@ function createInitialMockInventoryState(): MockInventoryState {
     ],
     logs: [
       {
+        changeType: 'inventory_sell',
+        bizId: 'summon_scroll',
+        reason: 'inventory_sell',
+        coinsDelta: 50,
+        diamondsDelta: 0,
+        createdAt: '2026-03-23 09:15'
+      },
+      {
+        changeType: 'inventory_use',
+        bizId: 'potion_small',
+        reason: 'inventory_use',
+        coinsDelta: 0,
+        diamondsDelta: 0,
+        createdAt: '2026-03-23 09:10'
+      },
+      {
         changeType: 'grant_reward',
         bizId: 'signin-1',
+        reason: 'daily_signin',
         coinsDelta: 100,
         diamondsDelta: 0,
         createdAt: '2026-03-23 09:00'
       },
       {
-        changeType: 'inventory_sell',
-        bizId: 'summon_scroll',
-        coinsDelta: 50,
+        changeType: 'grant_reward',
+        bizId: 'mail-1',
+        reason: 'mail_reward',
+        coinsDelta: 0,
+        diamondsDelta: 10,
+        createdAt: '2026-03-22 21:20'
+      },
+      {
+        changeType: 'inventory_use',
+        bizId: 'strengthen_stone',
+        reason: 'inventory_use',
+        coinsDelta: 0,
         diamondsDelta: 0,
-        createdAt: '2026-03-23 09:05'
+        createdAt: '2026-03-22 18:45'
       }
     ]
   }
@@ -101,9 +128,10 @@ export function useMockInventoryItem(itemId: string, count = 1) {
   }
 
   item.quantity -= count
-  mockInventoryState.logs.push({
+  mockInventoryState.logs.unshift({
     changeType: 'inventory_use',
     bizId: itemId,
+    reason: 'inventory_use',
     coinsDelta: 0,
     diamondsDelta: 0,
     createdAt: '2026-03-23 09:10'
@@ -118,9 +146,10 @@ export function sellMockInventoryItem(itemId: string, count = 1) {
 
   item.quantity -= count
   mockInventoryState.coins += item.sellPrice * count
-  mockInventoryState.logs.push({
+  mockInventoryState.logs.unshift({
     changeType: 'inventory_sell',
     bizId: itemId,
+    reason: 'inventory_sell',
     coinsDelta: item.sellPrice * count,
     diamondsDelta: 0,
     createdAt: '2026-03-23 09:15'
@@ -140,6 +169,19 @@ function formatMockLogTitle(changeType: string, bizId: string): string {
   }
 }
 
+function formatMockLogChangeTypeText(changeType: string): string {
+  switch (changeType) {
+    case 'inventory_sell':
+      return '出售道具'
+    case 'inventory_use':
+      return '使用道具'
+    case 'grant_reward':
+      return '发放奖励'
+    default:
+      return changeType
+  }
+}
+
 function formatMockLogDelta(log: MockResourceLogState): string {
   if (log.coinsDelta !== 0) {
     return `${log.coinsDelta > 0 ? '+' : ''}${log.coinsDelta} 铜钱`
@@ -150,10 +192,19 @@ function formatMockLogDelta(log: MockResourceLogState): string {
   return '无货币变化'
 }
 
-export function createMockInventoryLogs(): InventoryLogEntry[] {
-  return [...mockInventoryState.logs]
-    .reverse()
+export function createMockInventoryLogs(limit = 5): InventoryLogEntry[] {
+  return mockInventoryState.logs
+    .slice()
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+    .slice(0, limit)
     .map((log) => ({
+      id: `${log.changeType}-${log.bizId}-${log.createdAt}`,
+      createdAt: log.createdAt,
+      changeType: log.changeType,
+      changeTypeText: formatMockLogChangeTypeText(log.changeType),
+      reason: log.reason,
+      coinsDelta: log.coinsDelta,
+      diamondsDelta: log.diamondsDelta,
       title: formatMockLogTitle(log.changeType, log.bizId),
       delta: formatMockLogDelta(log),
       createdAtLabel: log.createdAt

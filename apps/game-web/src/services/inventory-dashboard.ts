@@ -11,7 +11,7 @@ import {
 import type {
   InventoryDashboardData,
   InventoryItemCard,
-  InventoryLogEntry,
+  InventoryLogItem,
   InventoryWalletResource,
   InventoryWalletStat
 } from './inventory-dashboard.types'
@@ -50,6 +50,10 @@ interface ResourceChangeLogResponse {
 interface LoadInventoryDashboardOptions {
   dataSource?: GameDataSource
   sessionStore: SessionStoreLike
+}
+
+interface LoadRecentAssetLogsOptions extends LoadInventoryDashboardOptions {
+  limit?: number
 }
 
 interface InventoryOperateOptions extends LoadInventoryDashboardOptions {
@@ -161,6 +165,19 @@ function formatLogTitle(log: ResourceChangeLogResponse): string {
   }
 }
 
+function formatLogChangeTypeText(changeType: string): string {
+  switch (changeType) {
+    case 'inventory_sell':
+      return '出售道具'
+    case 'inventory_use':
+      return '使用道具'
+    case 'grant_reward':
+      return '发放奖励'
+    default:
+      return changeType
+  }
+}
+
 function formatLogDelta(log: ResourceChangeLogResponse): string {
   if (log.coins_delta !== 0) {
     return `${log.coins_delta > 0 ? '+' : ''}${formatNumber(log.coins_delta)} 铜钱`
@@ -171,10 +188,17 @@ function formatLogDelta(log: ResourceChangeLogResponse): string {
   return '无货币变化'
 }
 
-function adaptInventoryLogs(logs: ResourceChangeLogResponse[]): InventoryLogEntry[] {
+function adaptInventoryLogs(logs: ResourceChangeLogResponse[]): InventoryLogItem[] {
   return [...logs]
-    .reverse()
-    .map((log) => ({
+    .sort((left, right) => right.created_at.localeCompare(left.created_at))
+    .map((log, idx) => ({
+      id: `${log.change_type}-${log.biz_id}-${log.created_at}-${idx}`,
+      createdAt: log.created_at,
+      changeType: log.change_type,
+      changeTypeText: formatLogChangeTypeText(log.change_type),
+      reason: log.reason,
+      coinsDelta: log.coins_delta,
+      diamondsDelta: log.diamonds_delta,
       title: formatLogTitle(log),
       delta: formatLogDelta(log),
       createdAtLabel: log.created_at.replace('T', ' ').replace('Z', '')
@@ -200,22 +224,27 @@ export async function loadInventoryDashboard({
   return createApiInventoryDashboard(wallet, inventory)
 }
 
-export async function loadInventoryLogs({
+export async function loadRecentAssetLogs({
   dataSource = runtimeConfig.gameDataSource,
-  sessionStore
-}: LoadInventoryDashboardOptions): Promise<InventoryLogEntry[]> {
+  sessionStore,
+  limit = 5
+}: LoadRecentAssetLogsOptions): Promise<InventoryLogItem[]> {
   if (dataSource === 'mock') {
-    return createMockInventoryLogs()
+    return createMockInventoryLogs(limit)
   }
 
   const session = await sessionStore.ensureGuestSession()
   const headers = session.token ? { Authorization: `Bearer ${session.token}` } : undefined
   const logs = await request<ResourceChangeLogResponse[]>(
-    `/player/assets/logs?player_id=${session.player_id}`,
+    `/player/assets/logs?player_id=${session.player_id}&limit=${limit}`,
     { headers }
   )
 
   return adaptInventoryLogs(logs)
+}
+
+export async function loadInventoryLogs(options: LoadRecentAssetLogsOptions): Promise<InventoryLogItem[]> {
+  return loadRecentAssetLogs(options)
 }
 
 export async function useInventoryItem({

@@ -9,13 +9,13 @@ import { runtimeConfig } from '@/config/runtime'
 import { createMockInventoryDashboard } from '@/mocks/inventory-dashboard'
 import {
   loadInventoryDashboard,
-  loadInventoryLogs,
+  loadRecentAssetLogs,
   sellInventoryItem,
   useInventoryItem
 } from '@/services/inventory-dashboard'
 import type {
   InventoryItemCard,
-  InventoryLogEntry
+  InventoryLogItem
 } from '@/services/inventory-dashboard.types'
 import { useSessionStore } from '@/stores/session'
 
@@ -26,7 +26,7 @@ const operationMessage = ref('')
 const pendingItemId = ref('')
 const unlockedHighValueItemIds = ref<string[]>([])
 const pendingSellItemId = ref('')
-const inventoryLogs = ref<InventoryLogEntry[]>([])
+const inventoryLogs = ref<InventoryLogItem[]>([])
 const logsVisible = ref(false)
 const logsLoading = ref(false)
 const logsError = ref('')
@@ -117,15 +117,20 @@ async function refreshInventoryLogs() {
   logsError.value = ''
 
   try {
-    inventoryLogs.value = await loadInventoryLogs({
+    inventoryLogs.value = await loadRecentAssetLogs({
       dataSource: runtimeConfig.gameDataSource,
-      sessionStore
+      sessionStore,
+      limit: 5
     })
   } catch (error) {
     logsError.value = error instanceof Error ? error.message : '流水加载失败'
   } finally {
     logsLoading.value = false
   }
+}
+
+function formatDelta(value: number) {
+  return value >= 0 ? `+${value}` : `${value}`
 }
 
 async function confirmSell() {
@@ -275,9 +280,12 @@ async function showInventoryLogs() {
         <p v-else-if="logsError" class="error-banner">{{ logsError }}</p>
         <div v-else-if="logsVisible" class="log-list">
           <h3 class="log-list__title">最近流水</h3>
-          <article v-for="log in inventoryLogs" :key="`${log.title}-${log.createdAtLabel}`" class="log-card">
+          <article v-for="log in inventoryLogs" :key="log.id" class="log-card">
             <strong>{{ log.title }}</strong>
+            <span>{{ log.changeTypeText }}</span>
+            <small>原因：{{ log.reason }}</small>
             <span>{{ log.delta }}</span>
+            <small>铜钱 {{ formatDelta(log.coinsDelta) }} · 元宝 {{ formatDelta(log.diamondsDelta) }}</small>
             <small>{{ log.createdAtLabel }}</small>
           </article>
         </div>
