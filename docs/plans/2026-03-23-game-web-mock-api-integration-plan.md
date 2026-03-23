@@ -631,3 +631,10 @@ git diff --check
 - `pnpm --dir apps/game-web test` → PASS（24 files / 39 tests）
 - `pnpm --dir apps/game-web lint` → PASS
 - `pnpm --dir apps/game-web build` → PASS
+- `go test ./internal/bootstrap -run TestLoadConfig_UsesHTTPPortEnv -v` → 先 FAIL（固定 `8080`），补 `HTTP_PORT` 环境变量读取后 PASS
+- `go test ./...` in `apps/backend` → PASS
+- 临时启动 `HTTP_PORT=18080 go run ./cmd/api` 与 `VITE_GAME_DATA_SOURCE=api VITE_DEV_API_PROXY_TARGET=http://127.0.0.1:18080 pnpm --dir apps/game-web dev --host 127.0.0.1 --port 4176`
+- 浏览器打开 `http://127.0.0.1:4176/assets` → 登录、钱包、背包读取成功；页面显示 `2 / 30`、`中级经验丹 x5`、`召唤卷轴 x1`
+- 浏览器点击 `查看最近流水` → 成功触发 `GET /api/v1/player/assets/logs?player_id=2&limit=5 [200]`，初始游客无流水，面板仅展示标题
+- 浏览器点击 `中级经验丹 -> 使用1个` → 成功提示 `已使用 1 个中级经验丹`，库存刷新为 `x4`，流水面板自动新增 `使用中级经验丹 / 使用道具 / 原因：inventory_use`
+- 浏览器点击 `召唤卷轴 -> 解除锁定 -> 出售1个 -> 确认出售` → 成功提示 `已出售 1 个召唤卷轴`，铜钱更新为 `50`，背包容量变为 `1 / 30`，流水面板自动新增 `出售召唤卷轴 / 出售道具 / 原因：inventory_sell / +50 铜钱`
