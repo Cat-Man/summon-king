@@ -1,65 +1,90 @@
 <script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+
 import UiChipGroup from '@/components/ui/UiChipGroup.vue'
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
 import UiStatGrid from '@/components/ui/UiStatGrid.vue'
-import { legacyPetIconMap } from '@/assets/legacy'
+import { runtimeConfig } from '@/config/runtime'
+import {
+  createInitialPetTeamDashboard,
+  loadPetTeamDashboard,
+  savePetTeamSelection
+} from '@/services/pet-dashboard'
+import { useSessionStore } from '@/stores/session'
 
-const overview = [
-  { label: '已上阵', value: '5 / 5' },
-  { label: '队伍核心', value: '烈焰狼王' },
-  { label: '平均等级', value: 'Lv.34' },
-  { label: '可替补', value: '4 只' }
-]
-
-const team = [
-  { slot: '1 号位', name: '烈焰狼王', role: '主战输出', level: 'Lv.36', power: '6,820' },
-  { slot: '2 号位', name: '寒枝鹿灵', role: '控制辅助', level: 'Lv.34', power: '4,920' },
-  { slot: '3 号位', name: '玄甲龟', role: '前排承伤', level: 'Lv.35', power: '4,610' },
-  { slot: '4 号位', name: '流云狐', role: '速度补位', level: 'Lv.33', power: '3,780' },
-  { slot: '5 号位', name: '焚羽雀', role: '收割补刀', level: 'Lv.32', power: '3,350' }
-]
-
-const pets = [
-  { name: '烈焰狼王', level: 'Lv.36', status: '已上阵', power: '6,820' },
-  { name: '寒枝鹿灵', level: 'Lv.34', status: '已上阵', power: '4,920' },
-  { name: '玄甲龟', level: 'Lv.35', status: '已上阵', power: '4,610' },
-  { name: '流云狐', level: 'Lv.33', status: '已上阵', power: '3,780' },
-  { name: '焚羽雀', level: 'Lv.32', status: '已上阵', power: '3,350' },
-  { name: '霜牙虎', level: 'Lv.31', status: '可替补', power: '3,140' },
-  { name: '青木灵猿', level: 'Lv.30', status: '可替补', power: '2,980' }
-]
-
-const strategies = ['保存阵容', '支持上下阵', '支持排序调位', '按综合战力筛选']
+const sessionStore = useSessionStore()
+const dashboard = ref(createInitialPetTeamDashboard())
+const loadError = ref('')
+const operationMessage = ref('')
+const pendingSave = ref(false)
 
 const normalizeSlotId = (slot: string) => slot.replace(/\s+/g, '')
-const teamWithIcons = team.map((member) => ({
-  ...member,
-  icon: legacyPetIconMap[member.name] ?? undefined
-}))
-const rosterWithIcons = pets.map((pet) => ({
-  ...pet,
-  icon: legacyPetIconMap[pet.name] ?? undefined
-}))
+const teamWithIcons = computed(() => dashboard.value.team)
+const rosterWithIcons = computed(() => dashboard.value.roster)
+
+onMounted(async () => {
+  try {
+    dashboard.value = await loadPetTeamDashboard({
+      dataSource: runtimeConfig.gameDataSource,
+      sessionStore
+    })
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : '阵容加载失败'
+  }
+})
+
+async function saveCurrentTeam() {
+  pendingSave.value = true
+  operationMessage.value = ''
+  loadError.value = ''
+
+  try {
+    const result = await savePetTeamSelection({
+      dataSource: runtimeConfig.gameDataSource,
+      sessionStore,
+      petIds: dashboard.value.team.map((item) => item.petId)
+    })
+    operationMessage.value = result.message
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : '阵容保存失败'
+  } finally {
+    pendingSave.value = false
+  }
+}
 </script>
 
 <template>
   <section class="pet-team-page">
     <UiPageHero
-      eyebrow="战斗队与幻兽栏"
-      title="主力阵容"
-      description="先展示当前战斗队，再展示幻兽栏与主养成目标，后续可直接接保存阵容、上下阵和排序接口。"
-      tone="blue"
-      meta-label="综合战力"
-      meta-value="23,480"
+      :eyebrow="dashboard.hero.eyebrow"
+      :title="dashboard.hero.title"
+      :description="dashboard.hero.description"
+      :tone="dashboard.hero.tone"
+      :meta-label="dashboard.hero.metaLabel"
+      :meta-value="dashboard.hero.metaValue"
     />
 
-    <UiStatGrid :items="overview" min-width="140px" />
+    <p v-if="loadError" class="error-banner">{{ loadError }}</p>
+    <p v-if="operationMessage" class="success-banner">{{ operationMessage }}</p>
+
+    <UiStatGrid :items="dashboard.overview" min-width="140px" />
 
     <section class="grid">
       <UiPanelCard title="当前战斗队">
+        <template #actions>
+          <button
+            type="button"
+            class="save-button"
+            data-testid="save-team"
+            :disabled="pendingSave"
+            @click="saveCurrentTeam"
+          >
+            {{ pendingSave ? '保存中...' : '保存阵容' }}
+          </button>
+        </template>
         <div class="team-list">
-          <article v-for="item in teamWithIcons" :key="item.slot" class="team-item">
+          <article v-for="item in teamWithIcons" :key="item.petId" class="team-item">
             <div
               v-if="item.icon"
               class="team-item__avatar-wrapper"
@@ -79,15 +104,15 @@ const rosterWithIcons = pets.map((pet) => ({
 
       <UiPanelCard title="主养成目标">
         <div class="focus-card">
-          <strong>烈焰狼王</strong>
-          <p>火系主力输出，当前战力最高，推荐优先投入副本经验、战骨与进化材料。</p>
-          <span>下一步：补齐火系进化石后升境，提升 Boss 斩杀效率。</span>
+          <strong>{{ dashboard.focus.name }}</strong>
+          <p>{{ dashboard.focus.description }}</p>
+          <span>{{ dashboard.focus.nextStep }}</span>
         </div>
       </UiPanelCard>
 
       <UiPanelCard title="幻兽栏" wide>
         <div class="roster-grid">
-          <article v-for="pet in rosterWithIcons" :key="pet.name" class="roster-item">
+          <article v-for="pet in rosterWithIcons" :key="pet.petId" class="roster-item">
             <div
               v-if="pet.icon"
               class="roster-item__avatar-wrapper"
@@ -104,7 +129,7 @@ const rosterWithIcons = pets.map((pet) => ({
       </UiPanelCard>
 
       <UiPanelCard title="上阵策略" wide>
-        <UiChipGroup :items="strategies" tone="blue" min-width="150px" />
+        <UiChipGroup :items="dashboard.strategies" tone="blue" min-width="150px" />
       </UiPanelCard>
     </section>
   </section>
@@ -116,6 +141,23 @@ const rosterWithIcons = pets.map((pet) => ({
   flex-direction: column;
   gap: 16px;
   color: #1f2937;
+}
+
+.error-banner,
+.success-banner {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
+.error-banner {
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.success-banner {
+  background: #ecfdf5;
+  color: #047857;
 }
 
 .grid {
@@ -143,6 +185,21 @@ const rosterWithIcons = pets.map((pet) => ({
   justify-content: space-between;
   gap: 12px;
   align-items: center;
+}
+
+.save-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.save-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
 
 .roster-grid {

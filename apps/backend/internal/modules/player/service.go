@@ -30,20 +30,26 @@ type HomeIndex struct {
 	Resources          []HomeResource         `json:"resources"`
 	ResourceIcons      []HomeResourceIcon     `json:"resource_icons"`
 	Messages           []string               `json:"messages"`
-	Entries            []string               `json:"entries"`
+	Entries            []HomeEntry            `json:"entries"`
 	ActivityEntry      HomeActivityEntry      `json:"activity_entry"`
 	CultivationSummary HomeCultivationSummary `json:"cultivation_summary"`
 }
 
 type HomeTodo struct {
-	Title  string `json:"title"`
-	Value  string `json:"value"`
-	Action string `json:"action"`
+	Title     string `json:"title"`
+	Value     string `json:"value"`
+	Action    string `json:"action"`
+	ActionKey string `json:"action_key"`
 }
 
 type HomeResource struct {
 	Label string `json:"label"`
 	Value string `json:"value"`
+}
+
+type HomeEntry struct {
+	Label     string `json:"label"`
+	ActionKey string `json:"action_key"`
 }
 
 type HomeResourceIcon struct {
@@ -56,6 +62,7 @@ type HomeActivityEntry struct {
 	Description string `json:"description"`
 	Note        string `json:"note"`
 	Action      string `json:"action"`
+	ActionKey   string `json:"action_key"`
 }
 
 type HomeCultivationSummary struct {
@@ -67,10 +74,12 @@ type HomeCultivationSummary struct {
 	RewardCoins      int64     `json:"reward_coins"`
 	RewardPetExp     int64     `json:"reward_pet_exp"`
 	Action           string    `json:"action"`
+	ActionKey        string    `json:"action_key"`
 }
 
 type PetReader interface {
 	GetPlayerPets(ctx context.Context, playerID int64) ([]pet.PlayerPet, error)
+	GetTeam(ctx context.Context, playerID int64) (pet.PetTeam, error)
 }
 
 type CommerceReader interface {
@@ -140,9 +149,9 @@ func (s *Service) GetHomeIndex(ctx context.Context, playerID int64) (HomeIndex, 
 	power := int64(1000 + player.Profile.Level*80)
 	if s.petReader != nil {
 		if pets, petErr := s.petReader.GetPlayerPets(ctx, playerID); petErr == nil {
-			power = 0
-			for _, item := range pets {
-				power += int64(item.Power)
+			power = sumAllPetsPower(pets)
+			if team, teamErr := s.petReader.GetTeam(ctx, playerID); teamErr == nil && len(team.PetIDs) > 0 {
+				power = sumTeamPetsPower(pets, team.PetIDs)
 			}
 		}
 	}
@@ -186,10 +195,40 @@ func (s *Service) GetHomeIndex(ctx context.Context, playerID int64) (HomeIndex, 
 		Resources:          buildResources(player.Profile.Level, power, player.Wallet.Coin, player.Wallet.Diamond, vitalityValue, reputationValue),
 		ResourceIcons:      buildResourceIcons(player.Wallet.Coin, player.Wallet.Diamond),
 		Messages:           buildMessages(recommended, vipState.DailyChestClaimed, cultivationState),
-		Entries:            []string{"世界地图", "联盟", "幻兽", "背包", "竞技场", "庄园", "修行", "排行"},
+		Entries: []HomeEntry{
+			{Label: "世界地图", ActionKey: "world_map"},
+			{Label: "联盟", ActionKey: "alliance"},
+			{Label: "幻兽", ActionKey: "pet_catalog"},
+			{Label: "背包", ActionKey: "assets"},
+			{Label: "竞技场", ActionKey: "arena"},
+			{Label: "庄园", ActionKey: "growth_manor"},
+			{Label: "修行", ActionKey: "cultivation"},
+			{Label: "排行", ActionKey: "ranking"},
+		},
 		ActivityEntry:      buildActivityEntry(cultivationState, dailySigninClaimed, giftState.SigninDays, vipState.DailyChestClaimed, recommended),
 		CultivationSummary: cultivationState.summary,
 	}, nil
+}
+
+func sumAllPetsPower(pets []pet.PlayerPet) int64 {
+	var power int64
+	for _, item := range pets {
+		power += int64(item.Power)
+	}
+	return power
+}
+
+func sumTeamPetsPower(pets []pet.PlayerPet, teamPetIDs []int64) int64 {
+	petPower := make(map[int64]int64, len(pets))
+	for _, item := range pets {
+		petPower[item.PetID] = int64(item.Power)
+	}
+
+	var power int64
+	for _, petID := range teamPetIDs {
+		power += petPower[petID]
+	}
+	return power
 }
 
 func buildDailyTodos(dailySigninClaimed bool, cultivationValue string, recommended string) []HomeTodo {
@@ -201,9 +240,9 @@ func buildDailyTodos(dailySigninClaimed bool, cultivationValue string, recommend
 	}
 
 	return []HomeTodo{
-		{Title: "签到状态", Value: signinValue, Action: signinAction},
-		{Title: "当前修行状态", Value: cultivationValue, Action: "查看修行"},
-		{Title: "当前推荐副本", Value: recommended, Action: "进入副本"},
+		{Title: "签到状态", Value: signinValue, Action: signinAction, ActionKey: "signin"},
+		{Title: "当前修行状态", Value: cultivationValue, Action: "查看修行", ActionKey: "cultivation"},
+		{Title: "当前推荐副本", Value: recommended, Action: "进入副本", ActionKey: "dungeon_run"},
 	}
 }
 
@@ -272,6 +311,7 @@ func buildActivityEntry(cultivation cultivationRuntimeState, dailySigninClaimed 
 			Description: fmt.Sprintf("%s修行进行中", cultivation.mapName),
 			Note:        "剩余 " + formatDurationCN(cultivation.remaining),
 			Action:      cultivation.action,
+			ActionKey:   "cultivation",
 		}
 	case "claimable":
 		return HomeActivityEntry{
@@ -279,6 +319,7 @@ func buildActivityEntry(cultivation cultivationRuntimeState, dailySigninClaimed 
 			Description: fmt.Sprintf("%s修行可领取", cultivation.mapName),
 			Note:        "可立即领取",
 			Action:      cultivation.action,
+			ActionKey:   "cultivation",
 		}
 	case "claimed":
 		return HomeActivityEntry{
@@ -286,6 +327,7 @@ func buildActivityEntry(cultivation cultivationRuntimeState, dailySigninClaimed 
 			Description: fmt.Sprintf("%s收益已领取", cultivation.mapName),
 			Note:        "等待下一次修行",
 			Action:      "前往修行",
+			ActionKey:   "cultivation",
 		}
 	}
 
@@ -299,6 +341,7 @@ func buildActivityEntry(cultivation cultivationRuntimeState, dailySigninClaimed 
 			Description: description,
 			Note:        "前往签到",
 			Action:      "前往签到",
+			ActionKey:   "signin",
 		}
 	}
 
@@ -308,6 +351,7 @@ func buildActivityEntry(cultivation cultivationRuntimeState, dailySigninClaimed 
 			Description: "每日宝箱待领取",
 			Note:        "前往领取",
 			Action:      "前往领取",
+			ActionKey:   "vip",
 		}
 	}
 
@@ -316,6 +360,7 @@ func buildActivityEntry(cultivation cultivationRuntimeState, dailySigninClaimed 
 		Description: recommended,
 		Note:        "进入副本",
 		Action:      "进入副本",
+		ActionKey:   "dungeon_run",
 	}
 }
 
@@ -335,6 +380,7 @@ func buildIdleCultivationState(level int, world dungeon.WorldMap) cultivationRun
 		RewardCoins:      0,
 		RewardPetExp:     0,
 		Action:           "前往修行",
+		ActionKey:        "cultivation",
 	}
 
 	return cultivationRuntimeState{
@@ -376,6 +422,7 @@ func buildCultivationState(record dungeon.CultivationRecord, world dungeon.World
 		RewardCoins:      record.RewardCoins,
 		RewardPetExp:     record.RewardPetExp,
 		Action:           action,
+		ActionKey:        "cultivation",
 	}
 
 	return cultivationRuntimeState{

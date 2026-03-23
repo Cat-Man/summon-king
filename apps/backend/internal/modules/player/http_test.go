@@ -87,8 +87,17 @@ func TestHandler_IndexReturnsHomeDashboardBlocks(t *testing.T) {
 	if len(envelope.Data.Entries) == 0 {
 		t.Fatal("expected entries in response")
 	}
+	if envelope.Data.DailyTodos[0].ActionKey != "signin" {
+		t.Fatalf("expected daily_todos action_key signin, got %s", envelope.Data.DailyTodos[0].ActionKey)
+	}
+	if envelope.Data.Entries[0].ActionKey != "world_map" {
+		t.Fatalf("expected entries action_key world_map, got %s", envelope.Data.Entries[0].ActionKey)
+	}
 	if envelope.Data.ActivityEntry.Title != "修行收益" {
 		t.Fatalf("expected dynamic activity_entry title 修行收益, got %s", envelope.Data.ActivityEntry.Title)
+	}
+	if envelope.Data.ActivityEntry.ActionKey != "cultivation" {
+		t.Fatalf("expected activity_entry action_key cultivation, got %s", envelope.Data.ActivityEntry.ActionKey)
 	}
 	if envelope.Data.CultivationSummary.MapName == "" {
 		t.Fatal("expected cultivation_summary in response")
@@ -104,6 +113,9 @@ func TestHandler_IndexReturnsHomeDashboardBlocks(t *testing.T) {
 	}
 	if envelope.Data.CultivationSummary.RewardPetExp <= 0 {
 		t.Fatalf("expected cultivation_summary.reward_pet_exp > 0, got %d", envelope.Data.CultivationSummary.RewardPetExp)
+	}
+	if envelope.Data.CultivationSummary.ActionKey != "cultivation" {
+		t.Fatalf("expected cultivation_summary action_key cultivation, got %s", envelope.Data.CultivationSummary.ActionKey)
 	}
 
 	vitalityValue := resourceValueByLabel(envelope.Data.Resources, "活力")

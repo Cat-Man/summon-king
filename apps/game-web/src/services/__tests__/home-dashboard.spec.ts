@@ -51,7 +51,7 @@ test('loadHomeDashboard should hydrate dynamic profile in api mode', async () =>
       coin: 1280,
       diamond: 96,
       last_login_at: '2026-03-23T10:00:00Z',
-      daily_todos: [{ title: '签到状态', value: '今日已签', action: '查看奖励' }],
+      daily_todos: [{ title: '签到状态', value: '今日已签', action: '查看奖励', action_key: 'signin' }],
       resources: [
         { label: '等级', value: 'Lv.7' },
         { label: '战力', value: '1,680' },
@@ -65,12 +65,17 @@ test('loadHomeDashboard should hydrate dynamic profile in api mode', async () =>
         { label: '元宝', value: '96' }
       ],
       messages: ['系统消息：VIP 每日宝箱可领取'],
-      entries: ['世界地图', '联盟', '背包'],
+      entries: [
+        { label: '世界地图', action_key: 'world_map' },
+        { label: '联盟', action_key: 'alliance' },
+        { label: '背包', action_key: 'assets' }
+      ],
       activity_entry: {
         title: '修行收益',
         description: '火焰山修行进行中',
         note: '剩余 1小时59分',
-        action: '查看修行'
+        action: '查看修行',
+        action_key: 'cultivation'
       },
       cultivation_summary: {
         status: 'running',
@@ -80,7 +85,8 @@ test('loadHomeDashboard should hydrate dynamic profile in api mode', async () =>
         remaining_seconds: 7140,
         reward_coins: 240,
         reward_pet_exp: 160,
-        action: '查看修行'
+        action: '查看修行',
+        action_key: 'cultivation'
       }
     })
   }
@@ -96,16 +102,23 @@ test('loadHomeDashboard should hydrate dynamic profile in api mode', async () =>
   expect(result.dailyTodos[0]).toEqual({
     title: '签到状态',
     value: '今日已签',
-    action: '查看奖励'
+    action: '查看奖励',
+    actionKey: 'signin'
   })
   expect(result.resources.find((item) => item.label === '等级')?.value).toBe('Lv.7')
   expect(result.resources.find((item) => item.label === '战力')?.value).toBe('1,680')
   expect(result.resourceIcons.find((item) => item.label === '铜钱')?.value).toBe('1,280')
   expect(result.messages).toEqual(['系统消息：VIP 每日宝箱可领取'])
-  expect(result.entries).toEqual(['世界地图', '联盟', '背包'])
+  expect(result.entries).toEqual([
+    { label: '世界地图', actionKey: 'world_map' },
+    { label: '联盟', actionKey: 'alliance' },
+    { label: '背包', actionKey: 'assets' }
+  ])
   expect(result.activityEntry.title).toBe('修行收益')
   expect(result.activityEntry.description).toContain('火焰山')
+  expect((result.activityEntry as any).actionKey).toBe('cultivation')
   expect(result.cultivationSummary.action).toBe('查看修行')
+  expect((result.cultivationSummary as any).actionKey).toBe('cultivation')
   expect(result.cultivationSummary.items).toEqual([
     { label: '修行地图', value: '火焰山', subtext: '进行中' },
     { label: '结束时间', value: '2026-03-23 10:00', subtext: '剩余 1小时59分' },
@@ -124,7 +137,7 @@ test('loadHomeDashboard should map idle cultivation summary to user-facing copy'
       coin: 0,
       diamond: 0,
       last_login_at: '2026-03-23T10:00:00Z',
-      daily_todos: [{ title: '签到状态', value: '今日未签', action: '前往签到' }],
+      daily_todos: [{ title: '签到状态', value: '今日未签', action: '前往签到', action_key: 'signin' }],
       resources: [
         { label: '等级', value: 'Lv.1' },
         { label: '战力', value: '450' },
@@ -138,12 +151,17 @@ test('loadHomeDashboard should map idle cultivation summary to user-facing copy'
         { label: '元宝', value: '0' }
       ],
       messages: ['修行消息：当前暂无进行中的修行'],
-      entries: ['世界地图', '联盟', '背包'],
+      entries: [
+        { label: '世界地图', action_key: 'world_map' },
+        { label: '联盟', action_key: 'alliance' },
+        { label: '背包', action_key: 'assets' }
+      ],
       activity_entry: {
         title: '签到奖励',
         description: '今日签到待领取',
         note: '前往签到',
-        action: '前往签到'
+        action: '前往签到',
+        action_key: 'signin'
       },
       cultivation_summary: {
         status: 'idle',
@@ -153,7 +171,8 @@ test('loadHomeDashboard should map idle cultivation summary to user-facing copy'
         remaining_seconds: 0,
         reward_coins: 0,
         reward_pet_exp: 0,
-        action: '前往修行'
+        action: '前往修行',
+        action_key: 'cultivation'
       }
     })
   }
@@ -164,6 +183,7 @@ test('loadHomeDashboard should map idle cultivation summary to user-facing copy'
   })
 
   expect(result.cultivationSummary.action).toBe('前往修行')
+  expect((result.cultivationSummary as any).actionKey).toBe('cultivation')
   expect(result.cultivationSummary.items).toEqual([
     { label: '修行地图', value: '青云城', subtext: '待开始' },
     { label: '结束时间', value: '未开始', subtext: '可立即开启' },

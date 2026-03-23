@@ -44,3 +44,7 @@ func (s *Service) SaveTeam(ctx context.Context, playerID int64, petIDs []int64) 
 		PetIDs:   petIDs,
 	})
 }
+
+func (s *Service) GetTeam(ctx context.Context, playerID int64) (PetTeam, error) {
+	return s.repo.GetTeam(ctx, playerID)
+}

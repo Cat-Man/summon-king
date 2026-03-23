@@ -11,6 +11,7 @@ export interface HomeDashboardTodo {
   title: string
   value: string
   action: string
+  actionKey: string
 }
 
 export interface HomeDashboardResource {
@@ -29,11 +30,18 @@ export interface HomeDashboardActivityEntry {
   description: string
   note: string
   icon: string
+  actionKey: string
 }
 
 export interface HomeDashboardCultivationSummary {
   action: string
+  actionKey: string
   items: Array<{ label: string; value: string; subtext?: string }>
+}
+
+export interface HomeDashboardEntry {
+  label: string
+  actionKey: string
 }
 
 export interface HomeDashboardData {
@@ -43,6 +51,6 @@ export interface HomeDashboardData {
   resourceIcons: HomeDashboardResourceIcon[]
   activityEntry: HomeDashboardActivityEntry
   cultivationSummary: HomeDashboardCultivationSummary
-  entries: string[]
+  entries: HomeDashboardEntry[]
   messages: string[]
 }

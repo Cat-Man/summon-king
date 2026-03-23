@@ -43,10 +43,12 @@ export function createInitialHomeDashboard(): HomeDashboardData {
       title: '',
       description: '',
       note: '',
-      icon: legacyActivityAssets.activitySparkIcon
+      icon: legacyActivityAssets.activitySparkIcon,
+      actionKey: ''
     },
     cultivationSummary: {
       action: '',
+      actionKey: '',
       items: []
     },
     entries: [],
@@ -98,6 +100,7 @@ function createApiCultivationSummary(homeIndex: HomeIndexResponse): HomeDashboar
   if (!summary?.status) {
     return {
       action: '',
+      actionKey: '',
       items: []
     }
   }
@@ -118,6 +121,7 @@ function createApiCultivationSummary(homeIndex: HomeIndexResponse): HomeDashboar
 
   return {
     action: summary.action,
+    actionKey: summary.action_key,
     items: [
       { label: '修行地图', value: summary.map_name, subtext: statusLabel },
       { label: '结束时间', value: endValue, subtext: endSubtext },
@@ -145,7 +149,12 @@ function createApiHomeDashboard(homeIndex: HomeIndexResponse): HomeDashboardData
   }
 
   if (homeIndex.daily_todos.length > 0) {
-    dashboard.dailyTodos = homeIndex.daily_todos.map((item) => ({ ...item }))
+    dashboard.dailyTodos = homeIndex.daily_todos.map((item) => ({
+      title: item.title,
+      value: item.value,
+      action: item.action,
+      actionKey: item.action_key
+    }))
   }
 
   dashboard.resources = dashboard.resources.map((item) => {
@@ -191,14 +200,19 @@ function createApiHomeDashboard(homeIndex: HomeIndexResponse): HomeDashboardData
   }
 
   if (homeIndex.entries.length > 0) {
-    dashboard.entries = [...homeIndex.entries]
+    dashboard.entries = homeIndex.entries.map((item) => ({
+      label: item.label,
+      actionKey: item.action_key
+    }))
   }
 
   if (homeIndex.activity_entry.title) {
     dashboard.activityEntry = {
-      ...dashboard.activityEntry,
-      ...homeIndex.activity_entry,
-      icon: legacyActivityAssets.activitySparkIcon
+      title: homeIndex.activity_entry.title,
+      description: homeIndex.activity_entry.description,
+      note: homeIndex.activity_entry.note,
+      icon: legacyActivityAssets.activitySparkIcon,
+      actionKey: homeIndex.activity_entry.action_key
     }
   }
   dashboard.cultivationSummary = createApiCultivationSummary(homeIndex)

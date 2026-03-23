@@ -3,6 +3,7 @@ package pet
 import (
 	"context"
 	"errors"
+	"sort"
 	"sync"
 )
 
@@ -79,13 +80,18 @@ func (r *MemoryRepository) SaveTeam(_ context.Context, team PetTeam) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.teams[team.PlayerID] = team
+	petIDs := make([]int64, len(team.PetIDs))
+	copy(petIDs, team.PetIDs)
+	r.teams[team.PlayerID] = PetTeam{
+		PlayerID: team.PlayerID,
+		PetIDs:   petIDs,
+	}
 	return nil
 }
 
 func (r *MemoryRepository) GetTeam(_ context.Context, playerID int64) (PetTeam, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
 	if team, ok := r.teams[playerID]; ok {
 		result := make([]int64, len(team.PetIDs))
@@ -93,7 +99,37 @@ func (r *MemoryRepository) GetTeam(_ context.Context, playerID int64) (PetTeam, 
 		return PetTeam{PlayerID: team.PlayerID, PetIDs: result}, nil
 	}
 
-	return PetTeam{PlayerID: playerID, PetIDs: []int64{}}, nil
+	pets := r.playerPetsLocked(playerID)
+	return PetTeam{
+		PlayerID: playerID,
+		PetIDs:   defaultTeamPetIDs(pets),
+	}, nil
+}
+
+func defaultTeamPetIDs(pets []PlayerPet) []int64 {
+	sorted := make([]PlayerPet, len(pets))
+	copy(sorted, pets)
+
+	sort.Slice(sorted, func(i, j int) bool {
+		if sorted[i].Power == sorted[j].Power {
+			return sorted[i].PetID < sorted[j].PetID
+		}
+		return sorted[i].Power > sorted[j].Power
+	})
+
+	teamSize := len(sorted)
+	if teamSize > 5 {
+		teamSize = 5
+	}
+
+	result := make([]int64, 0, teamSize)
+	for i := 0; i < teamSize; i++ {
+		if sorted[i].PetID == 0 {
+			continue
+		}
+		result = append(result, sorted[i].PetID)
+	}
+	return result
 }
 
 func (r *MemoryRepository) playerPetsLocked(playerID int64) []PlayerPet {

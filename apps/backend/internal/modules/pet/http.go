@@ -27,6 +27,7 @@ func (h *Handler) RegisterRoutes(group *gin.RouterGroup) {
 	group.GET("/catalog", h.catalog)
 	group.GET("/list", h.list)
 	group.GET("/detail", h.detail)
+	group.GET("/team", h.team)
 	group.POST("/team/save", h.saveTeam)
 }
 
@@ -105,6 +106,21 @@ func (h *Handler) saveTeam(c *gin.Context) {
 	}
 
 	c.JSON(stdhttp.StatusOK, httpx.Success(gin.H{"saved": true}, middleware.GetTraceID(c)))
+}
+
+func (h *Handler) team(c *gin.Context) {
+	playerID, ok := parsePlayerID(c)
+	if !ok {
+		return
+	}
+
+	team, err := h.service.GetTeam(c.Request.Context(), playerID)
+	if err != nil {
+		c.JSON(stdhttp.StatusInternalServerError, httpx.Error(5006, "failed to fetch pet team", middleware.GetTraceID(c)))
+		return
+	}
+
+	c.JSON(stdhttp.StatusOK, httpx.Success(team, middleware.GetTraceID(c)))
 }
 
 func parsePlayerID(c *gin.Context) (int64, bool) {

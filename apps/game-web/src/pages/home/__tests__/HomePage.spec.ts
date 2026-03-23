@@ -6,6 +6,14 @@ import { createMockHomeDashboard } from '@/mocks/home-dashboard'
 import { loadHomeDashboard } from '@/services/home-dashboard'
 import HomePage from '../HomePage.vue'
 
+const routerPush = vi.fn()
+
+vi.mock('vue-router', () => ({
+  useRouter: () => ({
+    push: routerPush
+  })
+}))
+
 vi.mock('@/services/home-dashboard', () => ({
   createInitialHomeDashboard: () => ({
     hero: {
@@ -30,10 +38,12 @@ vi.mock('@/services/home-dashboard', () => ({
       title: '',
       description: '',
       note: '',
-      icon: ''
+      icon: '',
+      actionKey: ''
     },
     cultivationSummary: {
       action: '',
+      actionKey: '',
       items: []
     },
     entries: [],
@@ -56,6 +66,7 @@ function mountHomePage() {
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(loadHomeDashboard).mockResolvedValue(createMockHomeDashboard())
+  routerPush.mockReset()
 })
 
 test('renders home workstation modules', async () => {
@@ -73,7 +84,7 @@ test('renders home workstation modules', async () => {
   expect(wrapper.find('[data-testid="resource-icon-铜钱"]').attributes('alt')).toContain('铜钱')
   expect(wrapper.find('[data-testid="resource-icon-元宝"]').exists()).toBe(true)
   expect(wrapper.find('[data-testid="resource-icon-元宝"]').attributes('alt')).toContain('元宝')
-  expect(wrapper.find('[data-testid="activity-entry-icon"]').exists()).toBe(true)
+  expect(wrapper.find('[data-testid="activity-entry-action"]').exists()).toBe(true)
 })
 
 test('loads guest summary asynchronously and renders dynamic profile', async () => {
@@ -101,6 +112,7 @@ test('renders cultivation summary from backend driven dashboard', async () => {
   loadedDashboard.activityEntry.note = '剩余 1小时59分'
   loadedDashboard.cultivationSummary = {
     action: '查看修行',
+    actionKey: 'cultivation',
     items: [
       { label: '修行地图', value: '火焰山', subtext: '进行中' },
       { label: '结束时间', value: '2026-03-23 10:00', subtext: '剩余 1小时59分' },
@@ -129,4 +141,72 @@ test('does not render mock guest copy before dashboard load resolves', () => {
   expect(wrapper.text()).not.toContain('游客1001')
   expect(wrapper.text()).not.toContain('今日未签')
   expect(wrapper.text()).not.toContain('世界消息：青木林地今日双倍经验已开启')
+})
+
+test('navigates to mapped page when clicking a matrix entry', async () => {
+  const loadedDashboard = createMockHomeDashboard()
+  loadedDashboard.entries = [{ label: '主线入口', actionKey: 'pet_catalog' }] as never
+  vi.mocked(loadHomeDashboard).mockResolvedValueOnce(loadedDashboard)
+
+  const wrapper = mountHomePage()
+
+  await flushPromises()
+  await wrapper.get('[data-testid="home-entry-主线入口"]').trigger('click')
+
+  expect(routerPush).toHaveBeenCalledWith({ name: 'pet-catalog' })
+})
+
+test('navigates from activity entry using action key instead of copy', async () => {
+  const loadedDashboard = createMockHomeDashboard()
+  loadedDashboard.activityEntry.title = '限时入口'
+  loadedDashboard.activityEntry.description = '不是固定文案'
+  loadedDashboard.activityEntry.note = '交给 action key'
+  ;(loadedDashboard.activityEntry as any).actionKey = 'signin'
+  vi.mocked(loadHomeDashboard).mockResolvedValueOnce(loadedDashboard)
+
+  const wrapper = mountHomePage()
+
+  await flushPromises()
+  await wrapper.get('[data-testid="activity-entry-action"]').trigger('click')
+
+  expect(routerPush).toHaveBeenCalledWith({ name: 'signin' })
+})
+
+test('navigates from daily todo card using action key instead of copy', async () => {
+  const loadedDashboard = createMockHomeDashboard()
+  loadedDashboard.dailyTodos = [
+    {
+      title: '自定义任务',
+      value: '任意描述',
+      action: '任意动作',
+      actionKey: 'dungeon_run'
+    } as never
+  ]
+  vi.mocked(loadHomeDashboard).mockResolvedValueOnce(loadedDashboard)
+
+  const wrapper = mountHomePage()
+
+  await flushPromises()
+  await wrapper.get('[data-testid="todo-action-自定义任务"]').trigger('click')
+
+  expect(routerPush).toHaveBeenCalledWith({ name: 'dungeon-run' })
+})
+
+test('navigates cultivation summary action using action key instead of copy', async () => {
+  const loadedDashboard = createMockHomeDashboard()
+  loadedDashboard.cultivationSummary = {
+    action: '自定义入口',
+    actionKey: 'cultivation',
+    items: [
+      { label: '修行地图', value: '青木林地', subtext: '进行中' }
+    ]
+  } as never
+  vi.mocked(loadHomeDashboard).mockResolvedValueOnce(loadedDashboard)
+
+  const wrapper = mountHomePage()
+
+  await flushPromises()
+  await wrapper.get('.panel-action-button').trigger('click')
+
+  expect(routerPush).toHaveBeenCalledWith({ name: 'cultivation' })
 })

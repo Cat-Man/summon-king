@@ -19,6 +19,7 @@ export interface HomeIndexResponse {
     title: string
     value: string
     action: string
+    action_key: string
   }>
   resources: Array<{
     label: string
@@ -29,12 +30,16 @@ export interface HomeIndexResponse {
     value: string
   }>
   messages: string[]
-  entries: string[]
+  entries: Array<{
+    label: string
+    action_key: string
+  }>
   activity_entry: {
     title: string
     description: string
     note: string
     action: string
+    action_key: string
   }
   cultivation_summary: {
     status: string
@@ -45,6 +50,7 @@ export interface HomeIndexResponse {
     reward_coins: number
     reward_pet_exp: number
     action: string
+    action_key: string
   }
 }
 

@@ -92,6 +92,18 @@ func TestGetHomeIndex_AggregatesDashboardBlocksAndDynamicFields(t *testing.T) {
 	if len(home.Entries) == 0 {
 		t.Fatal("expected entries to be aggregated")
 	}
+	if home.DailyTodos[0].ActionKey == "" {
+		t.Fatal("expected daily_todos action_key")
+	}
+	if home.DailyTodos[0].ActionKey != "signin" {
+		t.Fatalf("expected signin action_key, got %s", home.DailyTodos[0].ActionKey)
+	}
+	if home.Entries[0].ActionKey != "world_map" {
+		t.Fatalf("expected first entry action_key world_map, got %s", home.Entries[0].ActionKey)
+	}
+	if home.Entries[2].ActionKey != "pet_catalog" {
+		t.Fatalf("expected pet entry action_key pet_catalog, got %s", home.Entries[2].ActionKey)
+	}
 
 	if home.ActivityEntry.Title != "修行收益" {
 		t.Fatalf("expected dynamic activity title 修行收益, got %s", home.ActivityEntry.Title)
@@ -101,6 +113,9 @@ func TestGetHomeIndex_AggregatesDashboardBlocksAndDynamicFields(t *testing.T) {
 	}
 	if home.ActivityEntry.Note != "剩余 1小时30分" {
 		t.Fatalf("expected dynamic activity note 剩余 1小时30分, got %s", home.ActivityEntry.Note)
+	}
+	if home.ActivityEntry.ActionKey != "cultivation" {
+		t.Fatalf("expected dynamic activity action_key cultivation, got %s", home.ActivityEntry.ActionKey)
 	}
 
 	if home.CultivationSummary.Status != "running" {
@@ -123,6 +138,9 @@ func TestGetHomeIndex_AggregatesDashboardBlocksAndDynamicFields(t *testing.T) {
 	}
 	if home.CultivationSummary.Action != "查看修行" {
 		t.Fatalf("expected cultivation_summary action 查看修行, got %s", home.CultivationSummary.Action)
+	}
+	if home.CultivationSummary.ActionKey != "cultivation" {
+		t.Fatalf("expected cultivation_summary action_key cultivation, got %s", home.CultivationSummary.ActionKey)
 	}
 	if home.CultivationSummary.RemainingSeconds != 5400 {
 		t.Fatalf("expected cultivation_summary remaining_seconds 5400, got %d", home.CultivationSummary.RemainingSeconds)
@@ -205,8 +223,14 @@ func TestGetHomeIndex_CultivationStatusUsesTimeWindow(t *testing.T) {
 	if home.CultivationSummary.Action != "领取收益" {
 		t.Fatalf("expected action 领取收益, got %s", home.CultivationSummary.Action)
 	}
+	if home.CultivationSummary.ActionKey != "cultivation" {
+		t.Fatalf("expected action_key cultivation, got %s", home.CultivationSummary.ActionKey)
+	}
 	if home.ActivityEntry.Title != "修行收益" {
 		t.Fatalf("expected activity to prioritize cultivation, got %s", home.ActivityEntry.Title)
+	}
+	if home.ActivityEntry.ActionKey != "cultivation" {
+		t.Fatalf("expected activity action_key cultivation, got %s", home.ActivityEntry.ActionKey)
 	}
 }
 
@@ -245,6 +269,9 @@ func TestGetHomeIndex_ActivityEntryFallsBackToSigninWhenNoCultivation(t *testing
 	}
 	if home.ActivityEntry.Title != "签到奖励" {
 		t.Fatalf("expected signin fallback activity title 签到奖励, got %s", home.ActivityEntry.Title)
+	}
+	if home.ActivityEntry.ActionKey != "signin" {
+		t.Fatalf("expected signin fallback activity action_key signin, got %s", home.ActivityEntry.ActionKey)
 	}
 }
 
