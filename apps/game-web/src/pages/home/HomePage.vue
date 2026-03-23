@@ -1,61 +1,49 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
+
 import UiChipGroup from '@/components/ui/UiChipGroup.vue'
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
 import UiStatGrid from '@/components/ui/UiStatGrid.vue'
 
-import { legacyActivityAssets, legacyResourceIconMap, legacyUiAssets } from '@/assets/legacy'
+import { legacyUiAssets } from '@/assets/legacy'
+import { runtimeConfig } from '@/config/runtime'
+import { createMockHomeDashboard } from '@/mocks/home-dashboard'
+import { loadHomeDashboard } from '@/services/home-dashboard'
+import { useSessionStore } from '@/stores/session'
 
-const dailyTodos = [
-  { title: '签到状态', value: '今日未签', action: '前往签到' },
-  { title: '当前修行状态', value: '还有 18 分钟可领取', action: '查看修行' },
-  { title: '当前推荐副本', value: '青木林地 · Boss 可挑战', action: '进入副本' }
-]
+const sessionStore = useSessionStore()
+const dashboard = ref(createMockHomeDashboard())
+const loadError = ref('')
 
-const resources = [
-  { label: '等级', value: 'Lv.36' },
-  { label: '战力', value: '18,620' },
-  { label: '活力', value: '86 / 120' },
-  { label: '铜钱', value: '286,400' },
-  { label: '元宝', value: '1,280' },
-  { label: '声望', value: '540' }
-]
-
-const resourceIcons = [
-  { label: '铜钱', value: '286,400', icon: legacyResourceIconMap['铜钱'] },
-  { label: '元宝', value: '1,280', icon: legacyResourceIconMap['元宝'] }
-]
-
-const activityEntry = {
-  title: '今日活动',
-  description: '夺宝双倍',
-  note: '21:00 开始',
-  icon: legacyActivityAssets.activitySparkIcon
-}
-
-const entries = ['世界地图', '联盟', '幻兽', '背包', '竞技场', '庄园', '修行', '排行']
-
-const messages = [
-  '世界消息：青木林地今日双倍经验已开启',
-  '联盟消息：今晚 20:00 盟战锁定名单',
-  '系统消息：VIP 每日宝箱可领取'
-]
+onMounted(async () => {
+  try {
+    dashboard.value = await loadHomeDashboard({
+      dataSource: runtimeConfig.gameDataSource,
+      sessionStore
+    })
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : '首页加载失败'
+  }
+})
 </script>
 
 <template>
   <section class="home-page">
     <UiPageHero
-      eyebrow="今日工作台"
-      title="召唤之王"
-      description="第一屏直接告诉玩家今天能做什么、有哪些收益可领、当前主推进目标是什么。"
-      tone="navy"
-      meta-label="收益聚合"
-      meta-value="3 项待处理"
+      :eyebrow="dashboard.hero.eyebrow"
+      :title="dashboard.hero.title"
+      :description="dashboard.hero.description"
+      :tone="dashboard.hero.tone"
+      :meta-label="dashboard.hero.metaLabel"
+      :meta-value="dashboard.hero.metaValue"
     />
+
+    <p v-if="loadError" class="error-banner">{{ loadError }}</p>
 
     <UiPanelCard title="每日必做">
       <div class="todo-list">
-        <article v-for="item in dailyTodos" :key="item.title" class="todo-item">
+        <article v-for="item in dashboard.dailyTodos" :key="item.title" class="todo-item">
           <strong>{{ item.title }}</strong>
           <span>{{ item.value }}</span>
           <em>{{ item.action }}</em>
@@ -64,7 +52,7 @@ const messages = [
     </UiPanelCard>
 
     <section class="resource-strip">
-      <article v-for="res in resourceIcons" :key="res.label" class="resource-chip">
+      <article v-for="res in dashboard.resourceIcons" :key="res.label" class="resource-chip">
         <img :src="res.icon" :alt="`${res.label}图标`" :data-testid="`resource-icon-${res.label}`" />
         <div>
           <strong>{{ res.label }}</strong>
@@ -72,28 +60,28 @@ const messages = [
         </div>
       </article>
       <article class="activity-entry" data-testid="activity-entry-icon" :style="{ backgroundImage: `url(${legacyUiAssets.sectionTitleBg})` }">
-        <img :src="activityEntry.icon" alt="活动入口图标" />
+        <img :src="dashboard.activityEntry.icon" alt="活动入口图标" />
         <div>
-          <strong>{{ activityEntry.title }}</strong>
-          <p>{{ activityEntry.description }}</p>
-          <small>{{ activityEntry.note }}</small>
+          <strong>{{ dashboard.activityEntry.title }}</strong>
+          <p>{{ dashboard.activityEntry.description }}</p>
+          <small>{{ dashboard.activityEntry.note }}</small>
         </div>
       </article>
     </section>
 
     <section class="content-grid">
       <UiPanelCard title="资源总览">
-        <UiStatGrid :items="resources" min-width="110px" />
+        <UiStatGrid :items="dashboard.resources" min-width="110px" />
       </UiPanelCard>
 
       <UiPanelCard title="消息流入口">
         <ul class="message-list">
-          <li v-for="item in messages" :key="item">{{ item }}</li>
+          <li v-for="item in dashboard.messages" :key="item">{{ item }}</li>
         </ul>
       </UiPanelCard>
 
       <UiPanelCard title="功能矩阵" wide>
-        <UiChipGroup :items="entries" tone="blue" min-width="100px" />
+        <UiChipGroup :items="dashboard.entries" tone="blue" min-width="100px" />
       </UiPanelCard>
     </section>
   </section>
@@ -104,6 +92,14 @@ const messages = [
   flex-direction: column;
   gap: 16px;
   color: #1f2937;
+}
+
+.error-banner {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #b91c1c;
 }
 
 .resource-strip {

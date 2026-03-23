@@ -24,3 +24,27 @@ test('unwraps backend api response data', async () => {
 
   expect(data.player_id).toBe(1001)
 })
+
+test('prefixes default api base url for relative endpoints', async () => {
+  const fetchMock = vi.fn().mockResolvedValue({
+    ok: true,
+    json: async () => ({
+      code: 0,
+      message: 'ok',
+      data: { ok: true },
+      trace_id: 'trace-2'
+    })
+  })
+  vi.stubGlobal('fetch', fetchMock)
+
+  await request<{ ok: boolean }>('/player/home/index')
+
+  expect(fetchMock).toHaveBeenCalledWith(
+    '/api/v1/player/home/index',
+    expect.objectContaining({
+      headers: expect.objectContaining({
+        'Content-Type': 'application/json'
+      })
+    })
+  )
+})

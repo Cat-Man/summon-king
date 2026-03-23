@@ -2,20 +2,13 @@ import { defineStore } from 'pinia'
 
 import { request } from '@/api/http'
 
-interface APIResponse<T> {
-  code: number
-  message: string
-  data: T
-  trace_id: string
-}
-
-interface LoginResponse {
+export interface LoginResponse {
   player_id: number
   token: string
   channel: string
 }
 
-interface HomeIndexResponse {
+export interface HomeIndexResponse {
   player_id: number
   nickname: string
   level: number
@@ -41,24 +34,35 @@ export const useSessionStore = defineStore('session', {
       this.token = token
     },
     async loginGuest(channel = 'web') {
-      const response = await request<APIResponse<LoginResponse>>('/api/v1/player/auth/login', {
+      const response = await request<LoginResponse>('/player/auth/login', {
         method: 'POST',
         body: JSON.stringify({ channel })
       })
-      this.setSession(response.data.player_id, response.data.token)
-      return response.data
+      this.setSession(response.player_id, response.token)
+      return response
+    },
+    async ensureGuestSession(channel = 'web') {
+      if (this.playerId && this.token) {
+        return {
+          player_id: this.playerId,
+          token: this.token,
+          channel
+        }
+      }
+
+      return this.loginGuest(channel)
     },
     async fetchHomeIndex() {
       if (!this.playerId) {
         throw new Error('player id is required')
       }
-      const response = await request<APIResponse<HomeIndexResponse>>(
-        `/api/v1/player/home/index?player_id=${this.playerId}`,
+      const response = await request<HomeIndexResponse>(
+        `/player/home/index?player_id=${this.playerId}`,
         {
           headers: this.token ? { Authorization: `Bearer ${this.token}` } : undefined
         }
       )
-      return response.data
+      return response
     }
   }
 })

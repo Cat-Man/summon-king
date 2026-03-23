@@ -1,52 +1,84 @@
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
+
 import UiPageHero from '@/components/ui/UiPageHero.vue'
 import UiPanelCard from '@/components/ui/UiPanelCard.vue'
 import UiStatGrid from '@/components/ui/UiStatGrid.vue'
 
-import { legacyInventoryIconMap } from '@/assets/legacy'
+import { runtimeConfig } from '@/config/runtime'
+import { createMockInventoryDashboard } from '@/mocks/inventory-dashboard'
+import {
+  loadInventoryDashboard,
+  sellInventoryItem,
+  useInventoryItem
+} from '@/services/inventory-dashboard'
+import { useSessionStore } from '@/stores/session'
 
-const wallet = [
-  { label: '铜钱', value: '286,400' },
-  { label: '元宝', value: '1,280' },
-  { label: '声望', value: '540' },
-  { label: '活力', value: '86 / 120' }
-]
+const sessionStore = useSessionStore()
+const dashboard = ref(createMockInventoryDashboard())
+const loadError = ref('')
+const operationMessage = ref('')
+const pendingItemId = ref('')
 
-const walletResources = [
-  { label: '铜钱', value: '286,400', icon: legacyInventoryIconMap['铜钱'] },
-  { label: '元宝', value: '1,280', icon: legacyInventoryIconMap['元宝'] }
-]
+onMounted(async () => {
+  try {
+    dashboard.value = await loadInventoryDashboard({
+      dataSource: runtimeConfig.gameDataSource,
+      sessionStore
+    })
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : '背包加载失败'
+  }
+})
 
-const items = [
-  { name: '中级经验丹', count: 'x12', action: '可直接喂给主力幻兽', icon: legacyInventoryIconMap['中级经验丹'] },
-  { name: '火系进化石', count: 'x6', action: '烈焰狼王升境材料', icon: legacyInventoryIconMap['火系进化石'] },
-  { name: '强化石', count: 'x48', action: '用于战骨与装备强化' },
-  { name: '召唤球碎片', count: 'x18', action: '可合成低阶召唤球' }
-]
+async function mutateInventory(action: 'use' | 'sell', itemId: string) {
+  pendingItemId.value = itemId
+  operationMessage.value = ''
+  loadError.value = ''
 
-const rules = [
-  '使用道具前先校验目标幻兽与当前玩法是否匹配',
-  '出售前需展示预计获得的铜钱并二次确认',
-  '高价值道具默认锁定，避免误操作批量出售'
-]
+  try {
+    const result =
+      action === 'use'
+        ? await useInventoryItem({
+            dataSource: runtimeConfig.gameDataSource,
+            sessionStore,
+            itemId
+          })
+        : await sellInventoryItem({
+            dataSource: runtimeConfig.gameDataSource,
+            sessionStore,
+            itemId
+          })
+
+    dashboard.value = result.dashboard
+    operationMessage.value = result.message
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : '背包操作失败'
+  } finally {
+    pendingItemId.value = ''
+  }
+}
 </script>
 
 <template>
   <section class="inventory-page">
     <UiPageHero
-      eyebrow="资源与道具管理"
-      title="背包"
-      description="把资源钱包、普通背包与资源流水入口放在同一页，方便玩家快速判断当前是否缺钱、缺材料、缺活力。"
-      tone="amber"
-      meta-label="背包容量"
-      meta-value="18 / 30"
+      :eyebrow="dashboard.hero.eyebrow"
+      :title="dashboard.hero.title"
+      :description="dashboard.hero.description"
+      :tone="dashboard.hero.tone"
+      :meta-label="dashboard.hero.metaLabel"
+      :meta-value="dashboard.hero.metaValue"
     />
+
+    <p v-if="loadError" class="error-banner">{{ loadError }}</p>
+    <p v-if="operationMessage" class="success-banner">{{ operationMessage }}</p>
 
     <section class="grid">
       <UiPanelCard title="资源钱包">
         <div class="wallet-icons">
           <article
-            v-for="res in walletResources"
+            v-for="res in dashboard.walletResources"
             :key="res.label"
             class="wallet-icon"
             :data-testid="`wallet-icon-${res.label}`"
@@ -58,13 +90,13 @@ const rules = [
             </div>
           </article>
         </div>
-        <UiStatGrid :items="wallet" tone="warm" min-width="130px" />
+        <UiStatGrid :items="dashboard.wallet" tone="warm" min-width="130px" />
       </UiPanelCard>
 
       <UiPanelCard title="普通背包">
         <div class="item-list">
           <article
-            v-for="item in items"
+            v-for="item in dashboard.items"
             :key="item.name"
             class="item-card"
             :data-testid="`inventory-item-${item.name}`"
@@ -77,13 +109,33 @@ const rules = [
               </div>
             </div>
             <p>{{ item.action }}</p>
+            <div class="item-card__actions">
+              <button
+                type="button"
+                class="action-button"
+                :data-testid="`inventory-use-${item.name}`"
+                :disabled="pendingItemId === item.itemId"
+                @click="mutateInventory('use', item.itemId)"
+              >
+                使用1个
+              </button>
+              <button
+                type="button"
+                class="action-button action-button--sell"
+                :data-testid="`inventory-sell-${item.name}`"
+                :disabled="pendingItemId === item.itemId"
+                @click="mutateInventory('sell', item.itemId)"
+              >
+                出售1个
+              </button>
+            </div>
           </article>
         </div>
       </UiPanelCard>
 
       <UiPanelCard title="使用/出售说明">
         <ul class="text-list">
-          <li v-for="rule in rules" :key="rule">{{ rule }}</li>
+          <li v-for="rule in dashboard.rules" :key="rule">{{ rule }}</li>
         </ul>
       </UiPanelCard>
 
@@ -101,6 +153,22 @@ const rules = [
   flex-direction: column;
   gap: 16px;
   color: #1f2937;
+}
+
+.error-banner {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.success-banner {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  color: #047857;
 }
 
 .grid {
@@ -124,6 +192,12 @@ const rules = [
   padding: 14px;
   border-radius: 16px;
   background: #f8fafc;
+}
+
+.item-card__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .wallet-icons {
@@ -188,6 +262,25 @@ const rules = [
   background: #fffbeb;
   color: #b45309;
   cursor: pointer;
+}
+
+.action-button {
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #dbeafe;
+  color: #1d4ed8;
+  cursor: pointer;
+}
+
+.action-button--sell {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.action-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 @media (max-width: 768px) {
