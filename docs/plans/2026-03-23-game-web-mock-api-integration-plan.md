@@ -627,3 +627,7 @@ git diff --check
 - `go test ./...` in `apps/backend` → PASS
 - `git diff --check` → PASS
 - 真实浏览器 `api` 模式 smoke 本轮未执行：本机 `8080` 已被外部服务占用，当前后端配置固定监听 `8080`
+- `pnpm --dir apps/game-web exec vitest run src/services/__tests__/inventory-dashboard.spec.ts src/pages/assets/__tests__/InventoryPage.spec.ts` → 先 FAIL（缺 `loadRecentAssetLogs` 导出与流水字段展示），补最小实现后 PASS（13 tests）
+- `pnpm --dir apps/game-web test` → PASS（24 files / 39 tests）
+- `pnpm --dir apps/game-web lint` → PASS
+- `pnpm --dir apps/game-web build` → PASS
