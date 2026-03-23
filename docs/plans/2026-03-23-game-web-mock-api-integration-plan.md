@@ -588,6 +588,7 @@ git diff --check
 - 后端 `home/index` 当前只返回基础信息，不包含“每日可领收益/消息流/主力幻兽/战力”；首页第一阶段仍是 hybrid 聚合。
 - 后端 `asset` 默认库存仍是英文领域数据；新增 DTO 映射当前只覆盖 `potion_small`、`summon_scroll` 两种默认道具，后续扩品类时必须继续补映射表。
 - `InventoryPage` 已补“预计售价展示”“二次确认弹层”“高价值道具默认锁定”前端安全层，但锁定状态目前只保存在页面会话中，刷新后会恢复默认锁定，后端尚未持久化玩家自定义锁定偏好。
+- `/api/v1/player/assets/logs` 当前返回玩家全量内存流水，尚未补分页、时间筛选与高价值审计标签，前端只展示最近列表视图。
 
 ### Execution log (2026-03-23)
 
@@ -617,3 +618,12 @@ git diff --check
 - `pnpm --dir apps/game-web test` → PASS（24 files / 36 tests）
 - `pnpm --dir apps/game-web lint` → PASS
 - `pnpm --dir apps/game-web build` → PASS
+- `go test ./internal/modules/asset -run TestHandler_LogsReturnsResourceChangeEntries -v` → 先 FAIL（`404`），补 `/api/v1/player/assets/logs` 后 PASS
+- `go test ./internal/modules/asset` → PASS
+- `pnpm --dir apps/game-web exec vitest run src/services/__tests__/inventory-dashboard.spec.ts src/pages/assets/__tests__/InventoryPage.spec.ts` → 先 FAIL（缺 `loadInventoryLogs` 与页面入口），补服务与页面后 PASS（12 tests）
+- `pnpm --dir apps/game-web test` → PASS（24 files / 38 tests）
+- `pnpm --dir apps/game-web lint` → PASS
+- `pnpm --dir apps/game-web build` → PASS
+- `go test ./...` in `apps/backend` → PASS
+- `git diff --check` → PASS
+- 真实浏览器 `api` 模式 smoke 本轮未执行：本机 `8080` 已被外部服务占用，当前后端配置固定监听 `8080`

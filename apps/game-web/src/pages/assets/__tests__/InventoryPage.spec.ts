@@ -101,3 +101,18 @@ test('confirming sell updates wallet and removes sold item', async () => {
   expect(wrapper.find('[data-testid="inventory-item-召唤卷轴"]').exists()).toBe(false)
   expect(wrapper.text()).toContain('已出售')
 })
+
+test('clicking recent logs loads and renders asset change history', async () => {
+  const wrapper = mountInventoryPage()
+
+  await flushPromises()
+  await wrapper.get('[data-testid="view-inventory-logs"]').trigger('click')
+  await flushPromises()
+
+  expect(wrapper.text()).toContain('最近流水')
+  expect(wrapper.text()).toContain('出售召唤卷轴')
+  expect(wrapper.text()).toContain('出售道具')
+  expect(wrapper.text()).toContain('原因：inventory_sell')
+  expect(wrapper.text()).toContain('+50 铜钱')
+  expect(wrapper.text()).toContain('元宝 +0')
+})

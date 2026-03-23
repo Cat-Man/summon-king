@@ -9,10 +9,14 @@ import { runtimeConfig } from '@/config/runtime'
 import { createMockInventoryDashboard } from '@/mocks/inventory-dashboard'
 import {
   loadInventoryDashboard,
+  loadInventoryLogs,
   sellInventoryItem,
   useInventoryItem
 } from '@/services/inventory-dashboard'
-import type { InventoryItemCard } from '@/services/inventory-dashboard.types'
+import type {
+  InventoryItemCard,
+  InventoryLogEntry
+} from '@/services/inventory-dashboard.types'
 import { useSessionStore } from '@/stores/session'
 
 const sessionStore = useSessionStore()
@@ -22,6 +26,10 @@ const operationMessage = ref('')
 const pendingItemId = ref('')
 const unlockedHighValueItemIds = ref<string[]>([])
 const pendingSellItemId = ref('')
+const inventoryLogs = ref<InventoryLogEntry[]>([])
+const logsVisible = ref(false)
+const logsLoading = ref(false)
+const logsError = ref('')
 
 onMounted(async () => {
   try {
@@ -55,6 +63,9 @@ async function mutateInventory(action: 'use' | 'sell', itemId: string) {
 
     dashboard.value = result.dashboard
     operationMessage.value = result.message
+    if (logsVisible.value) {
+      await refreshInventoryLogs()
+    }
   } catch (error) {
     loadError.value = error instanceof Error ? error.message : '背包操作失败'
   } finally {
@@ -101,6 +112,22 @@ function getPendingSellItem() {
   return dashboard.value.items.find((item) => item.itemId === pendingSellItemId.value) ?? null
 }
 
+async function refreshInventoryLogs() {
+  logsLoading.value = true
+  logsError.value = ''
+
+  try {
+    inventoryLogs.value = await loadInventoryLogs({
+      dataSource: runtimeConfig.gameDataSource,
+      sessionStore
+    })
+  } catch (error) {
+    logsError.value = error instanceof Error ? error.message : '流水加载失败'
+  } finally {
+    logsLoading.value = false
+  }
+}
+
 async function confirmSell() {
   const pendingSellItem = getPendingSellItem()
   if (!pendingSellItem) {
@@ -109,6 +136,11 @@ async function confirmSell() {
 
   closeSellConfirmation()
   await mutateInventory('sell', pendingSellItem.itemId)
+}
+
+async function showInventoryLogs() {
+  logsVisible.value = true
+  await refreshInventoryLogs()
 }
 </script>
 
@@ -231,7 +263,24 @@ async function confirmSell() {
 
       <UiPanelCard title="资源流水入口">
         <p>后续这里直接挂接资产流水查询，可按铜钱、元宝、道具获得与消耗来源回溯最近变更。</p>
-        <button type="button" class="ghost-button">查看最近流水</button>
+        <button
+          type="button"
+          class="ghost-button"
+          data-testid="view-inventory-logs"
+          @click="showInventoryLogs"
+        >
+          查看最近流水
+        </button>
+        <p v-if="logsLoading">流水加载中...</p>
+        <p v-else-if="logsError" class="error-banner">{{ logsError }}</p>
+        <div v-else-if="logsVisible" class="log-list">
+          <h3 class="log-list__title">最近流水</h3>
+          <article v-for="log in inventoryLogs" :key="`${log.title}-${log.createdAtLabel}`" class="log-card">
+            <strong>{{ log.title }}</strong>
+            <span>{{ log.delta }}</span>
+            <small>{{ log.createdAtLabel }}</small>
+          </article>
+        </div>
       </UiPanelCard>
     </section>
   </section>
@@ -284,7 +333,8 @@ async function confirmSell() {
 }
 
 .item-list,
-.text-list {
+.text-list,
+.log-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -297,6 +347,25 @@ async function confirmSell() {
 .item-card {
   padding: 14px;
   border-radius: 16px;
+  background: #f8fafc;
+}
+
+.log-list {
+  margin-top: 12px;
+}
+
+.log-list__title {
+  margin: 0;
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.log-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 14px;
   background: #f8fafc;
 }
 

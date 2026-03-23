@@ -1,6 +1,9 @@
 import { legacyInventoryIconMap } from '@/assets/legacy'
 
-import type { InventoryDashboardData } from '@/services/inventory-dashboard.types'
+import type {
+  InventoryDashboardData,
+  InventoryLogEntry
+} from '@/services/inventory-dashboard.types'
 
 interface MockInventoryItemState {
   itemId: string
@@ -12,6 +15,15 @@ interface MockInventoryState {
   coins: number
   diamonds: number
   items: MockInventoryItemState[]
+  logs: MockResourceLogState[]
+}
+
+interface MockResourceLogState {
+  changeType: string
+  bizId: string
+  coinsDelta: number
+  diamondsDelta: number
+  createdAt: string
 }
 
 interface MockCatalogMeta {
@@ -52,6 +64,22 @@ function createInitialMockInventoryState(): MockInventoryState {
       { itemId: 'fire_evolution_stone', quantity: 6, sellPrice: 20 },
       { itemId: 'strengthen_stone', quantity: 48, sellPrice: 5 },
       { itemId: 'summon_scroll', quantity: 1, sellPrice: 50 }
+    ],
+    logs: [
+      {
+        changeType: 'grant_reward',
+        bizId: 'signin-1',
+        coinsDelta: 100,
+        diamondsDelta: 0,
+        createdAt: '2026-03-23 09:00'
+      },
+      {
+        changeType: 'inventory_sell',
+        bizId: 'summon_scroll',
+        coinsDelta: 50,
+        diamondsDelta: 0,
+        createdAt: '2026-03-23 09:05'
+      }
     ]
   }
 }
@@ -73,6 +101,13 @@ export function useMockInventoryItem(itemId: string, count = 1) {
   }
 
   item.quantity -= count
+  mockInventoryState.logs.push({
+    changeType: 'inventory_use',
+    bizId: itemId,
+    coinsDelta: 0,
+    diamondsDelta: 0,
+    createdAt: '2026-03-23 09:10'
+  })
 }
 
 export function sellMockInventoryItem(itemId: string, count = 1) {
@@ -83,6 +118,46 @@ export function sellMockInventoryItem(itemId: string, count = 1) {
 
   item.quantity -= count
   mockInventoryState.coins += item.sellPrice * count
+  mockInventoryState.logs.push({
+    changeType: 'inventory_sell',
+    bizId: itemId,
+    coinsDelta: item.sellPrice * count,
+    diamondsDelta: 0,
+    createdAt: '2026-03-23 09:15'
+  })
+}
+
+function formatMockLogTitle(changeType: string, bizId: string): string {
+  switch (changeType) {
+    case 'inventory_sell':
+      return `出售${getMockCatalogMeta(bizId).name}`
+    case 'inventory_use':
+      return `使用${getMockCatalogMeta(bizId).name}`
+    case 'grant_reward':
+      return '发放奖励'
+    default:
+      return bizId
+  }
+}
+
+function formatMockLogDelta(log: MockResourceLogState): string {
+  if (log.coinsDelta !== 0) {
+    return `${log.coinsDelta > 0 ? '+' : ''}${log.coinsDelta} 铜钱`
+  }
+  if (log.diamondsDelta !== 0) {
+    return `${log.diamondsDelta > 0 ? '+' : ''}${log.diamondsDelta} 元宝`
+  }
+  return '无货币变化'
+}
+
+export function createMockInventoryLogs(): InventoryLogEntry[] {
+  return [...mockInventoryState.logs]
+    .reverse()
+    .map((log) => ({
+      title: formatMockLogTitle(log.changeType, log.bizId),
+      delta: formatMockLogDelta(log),
+      createdAtLabel: log.createdAt
+    }))
 }
 
 export function createMockInventoryDashboard(): InventoryDashboardData {

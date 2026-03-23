@@ -3,6 +3,7 @@ package asset
 import (
 	"context"
 	"errors"
+	"sort"
 	"sync"
 	"time"
 )
@@ -16,6 +17,7 @@ var (
 type Repository interface {
 	GetWallet(ctx context.Context, playerID int64) (Wallet, error)
 	ListInventory(ctx context.Context, playerID int64) ([]InventoryItem, error)
+	ListResourceChangeLogs(ctx context.Context, playerID int64, limit int) ([]ResourceChangeLog, error)
 	GrantRewardIdempotent(ctx context.Context, grant RewardGrant, now time.Time) (GrantRewardResult, error)
 	UseInventoryItem(ctx context.Context, req InventoryOperateRequest, now time.Time) (InventoryOperateResult, error)
 	SellInventoryItem(ctx context.Context, req InventoryOperateRequest, now time.Time) (InventoryOperateResult, error)
@@ -52,6 +54,26 @@ func (r *MemoryRepository) ListInventory(_ context.Context, playerID int64) ([]I
 	result := make([]InventoryItem, 0, len(items))
 	for _, item := range items {
 		result = append(result, item)
+	}
+	return result, nil
+}
+
+func (r *MemoryRepository) ListResourceChangeLogs(_ context.Context, playerID int64, limit int) ([]ResourceChangeLog, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if limit <= 0 {
+		limit = 20
+	}
+
+	logs := r.resourceChangeLog[playerID]
+	result := make([]ResourceChangeLog, len(logs))
+	copy(result, logs)
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].CreatedAt.After(result[j].CreatedAt)
+	})
+	if len(result) > limit {
+		result = result[:limit]
 	}
 	return result, nil
 }

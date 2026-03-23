@@ -20,6 +20,7 @@ func NewHandler(service *Service) *Handler {
 func (h *Handler) RegisterRoutes(group *gin.RouterGroup) {
 	group.GET("/wallet", h.wallet)
 	group.GET("/inventory", h.inventory)
+	group.GET("/logs", h.logs)
 	group.POST("/inventory/use", h.useInventory)
 	group.POST("/inventory/sell", h.sellInventory)
 }
@@ -54,6 +55,32 @@ func (h *Handler) inventory(c *gin.Context) {
 	}
 
 	c.JSON(stdhttp.StatusOK, httpx.Success(inventory, middleware.GetTraceID(c)))
+}
+
+func (h *Handler) logs(c *gin.Context) {
+	playerID, ok := parsePlayerIDQuery(c)
+	if !ok {
+		c.JSON(stdhttp.StatusBadRequest, httpx.Error(4001, "player_id is required", middleware.GetTraceID(c)))
+		return
+	}
+
+	limit := 0
+	if rawLimit := c.Query("limit"); rawLimit != "" {
+		parsedLimit, err := strconv.Atoi(rawLimit)
+		if err != nil {
+			c.JSON(stdhttp.StatusBadRequest, httpx.Error(4005, "invalid limit", middleware.GetTraceID(c)))
+			return
+		}
+		limit = parsedLimit
+	}
+
+	logs, err := h.service.GetResourceChangeLogs(c.Request.Context(), playerID, limit)
+	if err != nil {
+		c.JSON(stdhttp.StatusInternalServerError, httpx.Error(5004, "failed to get resource logs", middleware.GetTraceID(c)))
+		return
+	}
+
+	c.JSON(stdhttp.StatusOK, httpx.Success(logs, middleware.GetTraceID(c)))
 }
 
 func (h *Handler) useInventory(c *gin.Context) {

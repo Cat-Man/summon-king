@@ -7,6 +7,7 @@ import { useSessionStore } from '@/stores/session'
 
 import {
   loadInventoryDashboard,
+  loadRecentAssetLogs,
   sellInventoryItem,
   useInventoryItem
 } from '../inventory-dashboard'
@@ -120,6 +121,88 @@ test('useInventoryItem should update mock dashboard and decrement item quantity'
 
   expect(result.message).toContain('中级经验丹')
   expect(result.dashboard.items.find((item) => item.name === '中级经验丹')?.count).toBe('x11')
+})
+
+test('loadRecentAssetLogs should return latest 5 logs in mock mode', async () => {
+  setActivePinia(createPinia())
+  const sessionStore = useSessionStore()
+
+  const result = await loadRecentAssetLogs({
+    dataSource: 'mock',
+    sessionStore,
+    limit: 5
+  })
+
+  expect(result).toHaveLength(5)
+  expect(result.map((entry) => entry.changeType)).toEqual(
+    expect.arrayContaining(['grant_reward', 'inventory_use', 'inventory_sell'])
+  )
+  expect(result.map((entry) => entry.changeTypeText)).toEqual(
+    expect.arrayContaining(['发放奖励', '使用道具', '出售道具'])
+  )
+})
+
+test('loadRecentAssetLogs should map backend resource logs for assets page', async () => {
+  setActivePinia(createPinia())
+  const sessionStore = useSessionStore()
+  sessionStore.setSession(1001, 'guest-token-1001')
+
+  const fetchMock = vi
+    .fn()
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        code: 0,
+        message: 'ok',
+        data: [
+          {
+            player_id: 1001,
+            change_type: 'grant_reward',
+            biz_id: 'signin-1',
+            coins_delta: 100,
+            diamonds_delta: 0,
+            reason: 'daily_signin',
+            created_at: '2026-03-23T09:00:00Z'
+          },
+          {
+            player_id: 1001,
+            change_type: 'inventory_sell',
+            biz_id: 'summon_scroll',
+            coins_delta: 50,
+            diamonds_delta: 0,
+            reason: 'inventory_sell',
+            created_at: '2026-03-23T09:00:01Z'
+          }
+        ],
+        trace_id: 'trace-logs-1'
+      })
+    })
+
+  vi.stubGlobal('fetch', fetchMock)
+
+  const result = await loadRecentAssetLogs({
+    dataSource: 'api',
+    sessionStore,
+    limit: 5
+  })
+
+  expect(fetchMock).toHaveBeenCalledTimes(1)
+  expect(fetchMock).toHaveBeenCalledWith(
+    '/api/v1/player/assets/logs?player_id=1001&limit=5',
+    expect.objectContaining({
+      headers: expect.objectContaining({
+        Authorization: 'Bearer guest-token-1001'
+      })
+    })
+  )
+  expect(result[0]?.changeType).toBe('inventory_sell')
+  expect(result[0]?.changeTypeText).toBe('出售道具')
+  expect(result[0]?.reason).toBe('inventory_sell')
+  expect(result[0]?.coinsDelta).toBe(50)
+  expect(result[0]?.diamondsDelta).toBe(0)
+  expect(result[0]?.title).toBe('出售召唤卷轴')
+  expect(result[0]?.delta).toBe('+50 铜钱')
+  expect(result[1]?.title).toBe('发放奖励')
 })
 
 test('sellInventoryItem should post to backend and refresh wallet and inventory dashboard', async () => {

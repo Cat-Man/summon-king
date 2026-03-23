@@ -28,10 +28,28 @@ export interface InventoryItemCard {
   icon?: string
 }
 
+export interface InventoryLogEntry {
+  title: string
+  delta: string
+  createdAtLabel: string
+}
+
 export interface InventoryDashboardData {
   hero: InventoryDashboardHero
   wallet: InventoryWalletStat[]
   walletResources: InventoryWalletResource[]
   items: InventoryItemCard[]
   rules: string[]
+}
+
+export interface InventoryLogItem {
+  id: string
+  createdAt: string
+  changeType: string
+  changeTypeText: string
+  reason: string
+  coinsDelta: number
+  diamondsDelta: number
+  title: string
+  delta: string
 }
