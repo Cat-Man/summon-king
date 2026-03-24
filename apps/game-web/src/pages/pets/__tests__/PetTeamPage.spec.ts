@@ -62,9 +62,9 @@ beforeEach(() => {
       { petId: 1, slot: '2 号位', name: '烈焰狼王', role: '主战输出', level: 'Lv.12', power: '120', icon: '/wolf.png' }
     ],
     roster: [
-      { petId: 2, name: '寒枝鹿灵', level: 'Lv.16', status: '已上阵', power: '150', icon: '/deer.png' },
-      { petId: 1, name: '烈焰狼王', level: 'Lv.12', status: '已上阵', power: '120', icon: '/wolf.png' },
-      { petId: 3, name: '雷角牛', level: 'Lv.20', status: '可替补', power: '180' }
+      { petId: 2, name: '寒枝鹿灵', role: '控制辅助', level: 'Lv.16', status: '已上阵', power: '150', icon: '/deer.png' },
+      { petId: 1, name: '烈焰狼王', role: '主战输出', level: 'Lv.12', status: '已上阵', power: '120', icon: '/wolf.png' },
+      { petId: 3, name: '雷角牛', role: '前排承伤', level: 'Lv.20', status: '可替补', power: '180' }
     ],
     strategies: ['保存阵容', '支持上下阵'],
     focus: {
@@ -92,4 +92,58 @@ test('renders team overview and saves current selection', async () => {
   await wrapper.get('[data-testid="save-team"]').trigger('click')
   expect(savePetTeamSelection).toHaveBeenCalledTimes(1)
   expect(wrapper.text()).toContain('阵容已保存')
+})
+
+test('adds a bench pet into the next empty slot and saves edited order', async () => {
+  const wrapper = mountPetTeamPage()
+
+  await flushPromises()
+
+  expect(wrapper.text()).toContain('可替补')
+
+  await wrapper.get('[data-testid="roster-action-雷角牛"]').trigger('click')
+
+  expect(wrapper.get('[data-testid="team-slot-card-3"]').text()).toContain('雷角牛')
+  expect(wrapper.get('[data-testid="roster-item-雷角牛"]').text()).toContain('已上阵')
+
+  await wrapper.get('[data-testid="save-team"]').trigger('click')
+
+  expect(savePetTeamSelection).toHaveBeenCalledWith(
+    expect.objectContaining({
+      petIds: [2, 1, 3]
+    })
+  )
+  expect(wrapper.text()).toContain('450')
+  expect(wrapper.get('[data-testid="team-member-3"]').text()).toContain('前排承伤')
+})
+
+test('removes an equipped pet back to bench', async () => {
+  const wrapper = mountPetTeamPage()
+
+  await flushPromises()
+
+  await wrapper.get('[data-testid="team-remove-2"]').trigger('click')
+
+  expect(wrapper.find('[data-testid="team-member-2"]').exists()).toBe(false)
+  expect(wrapper.get('[data-testid="roster-item-寒枝鹿灵"]').text()).toContain('可替补')
+  expect(wrapper.text()).toContain('120')
+})
+
+test('reorders current team before save', async () => {
+  const wrapper = mountPetTeamPage()
+
+  await flushPromises()
+
+  await wrapper.get('[data-testid="team-move-down-2"]').trigger('click')
+
+  expect(wrapper.get('[data-testid="team-member-1"]').text()).toContain('烈焰狼王')
+  expect(wrapper.get('[data-testid="team-member-2"]').text()).toContain('寒枝鹿灵')
+
+  await wrapper.get('[data-testid="save-team"]').trigger('click')
+
+  expect(savePetTeamSelection).toHaveBeenCalledWith(
+    expect.objectContaining({
+      petIds: [1, 2]
+    })
+  )
 })

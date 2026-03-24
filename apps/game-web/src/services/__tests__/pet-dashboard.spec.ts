@@ -166,6 +166,7 @@ test('loadPetTeamDashboard should read team and savePetTeamSelection should pers
   expect(dashboard.hero.metaValue).toBe('330')
   expect(dashboard.team.map((item) => item.petId)).toEqual([3, 2])
   expect(dashboard.roster.find((item) => item.petId === 3)?.status).toBe('已上阵')
+  expect(dashboard.roster.find((item) => item.petId === 3)?.role).toBe('前排承伤')
 
   const result = await savePetTeamSelection({
     dataSource: 'api',

@@ -11,17 +11,173 @@ import {
   loadPetTeamDashboard,
   savePetTeamSelection
 } from '@/services/pet-dashboard'
+import type { PetTeamMember } from '@/services/pet-dashboard.types'
 import { useSessionStore } from '@/stores/session'
+
+const TEAM_SLOT_COUNT = 5
 
 const sessionStore = useSessionStore()
 const dashboard = ref(createInitialPetTeamDashboard())
 const loadError = ref('')
 const operationMessage = ref('')
 const pendingSave = ref(false)
+const editableTeamPetIds = ref<Array<number | null>>(createEmptyTeamPetIds())
 
-const normalizeSlotId = (slot: string) => slot.replace(/\s+/g, '')
-const teamWithIcons = computed(() => dashboard.value.team)
-const rosterWithIcons = computed(() => dashboard.value.roster)
+function formatNumber(value: number) {
+  return new Intl.NumberFormat('en-US').format(value)
+}
+
+function parseNumberLabel(value: string) {
+  return Number(value.replace(/[^\d]/g, '')) || 0
+}
+
+function createEmptyTeamPetIds() {
+  return Array.from({ length: TEAM_SLOT_COUNT }, () => null as number | null)
+}
+
+function normalizeSlotId(slot: string) {
+  return slot.replace(/\s+/g, '')
+}
+
+function normalizeTeamPetIds(petIds: Array<number | null>) {
+  const activePetIds = petIds.filter((petId): petId is number => petId !== null)
+  return [
+    ...activePetIds,
+    ...Array.from({ length: Math.max(0, TEAM_SLOT_COUNT - activePetIds.length) }, () => null as number | null)
+  ]
+}
+
+function createBenchTeamMember(petId: number, slotIndex: number): PetTeamMember | null {
+  const rosterPet = dashboard.value.roster.find((item) => item.petId === petId)
+  if (!rosterPet) {
+    return null
+  }
+
+  return {
+    petId,
+    slot: `${slotIndex + 1} 号位`,
+    name: rosterPet.name,
+    role: rosterPet.role,
+    level: rosterPet.level,
+    power: rosterPet.power,
+    icon: rosterPet.icon
+  }
+}
+
+function createTeamSlotMember(petId: number | null, slotIndex: number): PetTeamMember | null {
+  if (!petId) {
+    return null
+  }
+
+  const currentMember = dashboard.value.team.find((item) => item.petId === petId)
+  if (currentMember) {
+    return {
+      ...currentMember,
+      slot: `${slotIndex + 1} 号位`
+    }
+  }
+
+  return createBenchTeamMember(petId, slotIndex)
+}
+
+const equippedPetIds = computed(
+  () =>
+    new Set(
+      editableTeamPetIds.value.flatMap((petId) => (petId ? [petId] : []))
+    )
+)
+
+const teamSlots = computed(() =>
+  Array.from({ length: TEAM_SLOT_COUNT }, (_, slotIndex) => ({
+    slotIndex,
+    slotLabel: `${slotIndex + 1} 号位`,
+    member: createTeamSlotMember(editableTeamPetIds.value[slotIndex] ?? null, slotIndex)
+  }))
+)
+
+const currentTeam = computed(() =>
+  teamSlots.value
+    .map((slot) => slot.member)
+    .filter((member): member is PetTeamMember => member !== null)
+)
+
+const rosterWithIcons = computed(() =>
+  dashboard.value.roster.map((item) => ({
+    ...item,
+    status: equippedPetIds.value.has(item.petId) ? '已上阵' : '可替补'
+  }))
+)
+
+const totalPower = computed(() =>
+  currentTeam.value.reduce((sum, item) => sum + parseNumberLabel(item.power), 0)
+)
+
+const averageLevel = computed(() => {
+  if (currentTeam.value.length === 0) {
+    return 0
+  }
+
+  const totalLevel = currentTeam.value.reduce((sum, item) => sum + parseNumberLabel(item.level), 0)
+  return Math.round(totalLevel / currentTeam.value.length)
+})
+
+const heroMetaValue = computed(() => formatNumber(totalPower.value))
+
+const overviewItems = computed(() => {
+  const focusMember = currentTeam.value[0] ?? rosterWithIcons.value[0]
+  const benchCount = rosterWithIcons.value.filter((item) => item.status !== '已上阵').length
+
+  return [
+    { label: '已上阵', value: `${currentTeam.value.length} / ${TEAM_SLOT_COUNT}` },
+    { label: '队伍核心', value: focusMember?.name ?? '-' },
+    { label: '平均等级', value: averageLevel.value > 0 ? `Lv.${averageLevel.value}` : '-' },
+    { label: '可替补', value: `${benchCount} 只` }
+  ]
+})
+
+const focusCard = computed(() => {
+  const focusMember = currentTeam.value[0] ?? rosterWithIcons.value[0]
+  if (!focusMember) {
+    return dashboard.value.focus
+  }
+
+  return {
+    name: focusMember.name,
+    description: `${focusMember.name}当前承担${focusMember.role}定位，建议围绕当前阵容继续补位。`,
+    nextStep: '保存阵容后可用于首页战力联动。'
+  }
+})
+
+function syncEditableTeamFromDashboard() {
+  editableTeamPetIds.value = normalizeTeamPetIds(dashboard.value.team.map((item) => item.petId))
+}
+
+function assignPetToNextSlot(petId: number) {
+  if (equippedPetIds.value.has(petId)) {
+    return
+  }
+
+  editableTeamPetIds.value = normalizeTeamPetIds([...editableTeamPetIds.value, petId])
+}
+
+function removePetFromTeam(petId: number) {
+  editableTeamPetIds.value = normalizeTeamPetIds(
+    editableTeamPetIds.value.filter((currentPetId) => currentPetId !== petId)
+  )
+}
+
+function movePet(petId: number, direction: -1 | 1) {
+  const activePetIds = editableTeamPetIds.value.filter((currentPetId): currentPetId is number => currentPetId !== null)
+  const currentIndex = activePetIds.findIndex((currentPetId) => currentPetId === petId)
+  const targetIndex = currentIndex + direction
+
+  if (currentIndex === -1 || targetIndex < 0 || targetIndex >= activePetIds.length) {
+    return
+  }
+
+  ;[activePetIds[currentIndex], activePetIds[targetIndex]] = [activePetIds[targetIndex], activePetIds[currentIndex]]
+  editableTeamPetIds.value = normalizeTeamPetIds(activePetIds)
+}
 
 onMounted(async () => {
   try {
@@ -29,6 +185,7 @@ onMounted(async () => {
       dataSource: runtimeConfig.gameDataSource,
       sessionStore
     })
+    syncEditableTeamFromDashboard()
   } catch (error) {
     loadError.value = error instanceof Error ? error.message : '阵容加载失败'
   }
@@ -43,7 +200,7 @@ async function saveCurrentTeam() {
     const result = await savePetTeamSelection({
       dataSource: runtimeConfig.gameDataSource,
       sessionStore,
-      petIds: dashboard.value.team.map((item) => item.petId)
+      petIds: editableTeamPetIds.value.flatMap((petId) => (petId ? [petId] : []))
     })
     operationMessage.value = result.message
   } catch (error) {
@@ -62,13 +219,13 @@ async function saveCurrentTeam() {
       :description="dashboard.hero.description"
       :tone="dashboard.hero.tone"
       :meta-label="dashboard.hero.metaLabel"
-      :meta-value="dashboard.hero.metaValue"
+      :meta-value="heroMetaValue"
     />
 
     <p v-if="loadError" class="error-banner">{{ loadError }}</p>
     <p v-if="operationMessage" class="success-banner">{{ operationMessage }}</p>
 
-    <UiStatGrid :items="dashboard.overview" min-width="140px" />
+    <UiStatGrid :items="overviewItems" min-width="140px" />
 
     <section class="grid">
       <UiPanelCard title="当前战斗队">
@@ -84,46 +241,96 @@ async function saveCurrentTeam() {
           </button>
         </template>
         <div class="team-list">
-          <article v-for="item in teamWithIcons" :key="item.petId" class="team-item">
-            <div
-              v-if="item.icon"
-              class="team-item__avatar-wrapper"
-              :data-testid="`team-slot-${normalizeSlotId(item.slot)}`"
-            >
-              <img :src="item.icon" :alt="`${item.name} 头像`" class="team-item__avatar" />
-            </div>
-            <div>
-              <span class="subtle">{{ item.slot }}</span>
-              <strong>{{ item.name }}</strong>
-              <p>{{ item.role }} · {{ item.level }}</p>
-            </div>
-            <span class="power">战力 {{ item.power }}</span>
+          <article
+            v-for="slot in teamSlots"
+            :key="slot.slotIndex"
+            class="team-item"
+            :data-testid="`team-slot-card-${slot.slotIndex + 1}`"
+          >
+            <template v-if="slot.member">
+              <div
+                v-if="slot.member.icon"
+                class="team-item__avatar-wrapper"
+                :data-testid="`team-slot-${normalizeSlotId(slot.member.slot)}`"
+              >
+                <img :src="slot.member.icon" :alt="`${slot.member.name} 头像`" class="team-item__avatar" />
+              </div>
+              <div class="team-item__content" :data-testid="`team-member-${slot.slotIndex + 1}`">
+                <span class="subtle">{{ slot.member.slot }}</span>
+                <strong>{{ slot.member.name }}</strong>
+                <p>{{ slot.member.role }} · {{ slot.member.level }}</p>
+              </div>
+              <span class="power">战力 {{ slot.member.power }}</span>
+              <div class="team-item__actions">
+                <button
+                  type="button"
+                  class="team-action"
+                  :data-testid="`team-remove-${slot.member.petId}`"
+                  @click="removePetFromTeam(slot.member.petId)"
+                >
+                  下阵
+                </button>
+                <button
+                  type="button"
+                  class="team-action"
+                  :data-testid="`team-move-up-${slot.member.petId}`"
+                  @click="movePet(slot.member.petId, -1)"
+                >
+                  前移
+                </button>
+                <button
+                  type="button"
+                  class="team-action"
+                  :data-testid="`team-move-down-${slot.member.petId}`"
+                  @click="movePet(slot.member.petId, 1)"
+                >
+                  后移
+                </button>
+              </div>
+            </template>
+            <template v-else>
+              <div class="team-item__empty">
+                <span class="subtle">{{ slot.slotLabel }}</span>
+                <strong>待上阵</strong>
+                <p>从幻兽栏补入当前主力队伍</p>
+              </div>
+            </template>
           </article>
         </div>
       </UiPanelCard>
 
       <UiPanelCard title="主养成目标">
         <div class="focus-card">
-          <strong>{{ dashboard.focus.name }}</strong>
-          <p>{{ dashboard.focus.description }}</p>
-          <span>{{ dashboard.focus.nextStep }}</span>
+          <strong>{{ focusCard.name }}</strong>
+          <p>{{ focusCard.description }}</p>
+          <span>{{ focusCard.nextStep }}</span>
         </div>
       </UiPanelCard>
 
       <UiPanelCard title="幻兽栏" wide>
         <div class="roster-grid">
-          <article v-for="pet in rosterWithIcons" :key="pet.petId" class="roster-item">
-            <div
-              v-if="pet.icon"
-              class="roster-item__avatar-wrapper"
-              :data-testid="`roster-item-${pet.name}`"
-            >
+          <article
+            v-for="pet in rosterWithIcons"
+            :key="pet.petId"
+            class="roster-item"
+            :data-testid="`roster-item-${pet.name}`"
+          >
+            <div v-if="pet.icon" class="roster-item__avatar-wrapper">
               <img :src="pet.icon" :alt="`${pet.name} 头像`" class="roster-item__avatar" />
             </div>
             <strong>{{ pet.name }}</strong>
             <span>{{ pet.level }}</span>
             <em>{{ pet.status }}</em>
             <small>综合战力 {{ pet.power }}</small>
+            <button
+              v-if="pet.status !== '已上阵'"
+              type="button"
+              class="roster-action"
+              :data-testid="`roster-action-${pet.name}`"
+              @click="assignPetToNextSlot(pet.petId)"
+            >
+              上阵
+            </button>
           </article>
         </div>
       </UiPanelCard>
@@ -187,6 +394,17 @@ async function saveCurrentTeam() {
   align-items: center;
 }
 
+.team-item__content,
+.team-item__empty {
+  display: grid;
+  gap: 6px;
+}
+
+.team-item__actions {
+  display: grid;
+  gap: 6px;
+}
+
 .save-button {
   border: 0;
   border-radius: 999px;
@@ -245,6 +463,26 @@ async function saveCurrentTeam() {
   font-style: normal;
   color: #1d4ed8;
   font-size: 13px;
+}
+
+.roster-action,
+.team-action {
+  width: fit-content;
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.roster-action {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.team-action {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
 @media (max-width: 768px) {

@@ -49,6 +49,7 @@ export interface PetTeamMember {
 export interface PetTeamRosterItem {
   petId: number
   name: string
+  role: string
   level: string
   status: string
   power: string

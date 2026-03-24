@@ -263,9 +263,9 @@ function createMockPetTeamDashboard(): PetTeamDashboardData {
       { petId: 1, slot: '2 号位', name: '烈焰狼王', role: '主战输出', level: 'Lv.12', power: '120', icon: legacyPetIconMap['烈焰狼王'] }
     ],
     roster: [
-      { petId: 2, name: '寒枝鹿灵', level: 'Lv.16', status: '已上阵', power: '150', icon: legacyPetIconMap['寒枝鹿灵'] },
-      { petId: 1, name: '烈焰狼王', level: 'Lv.12', status: '已上阵', power: '120', icon: legacyPetIconMap['烈焰狼王'] },
-      { petId: 3, name: '雷角牛', level: 'Lv.20', status: '可替补', power: '180' }
+      { petId: 2, name: '寒枝鹿灵', role: '控制辅助', level: 'Lv.16', status: '已上阵', power: '150', icon: legacyPetIconMap['寒枝鹿灵'] },
+      { petId: 1, name: '烈焰狼王', role: '主战输出', level: 'Lv.12', status: '已上阵', power: '120', icon: legacyPetIconMap['烈焰狼王'] },
+      { petId: 3, name: '雷角牛', role: '前排承伤', level: 'Lv.20', status: '可替补', power: '180' }
     ],
     strategies: ['保存阵容', '支持上下阵', '支持排序调位', '按综合战力筛选'],
     focus: {
@@ -456,6 +456,7 @@ function buildRoster(playerPets: PlayerPetResponseItem[], teamPetIds: number[]):
       return {
         petId: pet.pet_id,
         name: meta.displayName,
+        role: meta.role,
         level: `Lv.${pet.level}`,
         status: teamSet.has(pet.pet_id) ? '已上阵' : '可替补',
         power: formatNumber(pet.power),
