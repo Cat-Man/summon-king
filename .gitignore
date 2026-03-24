@@ -10,7 +10,6 @@ Thumbs.db
 
 # Node / Frontend
 node_modules/
-pnpm-lock.yaml
 package-lock.json
 yarn.lock
 .npm/
@@ -29,6 +28,8 @@ coverage.out
 # Build / Temp
 .tmp/
 tmp/
+output/
+.playwright-cli/
 worktrees/
 .worktrees/
 

@@ -1,0 +1,6129 @@
+{
+  "generatedAt": "2026-03-22T15:28:25",
+  "sourceRoot": "htmlgame/client",
+  "proposedTargetRoot": "apps/game-web/src/assets/legacy",
+  "scope": "png image assets only",
+  "notes": [
+    "本清单只覆盖 htmlgame/client 下的 png 素材，不包含旧版 JS/CSS/HTML 实现。",
+    "建议后续按 apps/game-web/src/assets/legacy/<category>/... 结构迁入。",
+    "item 与 bb 目录文件名多数为数值 ID，正式接入前建议与配置表/模板表做二次对齐。"
+  ],
+  "categories": [
+    {
+      "key": "head",
+      "label": "角色头像",
+      "sourceDir": "head",
+      "proposedTargetDir": "head",
+      "count": 12,
+      "totalBytes": 131407,
+      "commonSizes": [
+        "80x80"
+      ],
+      "priority": "high",
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ],
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "notes": "规格统一，适合作为角色头像与头像占位。"
+    },
+    {
+      "key": "bb",
+      "label": "幻兽头像",
+      "sourceDir": "bb",
+      "proposedTargetDir": "bb",
+      "count": 24,
+      "totalBytes": 640468,
+      "commonSizes": [
+        "120x120"
+      ],
+      "priority": "highest",
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ],
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "notes": "多为 120x120，适合作为幻兽卡面主图。"
+    },
+    {
+      "key": "item",
+      "label": "道具图标",
+      "sourceDir": "item",
+      "proposedTargetDir": "item",
+      "count": 189,
+      "totalBytes": 1217217,
+      "commonSizes": [
+        "50x50"
+      ],
+      "priority": "highest",
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ],
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "notes": "文件名为数值 ID，语义需结合后续配置表二次绑定。"
+    },
+    {
+      "key": "ui",
+      "label": "UI 碎片",
+      "sourceDir": "ui",
+      "proposedTargetDir": "ui",
+      "count": 8,
+      "totalBytes": 108265,
+      "commonSizes": [
+        "29x25",
+        "50x50",
+        "170x200"
+      ],
+      "priority": "high",
+      "recommendedPages": [
+        "首页资源条",
+        "模块标题",
+        "锁定态",
+        "小按钮/装饰"
+      ],
+      "usageTags": [
+        "ui-fragment",
+        "currency",
+        "badge",
+        "title"
+      ],
+      "notes": "适合先接入金币/银币/标题底图等轻量资源。"
+    },
+    {
+      "key": "huodong",
+      "label": "活动图标",
+      "sourceDir": "huodong",
+      "proposedTargetDir": "huodong",
+      "count": 10,
+      "totalBytes": 41404,
+      "commonSizes": [
+        "36x36",
+        "60x60",
+        "68x65"
+      ],
+      "priority": "medium_high",
+      "recommendedPages": [
+        "首页活动入口",
+        "签到",
+        "福利活动",
+        "公告入口"
+      ],
+      "usageTags": [
+        "event-icon",
+        "signin",
+        "activity"
+      ],
+      "notes": "体量小，适合作为活动入口和运营位图标。"
+    }
+  ],
+  "files": [
+    {
+      "category": "head",
+      "categoryLabel": "角色头像",
+      "source": "head/1.png",
+      "proposedTarget": "head/1.png",
+      "proposedImportPath": "@/assets/legacy/head/1.png",
+      "filename": "1.png",
+      "width": 80,
+      "height": 80,
+      "bytes": 10159,
+      "priority": "high",
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ]
+    },
+    {
+      "category": "head",
+      "categoryLabel": "角色头像",
+      "source": "head/10.png",
+      "proposedTarget": "head/10.png",
+      "proposedImportPath": "@/assets/legacy/head/10.png",
+      "filename": "10.png",
+      "width": 80,
+      "height": 80,
+      "bytes": 11634,
+      "priority": "high",
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ]
+    },
+    {
+      "category": "head",
+      "categoryLabel": "角色头像",
+      "source": "head/11.png",
+      "proposedTarget": "head/11.png",
+      "proposedImportPath": "@/assets/legacy/head/11.png",
+      "filename": "11.png",
+      "width": 80,
+      "height": 80,
+      "bytes": 9971,
+      "priority": "high",
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ]
+    },
+    {
+      "category": "head",
+      "categoryLabel": "角色头像",
+      "source": "head/12.png",
+      "proposedTarget": "head/12.png",
+      "proposedImportPath": "@/assets/legacy/head/12.png",
+      "filename": "12.png",
+      "width": 80,
+      "height": 80,
+      "bytes": 10561,
+      "priority": "high",
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ]
+    },
+    {
+      "category": "head",
+      "categoryLabel": "角色头像",
+      "source": "head/2.png",
+      "proposedTarget": "head/2.png",
+      "proposedImportPath": "@/assets/legacy/head/2.png",
+      "filename": "2.png",
+      "width": 80,
+      "height": 80,
+      "bytes": 12238,
+      "priority": "high",
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ]
+    },
+    {
+      "category": "head",
+      "categoryLabel": "角色头像",
+      "source": "head/3.png",
+      "proposedTarget": "head/3.png",
+      "proposedImportPath": "@/assets/legacy/head/3.png",
+      "filename": "3.png",
+      "width": 80,
+      "height": 80,
+      "bytes": 9823,
+      "priority": "high",
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ]
+    },
+    {
+      "category": "head",
+      "categoryLabel": "角色头像",
+      "source": "head/4.png",
+      "proposedTarget": "head/4.png",
+      "proposedImportPath": "@/assets/legacy/head/4.png",
+      "filename": "4.png",
+      "width": 80,
+      "height": 80,
+      "bytes": 10743,
+      "priority": "high",
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ]
+    },
+    {
+      "category": "head",
+      "categoryLabel": "角色头像",
+      "source": "head/5.png",
+      "proposedTarget": "head/5.png",
+      "proposedImportPath": "@/assets/legacy/head/5.png",
+      "filename": "5.png",
+      "width": 80,
+      "height": 80,
+      "bytes": 10736,
+      "priority": "high",
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ]
+    },
+    {
+      "category": "head",
+      "categoryLabel": "角色头像",
+      "source": "head/6.png",
+      "proposedTarget": "head/6.png",
+      "proposedImportPath": "@/assets/legacy/head/6.png",
+      "filename": "6.png",
+      "width": 80,
+      "height": 80,
+      "bytes": 11244,
+      "priority": "high",
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ]
+    },
+    {
+      "category": "head",
+      "categoryLabel": "角色头像",
+      "source": "head/7.png",
+      "proposedTarget": "head/7.png",
+      "proposedImportPath": "@/assets/legacy/head/7.png",
+      "filename": "7.png",
+      "width": 80,
+      "height": 80,
+      "bytes": 11355,
+      "priority": "high",
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ]
+    },
+    {
+      "category": "head",
+      "categoryLabel": "角色头像",
+      "source": "head/8.png",
+      "proposedTarget": "head/8.png",
+      "proposedImportPath": "@/assets/legacy/head/8.png",
+      "filename": "8.png",
+      "width": 80,
+      "height": 80,
+      "bytes": 12740,
+      "priority": "high",
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ]
+    },
+    {
+      "category": "head",
+      "categoryLabel": "角色头像",
+      "source": "head/9.png",
+      "proposedTarget": "head/9.png",
+      "proposedImportPath": "@/assets/legacy/head/9.png",
+      "filename": "9.png",
+      "width": 80,
+      "height": 80,
+      "bytes": 10203,
+      "priority": "high",
+      "usageTags": [
+        "avatar",
+        "role-head"
+      ],
+      "recommendedPages": [
+        "登录/创建角色",
+        "排行榜",
+        "联盟成员",
+        "聊天"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102012.png",
+      "proposedTarget": "bb/102012.png",
+      "proposedImportPath": "@/assets/legacy/bb/102012.png",
+      "filename": "102012.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 24595,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102044.png",
+      "proposedTarget": "bb/102044.png",
+      "proposedImportPath": "@/assets/legacy/bb/102044.png",
+      "filename": "102044.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 24126,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102064.png",
+      "proposedTarget": "bb/102064.png",
+      "proposedImportPath": "@/assets/legacy/bb/102064.png",
+      "filename": "102064.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 22421,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102106.png",
+      "proposedTarget": "bb/102106.png",
+      "proposedImportPath": "@/assets/legacy/bb/102106.png",
+      "filename": "102106.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 25207,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102185.png",
+      "proposedTarget": "bb/102185.png",
+      "proposedImportPath": "@/assets/legacy/bb/102185.png",
+      "filename": "102185.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 29696,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102186.png",
+      "proposedTarget": "bb/102186.png",
+      "proposedImportPath": "@/assets/legacy/bb/102186.png",
+      "filename": "102186.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 29624,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102187.png",
+      "proposedTarget": "bb/102187.png",
+      "proposedImportPath": "@/assets/legacy/bb/102187.png",
+      "filename": "102187.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 28701,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102191.png",
+      "proposedTarget": "bb/102191.png",
+      "proposedImportPath": "@/assets/legacy/bb/102191.png",
+      "filename": "102191.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 28528,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102209.png",
+      "proposedTarget": "bb/102209.png",
+      "proposedImportPath": "@/assets/legacy/bb/102209.png",
+      "filename": "102209.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 28927,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102220.png",
+      "proposedTarget": "bb/102220.png",
+      "proposedImportPath": "@/assets/legacy/bb/102220.png",
+      "filename": "102220.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 28986,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102223.png",
+      "proposedTarget": "bb/102223.png",
+      "proposedImportPath": "@/assets/legacy/bb/102223.png",
+      "filename": "102223.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 25502,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102240.png",
+      "proposedTarget": "bb/102240.png",
+      "proposedImportPath": "@/assets/legacy/bb/102240.png",
+      "filename": "102240.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 24845,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102241.png",
+      "proposedTarget": "bb/102241.png",
+      "proposedImportPath": "@/assets/legacy/bb/102241.png",
+      "filename": "102241.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 30532,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102246.png",
+      "proposedTarget": "bb/102246.png",
+      "proposedImportPath": "@/assets/legacy/bb/102246.png",
+      "filename": "102246.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 28845,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102263.png",
+      "proposedTarget": "bb/102263.png",
+      "proposedImportPath": "@/assets/legacy/bb/102263.png",
+      "filename": "102263.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 15505,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102310.png",
+      "proposedTarget": "bb/102310.png",
+      "proposedImportPath": "@/assets/legacy/bb/102310.png",
+      "filename": "102310.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 33309,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/102320.png",
+      "proposedTarget": "bb/102320.png",
+      "proposedImportPath": "@/assets/legacy/bb/102320.png",
+      "filename": "102320.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 22727,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/103334.png",
+      "proposedTarget": "bb/103334.png",
+      "proposedImportPath": "@/assets/legacy/bb/103334.png",
+      "filename": "103334.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 25998,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/103335.png",
+      "proposedTarget": "bb/103335.png",
+      "proposedImportPath": "@/assets/legacy/bb/103335.png",
+      "filename": "103335.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 26922,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/103336.png",
+      "proposedTarget": "bb/103336.png",
+      "proposedImportPath": "@/assets/legacy/bb/103336.png",
+      "filename": "103336.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 29825,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/103338.png",
+      "proposedTarget": "bb/103338.png",
+      "proposedImportPath": "@/assets/legacy/bb/103338.png",
+      "filename": "103338.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 30927,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/103339.png",
+      "proposedTarget": "bb/103339.png",
+      "proposedImportPath": "@/assets/legacy/bb/103339.png",
+      "filename": "103339.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 27514,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/103401.png",
+      "proposedTarget": "bb/103401.png",
+      "proposedImportPath": "@/assets/legacy/bb/103401.png",
+      "filename": "103401.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 21198,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "bb",
+      "categoryLabel": "幻兽头像",
+      "source": "bb/103405.png",
+      "proposedTarget": "bb/103405.png",
+      "proposedImportPath": "@/assets/legacy/bb/103405.png",
+      "filename": "103405.png",
+      "width": 120,
+      "height": 120,
+      "bytes": 26008,
+      "priority": "highest",
+      "usageTags": [
+        "pet-avatar",
+        "catalog",
+        "team",
+        "detail"
+      ],
+      "recommendedPages": [
+        "幻兽图鉴",
+        "幻兽阵容",
+        "幻兽详情",
+        "副本/Boss 展示"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1027.png",
+      "proposedTarget": "item/1027.png",
+      "proposedImportPath": "@/assets/legacy/item/1027.png",
+      "filename": "1027.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6392,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1051.png",
+      "proposedTarget": "item/1051.png",
+      "proposedImportPath": "@/assets/legacy/item/1051.png",
+      "filename": "1051.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7164,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1053.png",
+      "proposedTarget": "item/1053.png",
+      "proposedImportPath": "@/assets/legacy/item/1053.png",
+      "filename": "1053.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6138,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1099.png",
+      "proposedTarget": "item/1099.png",
+      "proposedImportPath": "@/assets/legacy/item/1099.png",
+      "filename": "1099.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6589,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1123.png",
+      "proposedTarget": "item/1123.png",
+      "proposedImportPath": "@/assets/legacy/item/1123.png",
+      "filename": "1123.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 1965,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1133.png",
+      "proposedTarget": "item/1133.png",
+      "proposedImportPath": "@/assets/legacy/item/1133.png",
+      "filename": "1133.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3226,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1137.png",
+      "proposedTarget": "item/1137.png",
+      "proposedImportPath": "@/assets/legacy/item/1137.png",
+      "filename": "1137.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3095,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1145.png",
+      "proposedTarget": "item/1145.png",
+      "proposedImportPath": "@/assets/legacy/item/1145.png",
+      "filename": "1145.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 2821,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1147.png",
+      "proposedTarget": "item/1147.png",
+      "proposedImportPath": "@/assets/legacy/item/1147.png",
+      "filename": "1147.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4630,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1181.png",
+      "proposedTarget": "item/1181.png",
+      "proposedImportPath": "@/assets/legacy/item/1181.png",
+      "filename": "1181.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 2932,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1207.png",
+      "proposedTarget": "item/1207.png",
+      "proposedImportPath": "@/assets/legacy/item/1207.png",
+      "filename": "1207.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3078,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1211.png",
+      "proposedTarget": "item/1211.png",
+      "proposedImportPath": "@/assets/legacy/item/1211.png",
+      "filename": "1211.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3988,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1217.png",
+      "proposedTarget": "item/1217.png",
+      "proposedImportPath": "@/assets/legacy/item/1217.png",
+      "filename": "1217.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3360,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1221.png",
+      "proposedTarget": "item/1221.png",
+      "proposedImportPath": "@/assets/legacy/item/1221.png",
+      "filename": "1221.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3236,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1229.png",
+      "proposedTarget": "item/1229.png",
+      "proposedImportPath": "@/assets/legacy/item/1229.png",
+      "filename": "1229.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 2989,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1231.png",
+      "proposedTarget": "item/1231.png",
+      "proposedImportPath": "@/assets/legacy/item/1231.png",
+      "filename": "1231.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4088,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1343.png",
+      "proposedTarget": "item/1343.png",
+      "proposedImportPath": "@/assets/legacy/item/1343.png",
+      "filename": "1343.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5487,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1345.png",
+      "proposedTarget": "item/1345.png",
+      "proposedImportPath": "@/assets/legacy/item/1345.png",
+      "filename": "1345.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6987,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1349.png",
+      "proposedTarget": "item/1349.png",
+      "proposedImportPath": "@/assets/legacy/item/1349.png",
+      "filename": "1349.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5836,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1353.png",
+      "proposedTarget": "item/1353.png",
+      "proposedImportPath": "@/assets/legacy/item/1353.png",
+      "filename": "1353.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3601,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1355.png",
+      "proposedTarget": "item/1355.png",
+      "proposedImportPath": "@/assets/legacy/item/1355.png",
+      "filename": "1355.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 2844,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1359.png",
+      "proposedTarget": "item/1359.png",
+      "proposedImportPath": "@/assets/legacy/item/1359.png",
+      "filename": "1359.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5989,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1363.png",
+      "proposedTarget": "item/1363.png",
+      "proposedImportPath": "@/assets/legacy/item/1363.png",
+      "filename": "1363.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3552,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1365.png",
+      "proposedTarget": "item/1365.png",
+      "proposedImportPath": "@/assets/legacy/item/1365.png",
+      "filename": "1365.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4754,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1367.png",
+      "proposedTarget": "item/1367.png",
+      "proposedImportPath": "@/assets/legacy/item/1367.png",
+      "filename": "1367.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 2220,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1369.png",
+      "proposedTarget": "item/1369.png",
+      "proposedImportPath": "@/assets/legacy/item/1369.png",
+      "filename": "1369.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 2913,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1379.png",
+      "proposedTarget": "item/1379.png",
+      "proposedImportPath": "@/assets/legacy/item/1379.png",
+      "filename": "1379.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 1710,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/142.png",
+      "proposedTarget": "item/142.png",
+      "proposedImportPath": "@/assets/legacy/item/142.png",
+      "filename": "142.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6024,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1437.png",
+      "proposedTarget": "item/1437.png",
+      "proposedImportPath": "@/assets/legacy/item/1437.png",
+      "filename": "1437.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5218,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1594.png",
+      "proposedTarget": "item/1594.png",
+      "proposedImportPath": "@/assets/legacy/item/1594.png",
+      "filename": "1594.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5226,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1612.png",
+      "proposedTarget": "item/1612.png",
+      "proposedImportPath": "@/assets/legacy/item/1612.png",
+      "filename": "1612.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3272,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1614.png",
+      "proposedTarget": "item/1614.png",
+      "proposedImportPath": "@/assets/legacy/item/1614.png",
+      "filename": "1614.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 2664,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1616.png",
+      "proposedTarget": "item/1616.png",
+      "proposedImportPath": "@/assets/legacy/item/1616.png",
+      "filename": "1616.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 2075,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1618.png",
+      "proposedTarget": "item/1618.png",
+      "proposedImportPath": "@/assets/legacy/item/1618.png",
+      "filename": "1618.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 2940,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1712.png",
+      "proposedTarget": "item/1712.png",
+      "proposedImportPath": "@/assets/legacy/item/1712.png",
+      "filename": "1712.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4863,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1714.png",
+      "proposedTarget": "item/1714.png",
+      "proposedImportPath": "@/assets/legacy/item/1714.png",
+      "filename": "1714.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7739,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1718.png",
+      "proposedTarget": "item/1718.png",
+      "proposedImportPath": "@/assets/legacy/item/1718.png",
+      "filename": "1718.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8161,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1722.png",
+      "proposedTarget": "item/1722.png",
+      "proposedImportPath": "@/assets/legacy/item/1722.png",
+      "filename": "1722.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5202,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1724.png",
+      "proposedTarget": "item/1724.png",
+      "proposedImportPath": "@/assets/legacy/item/1724.png",
+      "filename": "1724.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7476,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1726.png",
+      "proposedTarget": "item/1726.png",
+      "proposedImportPath": "@/assets/legacy/item/1726.png",
+      "filename": "1726.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6803,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1728.png",
+      "proposedTarget": "item/1728.png",
+      "proposedImportPath": "@/assets/legacy/item/1728.png",
+      "filename": "1728.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7808,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1730.png",
+      "proposedTarget": "item/1730.png",
+      "proposedImportPath": "@/assets/legacy/item/1730.png",
+      "filename": "1730.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8157,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1734.png",
+      "proposedTarget": "item/1734.png",
+      "proposedImportPath": "@/assets/legacy/item/1734.png",
+      "filename": "1734.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7894,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1738.png",
+      "proposedTarget": "item/1738.png",
+      "proposedImportPath": "@/assets/legacy/item/1738.png",
+      "filename": "1738.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6953,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1740.png",
+      "proposedTarget": "item/1740.png",
+      "proposedImportPath": "@/assets/legacy/item/1740.png",
+      "filename": "1740.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7750,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1742.png",
+      "proposedTarget": "item/1742.png",
+      "proposedImportPath": "@/assets/legacy/item/1742.png",
+      "filename": "1742.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6583,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1744.png",
+      "proposedTarget": "item/1744.png",
+      "proposedImportPath": "@/assets/legacy/item/1744.png",
+      "filename": "1744.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5584,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1746.png",
+      "proposedTarget": "item/1746.png",
+      "proposedImportPath": "@/assets/legacy/item/1746.png",
+      "filename": "1746.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8107,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1750.png",
+      "proposedTarget": "item/1750.png",
+      "proposedImportPath": "@/assets/legacy/item/1750.png",
+      "filename": "1750.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8078,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1756.png",
+      "proposedTarget": "item/1756.png",
+      "proposedImportPath": "@/assets/legacy/item/1756.png",
+      "filename": "1756.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7002,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1758.png",
+      "proposedTarget": "item/1758.png",
+      "proposedImportPath": "@/assets/legacy/item/1758.png",
+      "filename": "1758.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7209,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1760.png",
+      "proposedTarget": "item/1760.png",
+      "proposedImportPath": "@/assets/legacy/item/1760.png",
+      "filename": "1760.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8063,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1766.png",
+      "proposedTarget": "item/1766.png",
+      "proposedImportPath": "@/assets/legacy/item/1766.png",
+      "filename": "1766.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5343,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1768.png",
+      "proposedTarget": "item/1768.png",
+      "proposedImportPath": "@/assets/legacy/item/1768.png",
+      "filename": "1768.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7685,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1770.png",
+      "proposedTarget": "item/1770.png",
+      "proposedImportPath": "@/assets/legacy/item/1770.png",
+      "filename": "1770.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6805,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1774.png",
+      "proposedTarget": "item/1774.png",
+      "proposedImportPath": "@/assets/legacy/item/1774.png",
+      "filename": "1774.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8604,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1776.png",
+      "proposedTarget": "item/1776.png",
+      "proposedImportPath": "@/assets/legacy/item/1776.png",
+      "filename": "1776.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6544,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1778.png",
+      "proposedTarget": "item/1778.png",
+      "proposedImportPath": "@/assets/legacy/item/1778.png",
+      "filename": "1778.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7759,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1860.png",
+      "proposedTarget": "item/1860.png",
+      "proposedImportPath": "@/assets/legacy/item/1860.png",
+      "filename": "1860.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4502,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1864.png",
+      "proposedTarget": "item/1864.png",
+      "proposedImportPath": "@/assets/legacy/item/1864.png",
+      "filename": "1864.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5188,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1866.png",
+      "proposedTarget": "item/1866.png",
+      "proposedImportPath": "@/assets/legacy/item/1866.png",
+      "filename": "1866.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8565,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1870.png",
+      "proposedTarget": "item/1870.png",
+      "proposedImportPath": "@/assets/legacy/item/1870.png",
+      "filename": "1870.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8326,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1874.png",
+      "proposedTarget": "item/1874.png",
+      "proposedImportPath": "@/assets/legacy/item/1874.png",
+      "filename": "1874.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7055,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1876.png",
+      "proposedTarget": "item/1876.png",
+      "proposedImportPath": "@/assets/legacy/item/1876.png",
+      "filename": "1876.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7675,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1878.png",
+      "proposedTarget": "item/1878.png",
+      "proposedImportPath": "@/assets/legacy/item/1878.png",
+      "filename": "1878.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6472,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1880.png",
+      "proposedTarget": "item/1880.png",
+      "proposedImportPath": "@/assets/legacy/item/1880.png",
+      "filename": "1880.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7480,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1884.png",
+      "proposedTarget": "item/1884.png",
+      "proposedImportPath": "@/assets/legacy/item/1884.png",
+      "filename": "1884.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8245,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1888.png",
+      "proposedTarget": "item/1888.png",
+      "proposedImportPath": "@/assets/legacy/item/1888.png",
+      "filename": "1888.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7514,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1890.png",
+      "proposedTarget": "item/1890.png",
+      "proposedImportPath": "@/assets/legacy/item/1890.png",
+      "filename": "1890.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7680,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1892.png",
+      "proposedTarget": "item/1892.png",
+      "proposedImportPath": "@/assets/legacy/item/1892.png",
+      "filename": "1892.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6359,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1894.png",
+      "proposedTarget": "item/1894.png",
+      "proposedImportPath": "@/assets/legacy/item/1894.png",
+      "filename": "1894.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5964,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1898.png",
+      "proposedTarget": "item/1898.png",
+      "proposedImportPath": "@/assets/legacy/item/1898.png",
+      "filename": "1898.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6019,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1902.png",
+      "proposedTarget": "item/1902.png",
+      "proposedImportPath": "@/assets/legacy/item/1902.png",
+      "filename": "1902.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8400,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1906.png",
+      "proposedTarget": "item/1906.png",
+      "proposedImportPath": "@/assets/legacy/item/1906.png",
+      "filename": "1906.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 9759,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1910.png",
+      "proposedTarget": "item/1910.png",
+      "proposedImportPath": "@/assets/legacy/item/1910.png",
+      "filename": "1910.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8135,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1912.png",
+      "proposedTarget": "item/1912.png",
+      "proposedImportPath": "@/assets/legacy/item/1912.png",
+      "filename": "1912.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8501,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1914.png",
+      "proposedTarget": "item/1914.png",
+      "proposedImportPath": "@/assets/legacy/item/1914.png",
+      "filename": "1914.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6439,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1916.png",
+      "proposedTarget": "item/1916.png",
+      "proposedImportPath": "@/assets/legacy/item/1916.png",
+      "filename": "1916.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8434,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1920.png",
+      "proposedTarget": "item/1920.png",
+      "proposedImportPath": "@/assets/legacy/item/1920.png",
+      "filename": "1920.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7911,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1922.png",
+      "proposedTarget": "item/1922.png",
+      "proposedImportPath": "@/assets/legacy/item/1922.png",
+      "filename": "1922.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7403,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1924.png",
+      "proposedTarget": "item/1924.png",
+      "proposedImportPath": "@/assets/legacy/item/1924.png",
+      "filename": "1924.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6752,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1926.png",
+      "proposedTarget": "item/1926.png",
+      "proposedImportPath": "@/assets/legacy/item/1926.png",
+      "filename": "1926.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8605,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1932.png",
+      "proposedTarget": "item/1932.png",
+      "proposedImportPath": "@/assets/legacy/item/1932.png",
+      "filename": "1932.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7464,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1942.png",
+      "proposedTarget": "item/1942.png",
+      "proposedImportPath": "@/assets/legacy/item/1942.png",
+      "filename": "1942.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4016,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/1990.png",
+      "proposedTarget": "item/1990.png",
+      "proposedImportPath": "@/assets/legacy/item/1990.png",
+      "filename": "1990.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7158,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/290.png",
+      "proposedTarget": "item/290.png",
+      "proposedImportPath": "@/assets/legacy/item/290.png",
+      "filename": "290.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4753,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/292.png",
+      "proposedTarget": "item/292.png",
+      "proposedImportPath": "@/assets/legacy/item/292.png",
+      "filename": "292.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5512,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/294.png",
+      "proposedTarget": "item/294.png",
+      "proposedImportPath": "@/assets/legacy/item/294.png",
+      "filename": "294.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5954,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/296.png",
+      "proposedTarget": "item/296.png",
+      "proposedImportPath": "@/assets/legacy/item/296.png",
+      "filename": "296.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4906,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/298.png",
+      "proposedTarget": "item/298.png",
+      "proposedImportPath": "@/assets/legacy/item/298.png",
+      "filename": "298.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5538,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/300.png",
+      "proposedTarget": "item/300.png",
+      "proposedImportPath": "@/assets/legacy/item/300.png",
+      "filename": "300.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6585,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/302.png",
+      "proposedTarget": "item/302.png",
+      "proposedImportPath": "@/assets/legacy/item/302.png",
+      "filename": "302.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5892,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/304.png",
+      "proposedTarget": "item/304.png",
+      "proposedImportPath": "@/assets/legacy/item/304.png",
+      "filename": "304.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5148,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/306.png",
+      "proposedTarget": "item/306.png",
+      "proposedImportPath": "@/assets/legacy/item/306.png",
+      "filename": "306.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4859,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/308.png",
+      "proposedTarget": "item/308.png",
+      "proposedImportPath": "@/assets/legacy/item/308.png",
+      "filename": "308.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4635,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/310.png",
+      "proposedTarget": "item/310.png",
+      "proposedImportPath": "@/assets/legacy/item/310.png",
+      "filename": "310.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5111,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/312.png",
+      "proposedTarget": "item/312.png",
+      "proposedImportPath": "@/assets/legacy/item/312.png",
+      "filename": "312.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5119,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/314.png",
+      "proposedTarget": "item/314.png",
+      "proposedImportPath": "@/assets/legacy/item/314.png",
+      "filename": "314.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7375,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/316.png",
+      "proposedTarget": "item/316.png",
+      "proposedImportPath": "@/assets/legacy/item/316.png",
+      "filename": "316.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7146,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/318.png",
+      "proposedTarget": "item/318.png",
+      "proposedImportPath": "@/assets/legacy/item/318.png",
+      "filename": "318.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6730,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/320.png",
+      "proposedTarget": "item/320.png",
+      "proposedImportPath": "@/assets/legacy/item/320.png",
+      "filename": "320.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8902,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/386.png",
+      "proposedTarget": "item/386.png",
+      "proposedImportPath": "@/assets/legacy/item/386.png",
+      "filename": "386.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6952,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/388.png",
+      "proposedTarget": "item/388.png",
+      "proposedImportPath": "@/assets/legacy/item/388.png",
+      "filename": "388.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6590,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/390.png",
+      "proposedTarget": "item/390.png",
+      "proposedImportPath": "@/assets/legacy/item/390.png",
+      "filename": "390.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7487,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/392.png",
+      "proposedTarget": "item/392.png",
+      "proposedImportPath": "@/assets/legacy/item/392.png",
+      "filename": "392.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5830,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/394.png",
+      "proposedTarget": "item/394.png",
+      "proposedImportPath": "@/assets/legacy/item/394.png",
+      "filename": "394.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6161,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/396.png",
+      "proposedTarget": "item/396.png",
+      "proposedImportPath": "@/assets/legacy/item/396.png",
+      "filename": "396.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6500,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/398.png",
+      "proposedTarget": "item/398.png",
+      "proposedImportPath": "@/assets/legacy/item/398.png",
+      "filename": "398.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7546,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/400.png",
+      "proposedTarget": "item/400.png",
+      "proposedImportPath": "@/assets/legacy/item/400.png",
+      "filename": "400.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7433,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/402.png",
+      "proposedTarget": "item/402.png",
+      "proposedImportPath": "@/assets/legacy/item/402.png",
+      "filename": "402.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7346,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/404.png",
+      "proposedTarget": "item/404.png",
+      "proposedImportPath": "@/assets/legacy/item/404.png",
+      "filename": "404.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7468,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/406.png",
+      "proposedTarget": "item/406.png",
+      "proposedImportPath": "@/assets/legacy/item/406.png",
+      "filename": "406.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8049,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/408.png",
+      "proposedTarget": "item/408.png",
+      "proposedImportPath": "@/assets/legacy/item/408.png",
+      "filename": "408.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7203,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/410.png",
+      "proposedTarget": "item/410.png",
+      "proposedImportPath": "@/assets/legacy/item/410.png",
+      "filename": "410.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7237,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/412.png",
+      "proposedTarget": "item/412.png",
+      "proposedImportPath": "@/assets/legacy/item/412.png",
+      "filename": "412.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7957,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/414.png",
+      "proposedTarget": "item/414.png",
+      "proposedImportPath": "@/assets/legacy/item/414.png",
+      "filename": "414.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 9843,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/416.png",
+      "proposedTarget": "item/416.png",
+      "proposedImportPath": "@/assets/legacy/item/416.png",
+      "filename": "416.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8311,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/433.png",
+      "proposedTarget": "item/433.png",
+      "proposedImportPath": "@/assets/legacy/item/433.png",
+      "filename": "433.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6967,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/450.png",
+      "proposedTarget": "item/450.png",
+      "proposedImportPath": "@/assets/legacy/item/450.png",
+      "filename": "450.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7849,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/452.png",
+      "proposedTarget": "item/452.png",
+      "proposedImportPath": "@/assets/legacy/item/452.png",
+      "filename": "452.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7646,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/454.png",
+      "proposedTarget": "item/454.png",
+      "proposedImportPath": "@/assets/legacy/item/454.png",
+      "filename": "454.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7472,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/456.png",
+      "proposedTarget": "item/456.png",
+      "proposedImportPath": "@/assets/legacy/item/456.png",
+      "filename": "456.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7788,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/458.png",
+      "proposedTarget": "item/458.png",
+      "proposedImportPath": "@/assets/legacy/item/458.png",
+      "filename": "458.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6958,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/460.png",
+      "proposedTarget": "item/460.png",
+      "proposedImportPath": "@/assets/legacy/item/460.png",
+      "filename": "460.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8154,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/462.png",
+      "proposedTarget": "item/462.png",
+      "proposedImportPath": "@/assets/legacy/item/462.png",
+      "filename": "462.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7374,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/464.png",
+      "proposedTarget": "item/464.png",
+      "proposedImportPath": "@/assets/legacy/item/464.png",
+      "filename": "464.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7963,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/466.png",
+      "proposedTarget": "item/466.png",
+      "proposedImportPath": "@/assets/legacy/item/466.png",
+      "filename": "466.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6990,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/468.png",
+      "proposedTarget": "item/468.png",
+      "proposedImportPath": "@/assets/legacy/item/468.png",
+      "filename": "468.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7781,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/470.png",
+      "proposedTarget": "item/470.png",
+      "proposedImportPath": "@/assets/legacy/item/470.png",
+      "filename": "470.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7922,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/472.png",
+      "proposedTarget": "item/472.png",
+      "proposedImportPath": "@/assets/legacy/item/472.png",
+      "filename": "472.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8638,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/474.png",
+      "proposedTarget": "item/474.png",
+      "proposedImportPath": "@/assets/legacy/item/474.png",
+      "filename": "474.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7254,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/476.png",
+      "proposedTarget": "item/476.png",
+      "proposedImportPath": "@/assets/legacy/item/476.png",
+      "filename": "476.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8434,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/478.png",
+      "proposedTarget": "item/478.png",
+      "proposedImportPath": "@/assets/legacy/item/478.png",
+      "filename": "478.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8800,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/480.png",
+      "proposedTarget": "item/480.png",
+      "proposedImportPath": "@/assets/legacy/item/480.png",
+      "filename": "480.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8368,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/514.png",
+      "proposedTarget": "item/514.png",
+      "proposedImportPath": "@/assets/legacy/item/514.png",
+      "filename": "514.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7041,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/516.png",
+      "proposedTarget": "item/516.png",
+      "proposedImportPath": "@/assets/legacy/item/516.png",
+      "filename": "516.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6073,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/518.png",
+      "proposedTarget": "item/518.png",
+      "proposedImportPath": "@/assets/legacy/item/518.png",
+      "filename": "518.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7389,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/522.png",
+      "proposedTarget": "item/522.png",
+      "proposedImportPath": "@/assets/legacy/item/522.png",
+      "filename": "522.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6195,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/526.png",
+      "proposedTarget": "item/526.png",
+      "proposedImportPath": "@/assets/legacy/item/526.png",
+      "filename": "526.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7025,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/530.png",
+      "proposedTarget": "item/530.png",
+      "proposedImportPath": "@/assets/legacy/item/530.png",
+      "filename": "530.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6391,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/534.png",
+      "proposedTarget": "item/534.png",
+      "proposedImportPath": "@/assets/legacy/item/534.png",
+      "filename": "534.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5471,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/536.png",
+      "proposedTarget": "item/536.png",
+      "proposedImportPath": "@/assets/legacy/item/536.png",
+      "filename": "536.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7170,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/542.png",
+      "proposedTarget": "item/542.png",
+      "proposedImportPath": "@/assets/legacy/item/542.png",
+      "filename": "542.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7123,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/546.png",
+      "proposedTarget": "item/546.png",
+      "proposedImportPath": "@/assets/legacy/item/546.png",
+      "filename": "546.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5929,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/548.png",
+      "proposedTarget": "item/548.png",
+      "proposedImportPath": "@/assets/legacy/item/548.png",
+      "filename": "548.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6171,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/550.png",
+      "proposedTarget": "item/550.png",
+      "proposedImportPath": "@/assets/legacy/item/550.png",
+      "filename": "550.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7510,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/552.png",
+      "proposedTarget": "item/552.png",
+      "proposedImportPath": "@/assets/legacy/item/552.png",
+      "filename": "552.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7263,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/554.png",
+      "proposedTarget": "item/554.png",
+      "proposedImportPath": "@/assets/legacy/item/554.png",
+      "filename": "554.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7427,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/556.png",
+      "proposedTarget": "item/556.png",
+      "proposedImportPath": "@/assets/legacy/item/556.png",
+      "filename": "556.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7139,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/558.png",
+      "proposedTarget": "item/558.png",
+      "proposedImportPath": "@/assets/legacy/item/558.png",
+      "filename": "558.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5689,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/560.png",
+      "proposedTarget": "item/560.png",
+      "proposedImportPath": "@/assets/legacy/item/560.png",
+      "filename": "560.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6210,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/562.png",
+      "proposedTarget": "item/562.png",
+      "proposedImportPath": "@/assets/legacy/item/562.png",
+      "filename": "562.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6494,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/564.png",
+      "proposedTarget": "item/564.png",
+      "proposedImportPath": "@/assets/legacy/item/564.png",
+      "filename": "564.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6659,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/566.png",
+      "proposedTarget": "item/566.png",
+      "proposedImportPath": "@/assets/legacy/item/566.png",
+      "filename": "566.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6817,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/568.png",
+      "proposedTarget": "item/568.png",
+      "proposedImportPath": "@/assets/legacy/item/568.png",
+      "filename": "568.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6414,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/570.png",
+      "proposedTarget": "item/570.png",
+      "proposedImportPath": "@/assets/legacy/item/570.png",
+      "filename": "570.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6647,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/572.png",
+      "proposedTarget": "item/572.png",
+      "proposedImportPath": "@/assets/legacy/item/572.png",
+      "filename": "572.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6700,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/574.png",
+      "proposedTarget": "item/574.png",
+      "proposedImportPath": "@/assets/legacy/item/574.png",
+      "filename": "574.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6899,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/576.png",
+      "proposedTarget": "item/576.png",
+      "proposedImportPath": "@/assets/legacy/item/576.png",
+      "filename": "576.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7586,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/578.png",
+      "proposedTarget": "item/578.png",
+      "proposedImportPath": "@/assets/legacy/item/578.png",
+      "filename": "578.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8967,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/580.png",
+      "proposedTarget": "item/580.png",
+      "proposedImportPath": "@/assets/legacy/item/580.png",
+      "filename": "580.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7672,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/582.png",
+      "proposedTarget": "item/582.png",
+      "proposedImportPath": "@/assets/legacy/item/582.png",
+      "filename": "582.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8370,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/584.png",
+      "proposedTarget": "item/584.png",
+      "proposedImportPath": "@/assets/legacy/item/584.png",
+      "filename": "584.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8368,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/586.png",
+      "proposedTarget": "item/586.png",
+      "proposedImportPath": "@/assets/legacy/item/586.png",
+      "filename": "586.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8546,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/588.png",
+      "proposedTarget": "item/588.png",
+      "proposedImportPath": "@/assets/legacy/item/588.png",
+      "filename": "588.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7883,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/590.png",
+      "proposedTarget": "item/590.png",
+      "proposedImportPath": "@/assets/legacy/item/590.png",
+      "filename": "590.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6021,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/592.png",
+      "proposedTarget": "item/592.png",
+      "proposedImportPath": "@/assets/legacy/item/592.png",
+      "filename": "592.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6499,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/594.png",
+      "proposedTarget": "item/594.png",
+      "proposedImportPath": "@/assets/legacy/item/594.png",
+      "filename": "594.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6001,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/598.png",
+      "proposedTarget": "item/598.png",
+      "proposedImportPath": "@/assets/legacy/item/598.png",
+      "filename": "598.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6308,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/602.png",
+      "proposedTarget": "item/602.png",
+      "proposedImportPath": "@/assets/legacy/item/602.png",
+      "filename": "602.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6328,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/606.png",
+      "proposedTarget": "item/606.png",
+      "proposedImportPath": "@/assets/legacy/item/606.png",
+      "filename": "606.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5756,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/608.png",
+      "proposedTarget": "item/608.png",
+      "proposedImportPath": "@/assets/legacy/item/608.png",
+      "filename": "608.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 7390,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/614.png",
+      "proposedTarget": "item/614.png",
+      "proposedImportPath": "@/assets/legacy/item/614.png",
+      "filename": "614.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6700,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/618.png",
+      "proposedTarget": "item/618.png",
+      "proposedImportPath": "@/assets/legacy/item/618.png",
+      "filename": "618.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6593,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/620.png",
+      "proposedTarget": "item/620.png",
+      "proposedImportPath": "@/assets/legacy/item/620.png",
+      "filename": "620.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 6536,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/622.png",
+      "proposedTarget": "item/622.png",
+      "proposedImportPath": "@/assets/legacy/item/622.png",
+      "filename": "622.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8784,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/624.png",
+      "proposedTarget": "item/624.png",
+      "proposedImportPath": "@/assets/legacy/item/624.png",
+      "filename": "624.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8030,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/626.png",
+      "proposedTarget": "item/626.png",
+      "proposedImportPath": "@/assets/legacy/item/626.png",
+      "filename": "626.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8157,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/628.png",
+      "proposedTarget": "item/628.png",
+      "proposedImportPath": "@/assets/legacy/item/628.png",
+      "filename": "628.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8822,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/630.png",
+      "proposedTarget": "item/630.png",
+      "proposedImportPath": "@/assets/legacy/item/630.png",
+      "filename": "630.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 9365,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/632.png",
+      "proposedTarget": "item/632.png",
+      "proposedImportPath": "@/assets/legacy/item/632.png",
+      "filename": "632.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 8902,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/752.png",
+      "proposedTarget": "item/752.png",
+      "proposedImportPath": "@/assets/legacy/item/752.png",
+      "filename": "752.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4114,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/754.png",
+      "proposedTarget": "item/754.png",
+      "proposedImportPath": "@/assets/legacy/item/754.png",
+      "filename": "754.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3944,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/756.png",
+      "proposedTarget": "item/756.png",
+      "proposedImportPath": "@/assets/legacy/item/756.png",
+      "filename": "756.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3462,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/766.png",
+      "proposedTarget": "item/766.png",
+      "proposedImportPath": "@/assets/legacy/item/766.png",
+      "filename": "766.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3350,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/770.png",
+      "proposedTarget": "item/770.png",
+      "proposedImportPath": "@/assets/legacy/item/770.png",
+      "filename": "770.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4094,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/772.png",
+      "proposedTarget": "item/772.png",
+      "proposedImportPath": "@/assets/legacy/item/772.png",
+      "filename": "772.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 3783,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/782.png",
+      "proposedTarget": "item/782.png",
+      "proposedImportPath": "@/assets/legacy/item/782.png",
+      "filename": "782.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4209,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "item",
+      "categoryLabel": "道具图标",
+      "source": "item/784.png",
+      "proposedTarget": "item/784.png",
+      "proposedImportPath": "@/assets/legacy/item/784.png",
+      "filename": "784.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 5199,
+      "priority": "highest",
+      "usageTags": [
+        "item-icon",
+        "inventory",
+        "reward",
+        "shop"
+      ],
+      "recommendedPages": [
+        "背包",
+        "商城",
+        "签到奖励",
+        "副本奖励",
+        "VIP 礼包"
+      ]
+    },
+    {
+      "category": "ui",
+      "categoryLabel": "UI 碎片",
+      "source": "ui/bb_1.png",
+      "proposedTarget": "ui/bb_1.png",
+      "proposedImportPath": "@/assets/legacy/ui/bb_1.png",
+      "filename": "bb_1.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 2251,
+      "priority": "high",
+      "usageTags": [
+        "ui-fragment",
+        "currency",
+        "badge",
+        "title"
+      ],
+      "recommendedPages": [
+        "首页资源条",
+        "模块标题",
+        "锁定态",
+        "小按钮/装饰"
+      ]
+    },
+    {
+      "category": "ui",
+      "categoryLabel": "UI 碎片",
+      "source": "ui/bgtitle.png",
+      "proposedTarget": "ui/bgtitle.png",
+      "proposedImportPath": "@/assets/legacy/ui/bgtitle.png",
+      "filename": "bgtitle.png",
+      "width": 310,
+      "height": 30,
+      "bytes": 3099,
+      "priority": "high",
+      "usageTags": [
+        "ui-fragment",
+        "currency",
+        "badge",
+        "title"
+      ],
+      "recommendedPages": [
+        "首页资源条",
+        "模块标题",
+        "锁定态",
+        "小按钮/装饰"
+      ]
+    },
+    {
+      "category": "ui",
+      "categoryLabel": "UI 碎片",
+      "source": "ui/fu4.png",
+      "proposedTarget": "ui/fu4.png",
+      "proposedImportPath": "@/assets/legacy/ui/fu4.png",
+      "filename": "fu4.png",
+      "width": 170,
+      "height": 200,
+      "bytes": 7602,
+      "priority": "high",
+      "usageTags": [
+        "ui-fragment",
+        "currency",
+        "badge",
+        "title"
+      ],
+      "recommendedPages": [
+        "首页资源条",
+        "模块标题",
+        "锁定态",
+        "小按钮/装饰"
+      ]
+    },
+    {
+      "category": "ui",
+      "categoryLabel": "UI 碎片",
+      "source": "ui/liandan.png",
+      "proposedTarget": "ui/liandan.png",
+      "proposedImportPath": "@/assets/legacy/ui/liandan.png",
+      "filename": "liandan.png",
+      "width": 250,
+      "height": 231,
+      "bytes": 68376,
+      "priority": "high",
+      "usageTags": [
+        "ui-fragment",
+        "currency",
+        "badge",
+        "title"
+      ],
+      "recommendedPages": [
+        "首页资源条",
+        "模块标题",
+        "锁定态",
+        "小按钮/装饰"
+      ]
+    },
+    {
+      "category": "ui",
+      "categoryLabel": "UI 碎片",
+      "source": "ui/mijisuo2.png",
+      "proposedTarget": "ui/mijisuo2.png",
+      "proposedImportPath": "@/assets/legacy/ui/mijisuo2.png",
+      "filename": "mijisuo2.png",
+      "width": 50,
+      "height": 50,
+      "bytes": 4833,
+      "priority": "high",
+      "usageTags": [
+        "ui-fragment",
+        "currency",
+        "badge",
+        "title"
+      ],
+      "recommendedPages": [
+        "首页资源条",
+        "模块标题",
+        "锁定态",
+        "小按钮/装饰"
+      ]
+    },
+    {
+      "category": "ui",
+      "categoryLabel": "UI 碎片",
+      "source": "ui/minijl.png",
+      "proposedTarget": "ui/minijl.png",
+      "proposedImportPath": "@/assets/legacy/ui/minijl.png",
+      "filename": "minijl.png",
+      "width": 82,
+      "height": 82,
+      "bytes": 20295,
+      "priority": "high",
+      "usageTags": [
+        "ui-fragment",
+        "currency",
+        "badge",
+        "title"
+      ],
+      "recommendedPages": [
+        "首页资源条",
+        "模块标题",
+        "锁定态",
+        "小按钮/装饰"
+      ]
+    },
+    {
+      "category": "ui",
+      "categoryLabel": "UI 碎片",
+      "source": "ui/xx_1.png",
+      "proposedTarget": "ui/xx_1.png",
+      "proposedImportPath": "@/assets/legacy/ui/xx_1.png",
+      "filename": "xx_1.png",
+      "width": 29,
+      "height": 25,
+      "bytes": 897,
+      "priority": "high",
+      "usageTags": [
+        "ui-fragment",
+        "currency",
+        "badge",
+        "title"
+      ],
+      "recommendedPages": [
+        "首页资源条",
+        "模块标题",
+        "锁定态",
+        "小按钮/装饰"
+      ]
+    },
+    {
+      "category": "ui",
+      "categoryLabel": "UI 碎片",
+      "source": "ui/xx_2.png",
+      "proposedTarget": "ui/xx_2.png",
+      "proposedImportPath": "@/assets/legacy/ui/xx_2.png",
+      "filename": "xx_2.png",
+      "width": 29,
+      "height": 25,
+      "bytes": 912,
+      "priority": "high",
+      "usageTags": [
+        "ui-fragment",
+        "currency",
+        "badge",
+        "title"
+      ],
+      "recommendedPages": [
+        "首页资源条",
+        "模块标题",
+        "锁定态",
+        "小按钮/装饰"
+      ]
+    },
+    {
+      "category": "huodong",
+      "categoryLabel": "活动图标",
+      "source": "huodong/0C95D574.png",
+      "proposedTarget": "huodong/0C95D574.png",
+      "proposedImportPath": "@/assets/legacy/huodong/0C95D574.png",
+      "filename": "0C95D574.png",
+      "width": 68,
+      "height": 68,
+      "bytes": 5436,
+      "priority": "medium_high",
+      "usageTags": [
+        "event-icon",
+        "signin",
+        "activity"
+      ],
+      "recommendedPages": [
+        "首页活动入口",
+        "签到",
+        "福利活动",
+        "公告入口"
+      ]
+    },
+    {
+      "category": "huodong",
+      "categoryLabel": "活动图标",
+      "source": "huodong/13.png",
+      "proposedTarget": "huodong/13.png",
+      "proposedImportPath": "@/assets/legacy/huodong/13.png",
+      "filename": "13.png",
+      "width": 68,
+      "height": 65,
+      "bytes": 4449,
+      "priority": "medium_high",
+      "usageTags": [
+        "event-icon",
+        "signin",
+        "activity"
+      ],
+      "recommendedPages": [
+        "首页活动入口",
+        "签到",
+        "福利活动",
+        "公告入口"
+      ]
+    },
+    {
+      "category": "huodong",
+      "categoryLabel": "活动图标",
+      "source": "huodong/46.png",
+      "proposedTarget": "huodong/46.png",
+      "proposedImportPath": "@/assets/legacy/huodong/46.png",
+      "filename": "46.png",
+      "width": 60,
+      "height": 60,
+      "bytes": 7606,
+      "priority": "medium_high",
+      "usageTags": [
+        "event-icon",
+        "signin",
+        "activity"
+      ],
+      "recommendedPages": [
+        "首页活动入口",
+        "签到",
+        "福利活动",
+        "公告入口"
+      ]
+    },
+    {
+      "category": "huodong",
+      "categoryLabel": "活动图标",
+      "source": "huodong/60.png",
+      "proposedTarget": "huodong/60.png",
+      "proposedImportPath": "@/assets/legacy/huodong/60.png",
+      "filename": "60.png",
+      "width": 60,
+      "height": 60,
+      "bytes": 7613,
+      "priority": "medium_high",
+      "usageTags": [
+        "event-icon",
+        "signin",
+        "activity"
+      ],
+      "recommendedPages": [
+        "首页活动入口",
+        "签到",
+        "福利活动",
+        "公告入口"
+      ]
+    },
+    {
+      "category": "huodong",
+      "categoryLabel": "活动图标",
+      "source": "huodong/70.png",
+      "proposedTarget": "huodong/70.png",
+      "proposedImportPath": "@/assets/legacy/huodong/70.png",
+      "filename": "70.png",
+      "width": 60,
+      "height": 60,
+      "bytes": 6578,
+      "priority": "medium_high",
+      "usageTags": [
+        "event-icon",
+        "signin",
+        "activity"
+      ],
+      "recommendedPages": [
+        "首页活动入口",
+        "签到",
+        "福利活动",
+        "公告入口"
+      ]
+    },
+    {
+      "category": "huodong",
+      "categoryLabel": "活动图标",
+      "source": "huodong/86.png",
+      "proposedTarget": "huodong/86.png",
+      "proposedImportPath": "@/assets/legacy/huodong/86.png",
+      "filename": "86.png",
+      "width": 68,
+      "height": 66,
+      "bytes": 5482,
+      "priority": "medium_high",
+      "usageTags": [
+        "event-icon",
+        "signin",
+        "activity"
+      ],
+      "recommendedPages": [
+        "首页活动入口",
+        "签到",
+        "福利活动",
+        "公告入口"
+      ]
+    },
+    {
+      "category": "huodong",
+      "categoryLabel": "活动图标",
+      "source": "huodong/s1.png",
+      "proposedTarget": "huodong/s1.png",
+      "proposedImportPath": "@/assets/legacy/huodong/s1.png",
+      "filename": "s1.png",
+      "width": 36,
+      "height": 36,
+      "bytes": 1183,
+      "priority": "medium_high",
+      "usageTags": [
+        "event-icon",
+        "signin",
+        "activity"
+      ],
+      "recommendedPages": [
+        "首页活动入口",
+        "签到",
+        "福利活动",
+        "公告入口"
+      ]
+    },
+    {
+      "category": "huodong",
+      "categoryLabel": "活动图标",
+      "source": "huodong/s2.png",
+      "proposedTarget": "huodong/s2.png",
+      "proposedImportPath": "@/assets/legacy/huodong/s2.png",
+      "filename": "s2.png",
+      "width": 36,
+      "height": 36,
+      "bytes": 1111,
+      "priority": "medium_high",
+      "usageTags": [
+        "event-icon",
+        "signin",
+        "activity"
+      ],
+      "recommendedPages": [
+        "首页活动入口",
+        "签到",
+        "福利活动",
+        "公告入口"
+      ]
+    },
+    {
+      "category": "huodong",
+      "categoryLabel": "活动图标",
+      "source": "huodong/s3.png",
+      "proposedTarget": "huodong/s3.png",
+      "proposedImportPath": "@/assets/legacy/huodong/s3.png",
+      "filename": "s3.png",
+      "width": 36,
+      "height": 36,
+      "bytes": 947,
+      "priority": "medium_high",
+      "usageTags": [
+        "event-icon",
+        "signin",
+        "activity"
+      ],
+      "recommendedPages": [
+        "首页活动入口",
+        "签到",
+        "福利活动",
+        "公告入口"
+      ]
+    },
+    {
+      "category": "huodong",
+      "categoryLabel": "活动图标",
+      "source": "huodong/s5.png",
+      "proposedTarget": "huodong/s5.png",
+      "proposedImportPath": "@/assets/legacy/huodong/s5.png",
+      "filename": "s5.png",
+      "width": 36,
+      "height": 36,
+      "bytes": 999,
+      "priority": "medium_high",
+      "usageTags": [
+        "event-icon",
+        "signin",
+        "activity"
+      ],
+      "recommendedPages": [
+        "首页活动入口",
+        "签到",
+        "福利活动",
+        "公告入口"
+      ]
+    }
+  ]
+}

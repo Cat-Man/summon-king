@@ -1,0 +1,9 @@
+{
+  "pages": [
+    "pages/launch/index",
+    "pages/webview/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "召唤之王"
+  }
+}
