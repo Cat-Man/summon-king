@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import UiChipGroup from '@/components/ui/UiChipGroup.vue'
 import UiPageHero from '@/components/ui/UiPageHero.vue'
@@ -17,11 +18,13 @@ import { useSessionStore } from '@/stores/session'
 const TEAM_SLOT_COUNT = 5
 
 const sessionStore = useSessionStore()
+const router = useRouter()
 const dashboard = ref(createInitialPetTeamDashboard())
 const loadError = ref('')
 const operationMessage = ref('')
 const pendingSave = ref(false)
 const editableTeamPetIds = ref<Array<number | null>>(createEmptyTeamPetIds())
+const savedTeamPetIds = ref<Array<number | null>>(createEmptyTeamPetIds())
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat('en-US').format(value)
@@ -101,6 +104,10 @@ const currentTeam = computed(() =>
     .filter((member): member is PetTeamMember => member !== null)
 )
 
+const isDirty = computed(
+  () => JSON.stringify(editableTeamPetIds.value) !== JSON.stringify(savedTeamPetIds.value)
+)
+
 const rosterWithIcons = computed(() =>
   dashboard.value.roster.map((item) => ({
     ...item,
@@ -149,7 +156,14 @@ const focusCard = computed(() => {
 })
 
 function syncEditableTeamFromDashboard() {
-  editableTeamPetIds.value = normalizeTeamPetIds(dashboard.value.team.map((item) => item.petId))
+  const normalizedTeamPetIds = normalizeTeamPetIds(dashboard.value.team.map((item) => item.petId))
+  editableTeamPetIds.value = [...normalizedTeamPetIds]
+  savedTeamPetIds.value = [...normalizedTeamPetIds]
+}
+
+function clearFeedbackMessages() {
+  loadError.value = ''
+  operationMessage.value = ''
 }
 
 function assignPetToNextSlot(petId: number) {
@@ -157,10 +171,18 @@ function assignPetToNextSlot(petId: number) {
     return
   }
 
+  if (!editableTeamPetIds.value.some((currentPetId) => currentPetId === null)) {
+    loadError.value = '当前战斗队已满，请先下阵后再上阵'
+    operationMessage.value = ''
+    return
+  }
+
+  clearFeedbackMessages()
   editableTeamPetIds.value = normalizeTeamPetIds([...editableTeamPetIds.value, petId])
 }
 
 function removePetFromTeam(petId: number) {
+  clearFeedbackMessages()
   editableTeamPetIds.value = normalizeTeamPetIds(
     editableTeamPetIds.value.filter((currentPetId) => currentPetId !== petId)
   )
@@ -175,8 +197,13 @@ function movePet(petId: number, direction: -1 | 1) {
     return
   }
 
+  clearFeedbackMessages()
   ;[activePetIds[currentIndex], activePetIds[targetIndex]] = [activePetIds[targetIndex], activePetIds[currentIndex]]
   editableTeamPetIds.value = normalizeTeamPetIds(activePetIds)
+}
+
+function navigateHome() {
+  router.push({ name: 'home' })
 }
 
 onMounted(async () => {
@@ -192,16 +219,22 @@ onMounted(async () => {
 })
 
 async function saveCurrentTeam() {
+  if (pendingSave.value || !isDirty.value) {
+    return
+  }
+
   pendingSave.value = true
   operationMessage.value = ''
   loadError.value = ''
 
   try {
+    const activePetIds = editableTeamPetIds.value.flatMap((petId) => (petId ? [petId] : []))
     const result = await savePetTeamSelection({
       dataSource: runtimeConfig.gameDataSource,
       sessionStore,
-      petIds: editableTeamPetIds.value.flatMap((petId) => (petId ? [petId] : []))
+      petIds: activePetIds
     })
+    savedTeamPetIds.value = normalizeTeamPetIds(activePetIds)
     operationMessage.value = result.message
   } catch (error) {
     loadError.value = error instanceof Error ? error.message : '阵容保存失败'
@@ -223,7 +256,17 @@ async function saveCurrentTeam() {
     />
 
     <p v-if="loadError" class="error-banner">{{ loadError }}</p>
-    <p v-if="operationMessage" class="success-banner">{{ operationMessage }}</p>
+    <div v-if="operationMessage" class="success-banner">
+      <span>{{ operationMessage }}</span>
+      <button
+        type="button"
+        class="success-banner__action"
+        data-testid="return-home-after-save"
+        @click="navigateHome"
+      >
+        返回首页查看战力
+      </button>
+    </div>
 
     <UiStatGrid :items="overviewItems" min-width="140px" />
 
@@ -234,7 +277,7 @@ async function saveCurrentTeam() {
             type="button"
             class="save-button"
             data-testid="save-team"
-            :disabled="pendingSave"
+            :disabled="pendingSave || !isDirty"
             @click="saveCurrentTeam"
           >
             {{ pendingSave ? '保存中...' : '保存阵容' }}
@@ -365,6 +408,11 @@ async function saveCurrentTeam() {
 .success-banner {
   background: #ecfdf5;
   color: #047857;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .grid {
@@ -416,8 +464,18 @@ async function saveCurrentTeam() {
 }
 
 .save-button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.7;
+}
+
+.success-banner__action {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: #047857;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
 }
 
 .roster-grid {
