@@ -1,20 +1,20 @@
 import { computed, ref } from "vue"
 import { defineStore } from "pinia"
 
-type SessionSnapshot = {
+export type SessionSnapshot = {
   token: string
   playerId: number | null
   nickname: string
 }
 
-const storageKey = "zhzw-session"
+export const sessionStorageKey = "zhzw-session"
 
-function readInitialSession(): SessionSnapshot {
+export function readSessionSnapshot(): SessionSnapshot {
   if (typeof window === "undefined") {
     return { token: "", playerId: null, nickname: "" }
   }
 
-  const raw = window.sessionStorage.getItem(storageKey)
+  const raw = window.sessionStorage.getItem(sessionStorageKey)
   if (!raw) {
     return { token: "", playerId: null, nickname: "" }
   }
@@ -32,7 +32,7 @@ function readInitialSession(): SessionSnapshot {
 }
 
 export const useSessionStore = defineStore("session", () => {
-  const initial = readInitialSession()
+  const initial = readSessionSnapshot()
   const token = ref(initial.token)
   const playerId = ref<number | null>(initial.playerId)
   const nickname = ref(initial.nickname)
@@ -44,7 +44,7 @@ export const useSessionStore = defineStore("session", () => {
       return
     }
     window.sessionStorage.setItem(
-      storageKey,
+      sessionStorageKey,
       JSON.stringify({
         token: token.value,
         playerId: playerId.value,
@@ -65,7 +65,7 @@ export const useSessionStore = defineStore("session", () => {
     playerId.value = null
     nickname.value = ""
     if (typeof window !== "undefined") {
-      window.sessionStorage.removeItem(storageKey)
+      window.sessionStorage.removeItem(sessionStorageKey)
     }
   }
 

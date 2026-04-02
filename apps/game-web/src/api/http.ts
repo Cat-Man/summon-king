@@ -1,3 +1,5 @@
+import { readSessionSnapshot } from "@/stores/session"
+
 export interface APIResponse<T> {
   code: number
   message: string
@@ -31,12 +33,23 @@ function joinURL(baseURL: string, path: string) {
 export const apiBaseURL =
   (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim() || fallbackBaseURL
 
+function buildHeaders(initHeaders: RequestInit["headers"]) {
+  const headers = new Headers(initHeaders ?? {})
+  if (!headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json")
+  }
+
+  const session = readSessionSnapshot()
+  if (session.token && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${session.token}`)
+  }
+
+  return headers
+}
+
 export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(joinURL(apiBaseURL, path), {
-    headers: {
-      "Content-Type": "application/json",
-      ...(init.headers ?? {}),
-    },
+    headers: buildHeaders(init.headers),
     ...init,
   })
 

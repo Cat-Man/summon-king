@@ -5,6 +5,7 @@ import (
 
 	httpx "github.com/Cat-Man/summon-king/apps/backend/internal/infra/http"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
@@ -26,6 +27,9 @@ func NewRouter() *gin.Engine {
 		}, middleware.GetTraceID(c)))
 	})
 	api := router.Group("/api/v1")
+
+	authGroup := api.Group("/auth")
+	account.NewHandler(account.NewService(account.NewMemoryRepository())).RegisterRoutes(authGroup)
 
 	arenaGroup := api.Group("/arena")
 	registerModuleRoot(arenaGroup, "arena")

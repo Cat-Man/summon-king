@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router"
 
 import GameLayout from "@/layouts/GameLayout.vue"
 import CultivationPage from "@/pages/cultivation/CultivationPage.vue"
+import LoginPage from "@/pages/auth/LoginPage.vue"
 import DungeonRunPage from "@/pages/dungeons/DungeonRunPage.vue"
 import BonePage from "@/pages/growth/BonePage.vue"
 import ManorPage from "@/pages/growth/ManorPage.vue"
@@ -10,12 +11,19 @@ import SpiritPage from "@/pages/growth/SpiritPage.vue"
 import HomePage from "@/pages/home/HomePage.vue"
 import WorldMapPage from "@/pages/maps/WorldMapPage.vue"
 import RankingPage from "@/pages/ranking/RankingPage.vue"
+import { readSessionSnapshot } from "@/stores/session"
 import PagodaPage from "@/pages/tower/PagodaPage.vue"
 import SpiritTowerPage from "@/pages/tower/SpiritTowerPage.vue"
 
 export const router = createRouter({
   history: createWebHistory(),
   routes: [
+    {
+      path: "/login",
+      name: "login",
+      component: LoginPage,
+      meta: { public: true },
+    },
     {
       path: "/",
       component: GameLayout,
@@ -82,4 +90,25 @@ export const router = createRouter({
       ],
     },
   ],
+})
+
+router.beforeEach((to) => {
+  const session = readSessionSnapshot()
+  const isLoggedIn = Boolean(session.token && session.playerId)
+
+  if (to.meta.public) {
+    if (to.name === "login" && isLoggedIn) {
+      return { name: "home" }
+    }
+    return true
+  }
+
+  if (!isLoggedIn) {
+    return {
+      name: "login",
+      query: { redirect: to.fullPath },
+    }
+  }
+
+  return true
 })
