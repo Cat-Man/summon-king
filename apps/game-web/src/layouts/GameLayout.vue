@@ -9,9 +9,14 @@
         </div>
       </div>
 
-      <nav class="shell-nav" aria-label="主导航">
-        <RouterLink to="/home">首页</RouterLink>
-      </nav>
+      <div class="shell-nav-wrap">
+        <nav class="shell-nav" aria-label="主导航">
+          <RouterLink v-for="item in primaryNav" :key="item.to" :to="item.to">{{ item.label }}</RouterLink>
+        </nav>
+        <nav class="shell-subnav" aria-label="功能导航">
+          <RouterLink v-for="item in featureNav" :key="item.to" :to="item.to">{{ item.label }}</RouterLink>
+        </nav>
+      </div>
     </header>
 
     <main class="shell-main">
@@ -19,6 +24,25 @@
     </main>
   </div>
 </template>
+
+<script setup lang="ts">
+const primaryNav = [
+  { to: "/home", label: "首页" },
+  { to: "/map", label: "地图" },
+  { to: "/dungeon", label: "副本" },
+  { to: "/cultivation", label: "修行" },
+]
+
+const featureNav = [
+  { to: "/growth/spirit", label: "战灵" },
+  { to: "/growth/bone", label: "战骨" },
+  { to: "/growth/soul", label: "魔魂" },
+  { to: "/growth/manor", label: "庄园" },
+  { to: "/tower/pagoda", label: "通天塔" },
+  { to: "/tower/spirit", label: "战灵塔" },
+  { to: "/ranking", label: "排行榜" },
+]
+</script>
 
 <style scoped>
 :global(:root) {
@@ -100,6 +124,7 @@
 .shell-nav {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
@@ -122,6 +147,39 @@
   border-color: rgba(247, 239, 225, 0.35);
 }
 
+.shell-nav-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.shell-subnav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.shell-subnav a {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(247, 239, 225, 0.04);
+  color: rgba(247, 239, 225, 0.68);
+  font-size: 13px;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.shell-subnav a.router-link-active {
+  background: rgba(104, 171, 255, 0.16);
+  color: #e8f2ff;
+}
+
+.shell-subnav a:hover {
+  background: rgba(247, 239, 225, 0.1);
+  color: #fff8f0;
+}
+
 .shell-main {
   margin: 0 auto;
   max-width: 1180px;
@@ -135,6 +193,15 @@
   .shell-header {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .shell-nav-wrap {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .shell-subnav {
+    justify-content: flex-start;
   }
 }
 </style>
