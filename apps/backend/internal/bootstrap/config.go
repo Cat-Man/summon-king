@@ -1,25 +1,30 @@
 package bootstrap
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 )
+
+const defaultAppName = "zhzw-api"
 
 type Config struct {
 	AppName  string
 	HTTPPort int
 }
 
-func LoadConfig() Config {
+func LoadConfig() (Config, error) {
 	httpPort := 8080
 	if value := os.Getenv("HTTP_PORT"); value != "" {
-		if parsed, err := strconv.Atoi(value); err == nil && parsed > 0 {
-			httpPort = parsed
+		parsed, err := strconv.Atoi(value)
+		if err != nil || parsed <= 0 || parsed > 65535 {
+			return Config{}, fmt.Errorf("invalid HTTP_PORT: %q", value)
 		}
+		httpPort = parsed
 	}
 
 	return Config{
-		AppName:  "zhzw-api",
+		AppName:  defaultAppName,
 		HTTPPort: httpPort,
-	}
+	}, nil
 }

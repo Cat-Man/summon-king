@@ -8,6 +8,7 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/tower"
 	"github.com/gin-gonic/gin"
 )
 
@@ -21,16 +22,35 @@ func NewRouter() *gin.Engine {
 	router.GET("/healthz", func(c *gin.Context) {
 		c.JSON(stdhttp.StatusOK, httpx.Success(gin.H{
 			"status": "ok",
-			"app":    LoadConfig().AppName,
+			"app":    defaultAppName,
 		}, middleware.GetTraceID(c)))
 	})
-
 	api := router.Group("/api/v1")
 
-	arena.NewHandler(arena.NewService(arena.NewMemoryRepository())).RegisterRoutes(api.Group("/arena"))
-	dungeon.NewHandler(dungeon.NewService(dungeon.NewMemoryRepository())).RegisterRoutes(api.Group("/dungeon"))
-	growth.NewHandler(growth.NewMemoryRepository()).RegisterRoutes(api.Group("/growth"))
-	api.Group("/tower")
+	arenaGroup := api.Group("/arena")
+	registerModuleRoot(arenaGroup, "arena")
+	arena.NewHandler(arena.NewService(arena.NewMemoryRepository())).RegisterRoutes(arenaGroup)
+
+	dungeonGroup := api.Group("/dungeon")
+	registerModuleRoot(dungeonGroup, "dungeon")
+	dungeon.NewHandler(dungeon.NewService(dungeon.NewMemoryRepository())).RegisterRoutes(dungeonGroup)
+
+	growthGroup := api.Group("/growth")
+	registerModuleRoot(growthGroup, "growth")
+	growth.NewHandler(growth.NewMemoryRepository()).RegisterRoutes(growthGroup)
+
+	towerGroup := api.Group("/tower")
+	registerModuleRoot(towerGroup, "tower")
+	tower.NewHandler(tower.NewService(tower.NewMemoryRepository())).RegisterRoutes(towerGroup)
 
 	return router
+}
+
+func registerModuleRoot(group *gin.RouterGroup, module string) {
+	group.GET("", func(c *gin.Context) {
+		c.JSON(stdhttp.StatusOK, httpx.Success(gin.H{
+			"module": module,
+			"status": "ok",
+		}, middleware.GetTraceID(c)))
+	})
 }

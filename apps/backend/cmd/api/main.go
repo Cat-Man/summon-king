@@ -8,7 +8,10 @@ import (
 )
 
 func main() {
-	cfg := bootstrap.LoadConfig()
+	cfg, err := bootstrap.LoadConfig()
+	if err != nil {
+		log.Fatalf("config validation failed: %v", err)
+	}
 	router := bootstrap.NewRouter()
 	addr := fmt.Sprintf(":%d", cfg.HTTPPort)
 
