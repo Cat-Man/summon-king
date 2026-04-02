@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"time"
@@ -8,9 +9,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type contextKey string
+
 const (
-	traceContextKey = "trace_id"
-	traceIDHeader   = "X-Trace-ID"
+	traceContextKey contextKey = "trace_id"
+	traceIDHeader              = "X-Trace-ID"
 )
 
 func InjectTraceID() gin.HandlerFunc {
@@ -20,17 +23,21 @@ func InjectTraceID() gin.HandlerFunc {
 			traceID = newTraceID()
 		}
 
-		c.Set(traceContextKey, traceID)
-		c.Writer.Header().Set(traceIDHeader, traceID)
-		c.Next()
+        c.Set(string(traceContextKey), traceID)
+        c.Request = c.Request.WithContext(context.WithValue(c.Request.Context(), traceContextKey, traceID))
+        c.Writer.Header().Set(traceIDHeader, traceID)
+        c.Next()
 	}
 }
 
 func GetTraceID(c *gin.Context) string {
-	if value, ok := c.Get(traceContextKey); ok {
-		if traceID, isString := value.(string); isString {
-			return traceID
-		}
+    if traceID, _ := c.Request.Context().Value(traceContextKey).(string); traceID != "" {
+        return traceID
+    }
+    if value, ok := c.Get(string(traceContextKey)); ok {
+        if traceID, isString := value.(string); isString {
+            return traceID
+        }
 	}
 	return ""
 }

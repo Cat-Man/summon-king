@@ -2,10 +2,6 @@ module github.com/Cat-Man/summon-king/apps/backend
 
 go 1.22
 
-replace github.com/Cat-Man/summon-king/apps/backend => .
-
-replace github.com/Cat-Man/summon-king => .
-
 require github.com/gin-gonic/gin v1.10.0
 
 require (

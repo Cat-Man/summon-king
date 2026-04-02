@@ -2,10 +2,10 @@ package http
 
 // APIResponse wraps every API response with traceability.
 type APIResponse struct {
-    Code    int         `json:"code"`
-    Message string      `json:"message"`
-    Data    interface{} `json:"data,omitempty"`
-    TraceID string      `json:"trace_id"`
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+	TraceID string      `json:"trace_id"`
 }
 
 // Success returns a standard success payload.
