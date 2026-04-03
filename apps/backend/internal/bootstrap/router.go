@@ -10,6 +10,7 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/home"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/ranking"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/tower"
 	"github.com/gin-gonic/gin"
 )
@@ -40,6 +41,9 @@ func NewRouter() *gin.Engine {
 
 	homeGroup := api.Group("/home")
 	home.NewHandler(home.NewService(accountRepo, dungeonService, growthRepo)).RegisterRoutes(homeGroup)
+
+	rankingGroup := api.Group("/ranking")
+	ranking.NewHandler(ranking.NewService(accountRepo, growthRepo, dungeonService)).RegisterRoutes(rankingGroup)
 
 	arenaGroup := api.Group("/arena")
 	registerModuleRoot(arenaGroup, "arena")

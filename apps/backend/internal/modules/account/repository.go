@@ -9,6 +9,7 @@ import (
 type Repository interface {
 	CreateGuest(ctx context.Context, nickname, token string) (GuestLoginResponse, error)
 	GetByToken(ctx context.Context, token string) (GuestLoginResponse, error)
+	GetByPlayerID(ctx context.Context, playerID int64) (GuestLoginResponse, error)
 }
 
 var ErrGuestAccountNotFound = errors.New("guest account not found")
@@ -50,4 +51,16 @@ func (r *MemoryRepository) GetByToken(_ context.Context, token string) (GuestLog
 		return GuestLoginResponse{}, ErrGuestAccountNotFound
 	}
 	return account, nil
+}
+
+func (r *MemoryRepository) GetByPlayerID(_ context.Context, playerID int64) (GuestLoginResponse, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	for _, account := range r.accounts {
+		if account.PlayerID == playerID {
+			return account, nil
+		}
+	}
+	return GuestLoginResponse{}, ErrGuestAccountNotFound
 }

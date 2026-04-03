@@ -6,25 +6,52 @@
       <p>当前排行榜展示最近上榜的战力和更新时间，榜内玩家可获取额外奖励。</p>
     </div>
 
+    <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
+
     <div class="ranking-table">
       <article v-for="entry in leaderboard" :key="entry.player_id">
         <span class="rank">NO. {{ entry.rank }}</span>
         <div>
           <h3>{{ entry.name }}</h3>
-          <p>战力 {{ entry.score }} · {{ entry.updated }}</p>
+          <p>战力 {{ entry.score }} · {{ formatUpdated(entry.updated) }}</p>
         </div>
       </article>
     </div>
   </section>
 </template>
 
-<script setup>
-const leaderboard = [
-  { player_id: 1001, name: '星痕丶苍穹', score: 13872, updated: '刚刚', rank: 1 },
-  { player_id: 1002, name: '雨落荒原', score: 13700, updated: '2分钟前', rank: 2 },
-  { player_id: 1003, name: '剑舞倾城', score: 13450, updated: '5分钟前', rank: 3 },
-  { player_id: 1004, name: '千魂之主', score: 13310, updated: '8分钟前', rank: 4 }
-]
+<script setup lang="ts">
+import { onMounted, ref } from "vue"
+
+import { APIError } from "@/api/http"
+import { getLeaderboard, type LeaderboardEntry } from "@/api/modules/ranking"
+import { useSessionStore } from "@/stores/session"
+
+const sessionStore = useSessionStore()
+const leaderboard = ref<LeaderboardEntry[]>([])
+const errorMessage = ref("")
+
+function formatUpdated(updated: number) {
+  const diffMinutes = Math.max(0, Math.floor((Date.now() - updated) / 60_000))
+  if (diffMinutes <= 0) {
+    return "刚刚"
+  }
+  return `${diffMinutes} 分钟前`
+}
+
+onMounted(async () => {
+  if (!sessionStore.playerId) {
+    errorMessage.value = "当前未登录，无法加载排行榜。"
+    return
+  }
+
+  try {
+    leaderboard.value = await getLeaderboard(sessionStore.playerId)
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "排行榜加载失败，请稍后重试。"
+  }
+})
 </script>
 
 <style scoped>
@@ -48,6 +75,11 @@ const leaderboard = [
 .ranking-header p {
   max-width: 640px;
   color: rgba(248, 251, 255, 0.7);
+}
+
+.status-text {
+  margin-top: 1rem;
+  color: #ffb7b7;
 }
 
 .ranking-table {
