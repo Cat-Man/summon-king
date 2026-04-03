@@ -2,9 +2,10 @@
   <section class="map-page">
     <div class="map-hero">
       <p class="badge">参考策略</p>
-      <h1>环天世界地图</h1>
+      <h1>{{ title }}</h1>
       <p>探索城市、占领区域、训练幻兽前的全局视角。</p>
     </div>
+    <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
     <div class="map-grid">
       <article v-for="city in cities" :key="city.city_id" class="map-card">
         <header>
@@ -12,19 +13,35 @@
           <span>{{ city.region }}</span>
         </header>
         <p>坐标 {{ city.loc_x }} / {{ city.loc_y }}</p>
-        <button class="ghost-btn">传送到 {{ city.name }}</button>
+        <button class="ghost-btn" type="button">传送到 {{ city.name }}</button>
       </article>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-const cities = [
-  { city_id: 1, name: '晨曦城', region: '东境', loc_x: 110.5, loc_y: 220.4 },
-  { city_id: 2, name: '霞光堡', region: '南境', loc_x: 190.8, loc_y: 180.1 },
-  { city_id: 3, name: '玄岩寨', region: '西境', loc_x: 45.3, loc_y: 95.0 },
-  { city_id: 4, name: '星岚府', region: '北境', loc_x: 310.1, loc_y: 240.2 }
-]
+import { computed, onMounted, ref } from "vue"
+
+import { APIError } from "@/api/http"
+import { getWorldMap, type WorldMap } from "@/api/modules/dungeon"
+
+const world = ref<WorldMap | null>(null)
+const errorMessage = ref("")
+
+const title = computed(() => (world.value ? `${world.value.name}世界地图` : "环天世界地图"))
+const cities = computed(() => world.value?.cities ?? [])
+
+onMounted(async () => {
+  try {
+    world.value = await getWorldMap()
+  } catch (error) {
+    if (error instanceof APIError) {
+      errorMessage.value = error.message
+      return
+    }
+    errorMessage.value = "世界地图加载失败，请稍后重试。"
+  }
+})
 </script>
 
 <style scoped>
@@ -38,6 +55,10 @@ const cities = [
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+.status-text {
+  margin: 0;
+  color: #ffd3c7;
 }
 .map-hero {
   max-width: 640px;

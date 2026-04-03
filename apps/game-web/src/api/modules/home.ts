@@ -1,0 +1,36 @@
+import { apiRequest } from "@/api/http"
+
+export type Wallet = {
+  player_id: number
+  spirit_power: number
+  spirit_free_wash: number
+  bone_level: number
+  soul_pieces: number
+  manor_plots: number
+}
+
+export type HomeOverview = {
+  player_id: number
+  nickname: string
+  wallet: Wallet
+  modules: {
+    map_label: string
+    map_city_count: number
+    dungeon: {
+      status: string
+      current_floor: number
+      remain_dice: number
+      dungeon_id: number
+    }
+    cultivation: {
+      state: string
+      spirit_power: number
+      claimable: boolean
+      claimable_at?: string
+    }
+  }
+}
+
+export function getHomeOverview(playerId: number) {
+  return apiRequest<HomeOverview>(`home/overview?player_id=${playerId}`)
+}

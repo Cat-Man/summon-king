@@ -9,6 +9,7 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/home"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/tower"
 	"github.com/gin-gonic/gin"
 )
@@ -28,8 +29,17 @@ func NewRouter() *gin.Engine {
 	})
 	api := router.Group("/api/v1")
 
+	accountRepo := account.NewMemoryRepository()
+	dungeonRepo := dungeon.NewMemoryRepository()
+	growthRepo := growth.NewMemoryRepository()
+	accountService := account.NewService(accountRepo)
+	dungeonService := dungeon.NewService(dungeonRepo, growthRepo)
+
 	authGroup := api.Group("/auth")
-	account.NewHandler(account.NewService(account.NewMemoryRepository())).RegisterRoutes(authGroup)
+	account.NewHandler(accountService).RegisterRoutes(authGroup)
+
+	homeGroup := api.Group("/home")
+	home.NewHandler(home.NewService(accountRepo, dungeonService, growthRepo)).RegisterRoutes(homeGroup)
 
 	arenaGroup := api.Group("/arena")
 	registerModuleRoot(arenaGroup, "arena")
@@ -37,11 +47,11 @@ func NewRouter() *gin.Engine {
 
 	dungeonGroup := api.Group("/dungeon")
 	registerModuleRoot(dungeonGroup, "dungeon")
-	dungeon.NewHandler(dungeon.NewService(dungeon.NewMemoryRepository())).RegisterRoutes(dungeonGroup)
+	dungeon.NewHandler(dungeonService).RegisterRoutes(dungeonGroup)
 
 	growthGroup := api.Group("/growth")
 	registerModuleRoot(growthGroup, "growth")
-	growth.NewHandler(growth.NewMemoryRepository()).RegisterRoutes(growthGroup)
+	growth.NewHandler(growthRepo).RegisterRoutes(growthGroup)
 
 	towerGroup := api.Group("/tower")
 	registerModuleRoot(towerGroup, "tower")

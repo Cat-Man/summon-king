@@ -18,15 +18,16 @@
         </article>
       </div>
     </div>
+    <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
     <div class="action-panel">
-      <button class="action-btn primary">掷骰推进</button>
-      <button class="action-btn">领取 Boss 奖励</button>
-      <button class="action-btn ghost">查看战报</button>
+      <button class="action-btn primary" type="button" @click="rollForward">掷骰推进</button>
+      <button class="action-btn" type="button" @click="restartRun">重新进入副本</button>
+      <button class="action-btn ghost" type="button" @click="refreshRun">刷新当前状态</button>
     </div>
     <div class="timeline">
       <p>进度</p>
       <div class="floors">
-        <div v-for="n in 6" :key="n" class="floor" :class="{ boss: n % 5 === 0 }">
+        <div v-for="n in floors" :key="n" class="floor" :class="{ boss: n % 5 === 0 }">
           <span>{{ n }}</span>
           <small>{{ n % 5 === 0 ? 'Boss' : '怪物' }}</small>
         </div>
@@ -36,11 +37,80 @@
 </template>
 
 <script setup lang="ts">
-const run = {
-  current_floor: 3,
-  remain_dice: 12,
-  status: 'ongoing'
+import { computed, onMounted, ref } from "vue"
+
+import { APIError } from "@/api/http"
+import { enterDungeon, getDungeonStatus, rollDungeonDice, type DungeonRun } from "@/api/modules/dungeon"
+import { useSessionStore } from "@/stores/session"
+
+const defaultRun: DungeonRun = {
+  player_id: 0,
+  dungeon_id: 1,
+  remain_dice: 0,
+  current_floor: 0,
+  status: "idle",
+  started_at: "",
 }
+
+const sessionStore = useSessionStore()
+const run = ref<DungeonRun>(defaultRun)
+const errorMessage = ref("")
+
+const floors = computed(() => Math.max(6, run.value.current_floor + 2))
+
+async function refreshRun() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法加载副本。"
+    return
+  }
+
+  try {
+    run.value = await getDungeonStatus(playerId)
+    errorMessage.value = ""
+  } catch (error) {
+    if (error instanceof APIError && error.status === 404) {
+      run.value = await enterDungeon(playerId, 1)
+      errorMessage.value = ""
+      return
+    }
+    errorMessage.value = error instanceof APIError ? error.message : "副本状态加载失败。"
+  }
+}
+
+async function rollForward() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法推进副本。"
+    return
+  }
+
+  try {
+    run.value = await rollDungeonDice(playerId)
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "掷骰失败，请稍后重试。"
+  }
+}
+
+async function restartRun() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法进入副本。"
+    return
+  }
+
+  try {
+    run.value = await enterDungeon(playerId, 1)
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "进入副本失败，请稍后重试。"
+  }
+}
+
+onMounted(async () => {
+  await refreshRun()
+})
 </script>
 
 <style scoped>
@@ -52,6 +122,10 @@ const run = {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+.status-text {
+  margin: 0;
+  color: #ffcfb8;
 }
 .dungeon-meta {
   border-radius: 24px;

@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	ErrDungeonRunNotFound = errors.New("dungeon run not found")
+	ErrDungeonRunNotFound  = errors.New("dungeon run not found")
+	ErrCultivationNotFound = errors.New("cultivation not found")
 )
 
 type Repository interface {
@@ -19,6 +20,7 @@ type Repository interface {
 	GetDungeonRun(ctx context.Context, playerID int64) (DungeonRun, error)
 	StartCultivation(ctx context.Context, playerID int64) (CultivationStatus, error)
 	ClaimCultivation(ctx context.Context, playerID int64) (CultivationStatus, error)
+	GetCultivation(ctx context.Context, playerID int64) (CultivationStatus, error)
 }
 
 type MemoryRepository struct {
@@ -132,5 +134,16 @@ func (r *MemoryRepository) ClaimCultivation(_ context.Context, playerID int64) (
 	status.State = "idle"
 	status.ClaimableAt = time.Time{}
 	r.cultivation[playerID] = status
+	return status, nil
+}
+
+func (r *MemoryRepository) GetCultivation(_ context.Context, playerID int64) (CultivationStatus, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	status, ok := r.cultivation[playerID]
+	if !ok {
+		return CultivationStatus{}, ErrCultivationNotFound
+	}
 	return status, nil
 }
