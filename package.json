@@ -7,6 +7,8 @@
     "test": "pnpm run test:frontend && pnpm run test:backend",
     "test:frontend": "make test-frontend",
     "test:backend": "make test-backend",
+    "build:frontend": "make build-frontend",
+    "smoke:backend": "make smoke-backend",
     "lint": "make lint",
     "dev:api": "make dev-api"
   }
