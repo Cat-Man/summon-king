@@ -119,3 +119,61 @@ func TestHandler_EnterDungeonRejectsLockedDungeon(t *testing.T) {
 		t.Fatalf("expected propagated trace id, got %s", payload.TraceID)
 	}
 }
+
+func TestHandler_RollReturnsLastBattlePayload(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	repo := NewMemoryRepository()
+	growthRepo := growth.NewMemoryRepository()
+	svc := NewService(repo, asset.NewService(growthRepo))
+	if _, err := svc.EnterDungeon(context.Background(), 1002, 1); err != nil {
+		t.Fatalf("expected enter dungeon success, got %v", err)
+	}
+
+	r := gin.New()
+	r.Use(middleware.InjectTraceID())
+	h := NewHandler(svc)
+	g := r.Group("/dungeon")
+	h.RegisterRoutes(g)
+
+	req := httptest.NewRequest(http.MethodPost, "/dungeon/roll", strings.NewReader("player_id=1002"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-Trace-ID", "trace-dungeon-roll")
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.Code)
+	}
+
+	var raw struct {
+		Code int                        `json:"code"`
+		Data map[string]json.RawMessage `json:"data"`
+	}
+	if err := json.Unmarshal(resp.Body.Bytes(), &raw); err != nil {
+		t.Fatalf("expected raw JSON payload, got %v", err)
+	}
+	if raw.Code != 0 {
+		t.Fatalf("expected business code 0, got %d", raw.Code)
+	}
+	if _, ok := raw.Data["last_battle"]; !ok {
+		t.Fatal("expected last_battle key in dungeon roll payload")
+	}
+	if _, ok := raw.Data["battle_result"]; ok {
+		t.Fatal("expected dungeon roll payload to stop exposing battle_result")
+	}
+
+	var summary struct {
+		BattleNo   string `json:"battle_no"`
+		WinnerSide string `json:"winner_side"`
+	}
+	if err := json.Unmarshal(raw.Data["last_battle"], &summary); err != nil {
+		t.Fatalf("expected battle summary JSON, got %v", err)
+	}
+	if summary.BattleNo == "" {
+		t.Fatal("expected battle_no in dungeon roll payload")
+	}
+	if summary.WinnerSide != "attacker" {
+		t.Fatalf("expected winner_side attacker, got %s", summary.WinnerSide)
+	}
+}

@@ -20,7 +20,14 @@ type ModulesOverview struct {
 	MapCityCount int                `json:"map_city_count"`
 	Dungeon      DungeonSummary     `json:"dungeon"`
 	Cultivation  CultivationSummary `json:"cultivation"`
+	Pet          PetSummary         `json:"pet"`
 	Tower        TowerOverview      `json:"tower"`
+}
+
+type PetSummary struct {
+	TotalPower     int64  `json:"total_power"`
+	ActiveCount    int    `json:"active_count"`
+	StarterPetName string `json:"starter_pet_name"`
 }
 
 type DungeonSummary struct {

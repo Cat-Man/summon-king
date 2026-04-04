@@ -9,6 +9,7 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/tower"
 )
 
@@ -26,18 +27,24 @@ type towerReader interface {
 	GetStatus(ctx context.Context, playerID int64, tower string) tower.TowerStatus
 }
 
+type petReader interface {
+	GetBattleTeam(ctx context.Context, playerID int64) (pet.TeamSnapshot, error)
+}
+
 type Service struct {
 	accounts accountReader
 	dungeons dungeonReader
 	growth   growth.Repository
+	pets     petReader
 	towers   towerReader
 }
 
-func NewService(accounts accountReader, dungeons dungeonReader, growthRepo growth.Repository, towers towerReader) *Service {
+func NewService(accounts accountReader, dungeons dungeonReader, growthRepo growth.Repository, pets petReader, towers towerReader) *Service {
 	return &Service{
 		accounts: accounts,
 		dungeons: dungeons,
 		growth:   growthRepo,
+		pets:     pets,
 		towers:   towers,
 	}
 }
@@ -66,6 +73,7 @@ func (s *Service) GetOverview(ctx context.Context, playerID int64, token string)
 			Cultivation: CultivationSummary{
 				State: "idle",
 			},
+			Pet: PetSummary{},
 			Tower: TowerOverview{
 				Pagoda: s.towers.GetStatus(ctx, playerID, "pagoda"),
 				Spirit: s.towers.GetStatus(ctx, playerID, "spirit"),
@@ -88,6 +96,12 @@ func (s *Service) GetOverview(ctx context.Context, playerID int64, token string)
 			SpiritPower: status.SpiritPower,
 			Claimable:   !status.ClaimableAt.IsZero() && time.Now().After(status.ClaimableAt),
 			ClaimableAt: status.ClaimableAt,
+		}
+	}
+
+	if s.pets != nil {
+		if team, err := s.pets.GetBattleTeam(ctx, playerID); err == nil {
+			overview.Modules.Pet = summarizePet(team)
 		}
 	}
 
@@ -155,4 +169,25 @@ func (s *Service) buildMapLabel(world dungeon.WorldMap) string {
 		return world.Name
 	}
 	return fmt.Sprintf("%s · 已开放 %d 城", world.Name, len(world.Cities))
+}
+
+func summarizePet(team pet.TeamSnapshot) PetSummary {
+	summary := PetSummary{
+		TotalPower: team.TotalPower,
+	}
+
+	for _, battlePet := range team.Pets {
+		if battlePet.IsActive {
+			summary.ActiveCount++
+		}
+		if battlePet.Slot == 1 && battlePet.Name != "" {
+			summary.StarterPetName = battlePet.Name
+		}
+	}
+
+	if summary.StarterPetName == "" && len(team.Pets) > 0 {
+		summary.StarterPetName = team.Pets[0].Name
+	}
+
+	return summary
 }

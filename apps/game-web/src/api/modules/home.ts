@@ -46,6 +46,11 @@ export type HomeOverview = {
       claimable: boolean
       claimable_at?: string
     }
+    pet: {
+      total_power: number
+      active_count: number
+      starter_pet_name: string
+    }
     tower: TowerOverview
   }
   next_action: NextAction

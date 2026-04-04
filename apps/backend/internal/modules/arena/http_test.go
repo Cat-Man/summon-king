@@ -66,13 +66,14 @@ func TestHandler_ChallengeReturnsRewardPayload(t *testing.T) {
 	req.Header.Set("X-Trace-ID", "trace-arena-challenge")
 	resp := httptest.NewRecorder()
 	r.ServeHTTP(resp, req)
+	body := resp.Body.Bytes()
 
 	var payload struct {
 		Code    int          `json:"code"`
 		TraceID string       `json:"trace_id"`
 		Data    BattleResult `json:"data"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+	if err := json.Unmarshal(body, &payload); err != nil {
 		t.Fatalf("expected JSON payload, got %v", err)
 	}
 	if resp.Code != http.StatusOK {
@@ -83,5 +84,32 @@ func TestHandler_ChallengeReturnsRewardPayload(t *testing.T) {
 	}
 	if payload.Data.Record.CurrentStreak != 1 {
 		t.Fatalf("expected current streak 1, got %d", payload.Data.Record.CurrentStreak)
+	}
+
+	var raw struct {
+		Data map[string]json.RawMessage `json:"data"`
+	}
+	if err := json.Unmarshal(body, &raw); err != nil {
+		t.Fatalf("expected raw JSON payload, got %v", err)
+	}
+	if _, ok := raw.Data["battle"]; !ok {
+		t.Fatal("expected battle key in arena challenge payload")
+	}
+	if _, ok := raw.Data["battle_result"]; ok {
+		t.Fatal("expected arena challenge payload to stop exposing battle_result")
+	}
+
+	var summary struct {
+		BattleNo   string `json:"battle_no"`
+		WinnerSide string `json:"winner_side"`
+	}
+	if err := json.Unmarshal(raw.Data["battle"], &summary); err != nil {
+		t.Fatalf("expected battle summary JSON, got %v", err)
+	}
+	if summary.BattleNo == "" {
+		t.Fatal("expected battle_no in arena challenge payload")
+	}
+	if summary.WinnerSide != "attacker" {
+		t.Fatalf("expected winner_side attacker, got %s", summary.WinnerSide)
 	}
 }

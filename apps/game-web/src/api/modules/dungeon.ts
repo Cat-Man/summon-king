@@ -31,8 +31,10 @@ export type DungeonRun = {
     soul_pieces: number
   }
   last_battle?: {
+    battle_no: string
     battle_type: string
     result: string
+    winner_side: string
     rounds: number
     attacker_power: number
     defender_power: number

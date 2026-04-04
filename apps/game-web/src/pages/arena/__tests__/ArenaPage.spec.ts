@@ -38,7 +38,7 @@ test("loads arena record and updates after battle", async () => {
       reward_delta: {
         spirit_power: 10,
       },
-      battle_result: {
+      battle: {
         battle_type: "arena",
         result: "success",
         rounds: 1,
@@ -58,7 +58,7 @@ test("loads arena record and updates after battle", async () => {
         last_win: false,
       },
       reward_delta: {},
-      battle_result: {
+      battle: {
         battle_type: "arena",
         result: "fail",
         rounds: 1,

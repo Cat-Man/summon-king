@@ -19,6 +19,6 @@ type ArenaRewardDelta struct {
 type BattleResult struct {
 	Record         DailyRecord      `json:"record"`
 	RewardDelta    ArenaRewardDelta `json:"reward_delta"`
-	BattleResult   battle.Summary   `json:"battle_result"`
+	BattleResult   battle.Summary   `json:"battle"`
 	WalletSnapshot growth.Wallet    `json:"wallet_snapshot"`
 }

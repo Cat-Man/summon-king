@@ -59,6 +59,12 @@ func TestService_StartChallengeAppliesTowerRewardsToWallet(t *testing.T) {
 	if result.BattleResult.Result != "success" {
 		t.Fatalf("expected success battle result, got %s", result.BattleResult.Result)
 	}
+	if result.BattleResult.BattleNo == "" {
+		t.Fatal("expected tower battle number")
+	}
+	if result.BattleResult.WinnerSide != "attacker" {
+		t.Fatalf("expected tower winner side attacker, got %s", result.BattleResult.WinnerSide)
+	}
 	if result.BattleResult.AttackerPower <= 0 {
 		t.Fatalf("expected attacker power > 0, got %d", result.BattleResult.AttackerPower)
 	}

@@ -83,7 +83,7 @@ test("challenges spirit tower and refreshes resources", async () => {
       spirit_power: 12,
       soul_pieces: 1,
     },
-    battle_result: {
+    battle: {
       battle_type: "tower",
       result: "success",
       rounds: 1,
@@ -149,7 +149,7 @@ test("still syncs resources when spirit tower status refresh fails after challen
       spirit_power: 12,
       soul_pieces: 1,
     },
-    battle_result: {
+    battle: {
       battle_type: "tower",
       result: "success",
       rounds: 1,

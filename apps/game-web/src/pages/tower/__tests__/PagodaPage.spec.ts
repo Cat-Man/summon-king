@@ -50,7 +50,7 @@ test("loads pagoda status and refreshes after challenge", async () => {
       bone_level: 1,
       spirit_power: 5,
     },
-    battle_result: {
+    battle: {
       battle_type: "tower",
       result: "success",
       rounds: 1,
@@ -122,7 +122,7 @@ test("still syncs resources when pagoda status refresh fails after challenge", a
     reward_delta: {
       bone_level: 1,
     },
-    battle_result: {
+    battle: {
       battle_type: "tower",
       result: "success",
       rounds: 1,

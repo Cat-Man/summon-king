@@ -27,6 +27,6 @@ type TowerResult struct {
 	Reward              string           `json:"reward"`
 	RemainingChallenges int              `json:"remaining_challenges"`
 	RewardDelta         TowerRewardDelta `json:"reward_delta"`
-	BattleResult        battle.Summary   `json:"battle_result"`
+	BattleResult        battle.Summary   `json:"battle"`
 	WalletSnapshot      growth.Wallet    `json:"wallet_snapshot"`
 }

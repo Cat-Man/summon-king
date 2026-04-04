@@ -12,6 +12,7 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/tower"
 	"github.com/gin-gonic/gin"
 )
@@ -35,12 +36,13 @@ func TestHandler_OverviewReturnsAggregatedPayload(t *testing.T) {
 		t.Fatalf("expected enter dungeon success, got %v", err)
 	}
 	towerSvc := tower.NewService(tower.NewMemoryRepository(), assetSvc)
+	petSvc := pet.NewService(pet.NewMemoryRepository())
 
 	r := gin.New()
 	r.Use(middleware.InjectTraceID())
 	r.Use(middleware.InjectAuthToken())
 
-	h := NewHandler(NewService(accountRepo, dungeonSvc, growthRepo, towerSvc))
+	h := NewHandler(NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc))
 	g := r.Group("/home")
 	h.RegisterRoutes(g)
 
@@ -76,6 +78,15 @@ func TestHandler_OverviewReturnsAggregatedPayload(t *testing.T) {
 	if payload.Data.Modules.Dungeon.CurrentFloor != 1 {
 		t.Fatalf("expected current floor 1, got %d", payload.Data.Modules.Dungeon.CurrentFloor)
 	}
+	if payload.Data.Modules.Pet.TotalPower <= 0 {
+		t.Fatalf("expected pet total power > 0, got %d", payload.Data.Modules.Pet.TotalPower)
+	}
+	if payload.Data.Modules.Pet.ActiveCount != 1 {
+		t.Fatalf("expected active pet count 1, got %d", payload.Data.Modules.Pet.ActiveCount)
+	}
+	if payload.Data.Modules.Pet.StarterPetName != "初始灵狐" {
+		t.Fatalf("expected starter pet 初始灵狐, got %s", payload.Data.Modules.Pet.StarterPetName)
+	}
 }
 
 func TestHandler_OverviewRequiresPlayerID(t *testing.T) {
@@ -86,7 +97,8 @@ func TestHandler_OverviewRequiresPlayerID(t *testing.T) {
 	growthRepo := growth.NewMemoryRepository()
 	assetSvc := asset.NewService(growthRepo)
 	towerSvc2 := tower.NewService(tower.NewMemoryRepository(), assetSvc)
-	h := NewHandler(NewService(account.NewMemoryRepository(), dungeon.NewService(dungeon.NewMemoryRepository(), assetSvc), growthRepo, towerSvc2))
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	h := NewHandler(NewService(account.NewMemoryRepository(), dungeon.NewService(dungeon.NewMemoryRepository(), assetSvc), growthRepo, petSvc, towerSvc2))
 	g := r.Group("/home")
 	h.RegisterRoutes(g)
 

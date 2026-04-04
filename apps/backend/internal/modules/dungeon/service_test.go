@@ -260,6 +260,12 @@ func TestRollDice_ReturnsRewardAndWalletSnapshot(t *testing.T) {
 	if run.BattleResult.Result != "success" {
 		t.Fatalf("expected success battle result, got %s", run.BattleResult.Result)
 	}
+	if run.BattleResult.BattleNo == "" {
+		t.Fatal("expected dungeon battle number")
+	}
+	if run.BattleResult.WinnerSide != "attacker" {
+		t.Fatalf("expected dungeon winner side attacker, got %s", run.BattleResult.WinnerSide)
+	}
 	if run.BattleResult.AttackerPower <= 0 {
 		t.Fatalf("expected attacker power > 0, got %d", run.BattleResult.AttackerPower)
 	}

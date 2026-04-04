@@ -6,11 +6,12 @@ import (
 	httpx "github.com/Cat-Man/summon-king/apps/backend/internal/infra/http"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
-	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/home"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/ranking"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/tower"
 	"github.com/gin-gonic/gin"
@@ -38,13 +39,14 @@ func NewRouter() *gin.Engine {
 	accountService := account.NewService(accountRepo)
 	dungeonService := dungeon.NewService(dungeonRepo, assetService)
 	arenaService := arena.NewService(arena.NewMemoryRepository(), assetService)
+	petService := pet.NewService(pet.NewMemoryRepository())
 	towerService := tower.NewService(tower.NewMemoryRepository(), assetService)
 
 	authGroup := api.Group("/auth")
 	account.NewHandler(accountService).RegisterRoutes(authGroup)
 
 	homeGroup := api.Group("/home")
-	home.NewHandler(home.NewService(accountRepo, dungeonService, growthRepo, towerService)).RegisterRoutes(homeGroup)
+	home.NewHandler(home.NewService(accountRepo, dungeonService, growthRepo, petService, towerService)).RegisterRoutes(homeGroup)
 
 	rankingGroup := api.Group("/ranking")
 	ranking.NewHandler(ranking.NewService(accountRepo, growthRepo, dungeonService, arenaService)).RegisterRoutes(rankingGroup)

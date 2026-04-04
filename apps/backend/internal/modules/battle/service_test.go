@@ -29,6 +29,12 @@ func TestService_ResolveChoosesHigherPowerWithoutPreset(t *testing.T) {
 	if result.Result != "success" {
 		t.Fatalf("expected success, got %s", result.Result)
 	}
+	if result.BattleNo != "tower-1001-180-120" {
+		t.Fatalf("expected battle no tower-1001-180-120, got %s", result.BattleNo)
+	}
+	if result.WinnerSide != "attacker" {
+		t.Fatalf("expected winner side attacker, got %s", result.WinnerSide)
+	}
 }
 
 func TestService_ResolveUsesPresetOutcomeWhenProvided(t *testing.T) {
@@ -56,5 +62,11 @@ func TestService_ResolveUsesPresetOutcomeWhenProvided(t *testing.T) {
 	}
 	if result.BattleType != "arena" {
 		t.Fatalf("expected battle type arena, got %s", result.BattleType)
+	}
+	if result.BattleNo != "arena-1001-180-120" {
+		t.Fatalf("expected battle no arena-1001-180-120, got %s", result.BattleNo)
+	}
+	if result.WinnerSide != "defender" {
+		t.Fatalf("expected winner side defender, got %s", result.WinnerSide)
 	}
 }

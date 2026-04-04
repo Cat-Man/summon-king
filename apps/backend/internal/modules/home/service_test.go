@@ -8,6 +8,7 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/tower"
 )
 
@@ -36,7 +37,8 @@ func TestOverview_ReturnsCoreSections(t *testing.T) {
 	if _, err := towerSvc.StartChallenge(ctx, guest.PlayerID, "pagoda"); err != nil {
 		t.Fatalf("expected pagoda start, got %v", err)
 	}
-	svc := NewService(accountRepo, dungeonSvc, growthRepo, towerSvc)
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	svc := NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc)
 
 	overview, err := svc.GetOverview(ctx, guest.PlayerID, guest.Token)
 	if err != nil {
@@ -59,6 +61,15 @@ func TestOverview_ReturnsCoreSections(t *testing.T) {
 	}
 	if overview.Modules.Cultivation.State != "cultivating" {
 		t.Fatalf("expected cultivation state cultivating, got %s", overview.Modules.Cultivation.State)
+	}
+	if overview.Modules.Pet.TotalPower <= 0 {
+		t.Fatalf("expected pet total power > 0, got %d", overview.Modules.Pet.TotalPower)
+	}
+	if overview.Modules.Pet.ActiveCount != 1 {
+		t.Fatalf("expected active pet count 1, got %d", overview.Modules.Pet.ActiveCount)
+	}
+	if overview.Modules.Pet.StarterPetName != "初始灵狐" {
+		t.Fatalf("expected starter pet 初始灵狐, got %s", overview.Modules.Pet.StarterPetName)
 	}
 	if overview.Modules.Tower.Pagoda.CurrentFloor != 1 {
 		t.Fatalf("expected pagoda floor 1, got %d", overview.Modules.Tower.Pagoda.CurrentFloor)
@@ -92,7 +103,8 @@ func TestOverview_SkipsExhaustedDungeonWhenChoosingNextAction(t *testing.T) {
 	}
 
 	towerSvc := tower.NewService(tower.NewMemoryRepository(), assetSvc)
-	svc := NewService(accountRepo, dungeonSvc, growthRepo, towerSvc)
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	svc := NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc)
 
 	overview, err := svc.GetOverview(ctx, guest.PlayerID, guest.Token)
 	if err != nil {
@@ -100,6 +112,12 @@ func TestOverview_SkipsExhaustedDungeonWhenChoosingNextAction(t *testing.T) {
 	}
 	if overview.Modules.Dungeon.Status != "exhausted" {
 		t.Fatalf("expected exhausted dungeon, got %s", overview.Modules.Dungeon.Status)
+	}
+	if overview.Modules.Pet.TotalPower <= 0 {
+		t.Fatalf("expected pet total power > 0, got %d", overview.Modules.Pet.TotalPower)
+	}
+	if overview.Modules.Pet.StarterPetName != "初始灵狐" {
+		t.Fatalf("expected starter pet 初始灵狐, got %s", overview.Modules.Pet.StarterPetName)
 	}
 	if overview.NextAction.Route != "/tower/pagoda" {
 		t.Fatalf("expected next action /tower/pagoda, got %s", overview.NextAction.Route)

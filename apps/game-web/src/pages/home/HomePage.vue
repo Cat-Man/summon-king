@@ -114,6 +114,14 @@ const moduleCards = computed(() => {
       route: "/cultivation",
       cta: "前往修行",
     },
+    {
+      eyebrow: "阵容概览",
+      title: "幻兽阵容",
+      value: `${overview.value.modules.pet.total_power} 战力`,
+      description: `主战 ${overview.value.modules.pet.starter_pet_name || "未上阵幻兽"}，已上阵 ${overview.value.modules.pet.active_count} 只。`,
+      route: "/growth/spirit",
+      cta: "继续养成",
+    },
   ]
 })
 

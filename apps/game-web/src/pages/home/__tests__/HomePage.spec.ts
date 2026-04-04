@@ -50,6 +50,11 @@ test("renders overview from api", async () => {
         claimable: false,
         claimable_at: "",
       },
+      pet: {
+        total_power: 120,
+        active_count: 1,
+        starter_pet_name: "初始灵狐",
+      },
       tower: {
         pagoda: {
           current_floor: 0,
@@ -85,6 +90,8 @@ test("renders overview from api", async () => {
   expect(wrapper.text()).toContain("下一步推荐")
   expect(wrapper.text()).toContain("通天塔")
   expect(wrapper.text()).toContain("战灵塔")
+  expect(wrapper.text()).toContain("幻兽阵容")
+  expect(wrapper.text()).toContain("初始灵狐")
   expect(wrapper.text()).toContain("玄境 · 已开放 2 城")
   expect(wrapper.text()).toContain("第 3 层")
   expect(wrapper.findAllComponents(RouterLinkStub).length).toBeGreaterThan(0)
@@ -126,6 +133,11 @@ test("refreshes overview when resource sync changes", async () => {
         spirit_power: 10,
         claimable: false,
         claimable_at: "",
+      },
+      pet: {
+        total_power: 120 + floor,
+        active_count: 1,
+        starter_pet_name: "初始灵狐",
       },
       tower: {
         pagoda: {

@@ -15,7 +15,7 @@ type DungeonRun struct {
 	Status         string         `json:"status"`
 	StartedAt      time.Time      `json:"started_at"`
 	LastReward     RollReward     `json:"last_reward"`
-	BattleResult   battle.Summary `json:"battle_result"`
+	BattleResult   battle.Summary `json:"last_battle"`
 	WalletSnapshot growth.Wallet  `json:"wallet_snapshot"`
 }
 

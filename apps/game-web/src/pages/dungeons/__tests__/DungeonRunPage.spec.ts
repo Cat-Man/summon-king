@@ -74,7 +74,7 @@ test("enters dungeon when status is missing and rolls forward", async () => {
       spirit_power: 8,
       soul_pieces: 1,
     },
-    battle_result: {
+    last_battle: {
       battle_type: "dungeon",
       result: "success",
       rounds: 1,
