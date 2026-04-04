@@ -127,6 +127,10 @@ function syncSelectedDungeonId(value: unknown) {
   }
 }
 
+function resolveTargetDungeonId() {
+  return parseDungeonId(route.query.dungeon_id) ?? selectedDungeonId.value
+}
+
 async function refreshRun() {
   const playerId = sessionStore.playerId
   if (!playerId) {
@@ -135,8 +139,18 @@ async function refreshRun() {
   }
 
   try {
-    run.value = await getDungeonStatus(playerId)
-    selectedDungeonId.value = run.value.dungeon_id || selectedDungeonId.value
+    const currentRun = await getDungeonStatus(playerId)
+    const targetDungeonId = resolveTargetDungeonId()
+
+    if (currentRun.dungeon_id && currentRun.dungeon_id !== targetDungeonId) {
+      selectedDungeonId.value = targetDungeonId
+      run.value = await enterDungeon(playerId, targetDungeonId)
+      errorMessage.value = ""
+      return
+    }
+
+    run.value = currentRun
+    selectedDungeonId.value = currentRun.dungeon_id || selectedDungeonId.value
     errorMessage.value = ""
   } catch (error) {
     if (error instanceof APIError && error.status === 404) {
@@ -187,8 +201,25 @@ onMounted(async () => {
 
 watch(
   () => route.query.dungeon_id,
-  (value) => {
-    syncSelectedDungeonId(value)
+  async (value) => {
+    const dungeonId = parseDungeonId(value)
+    if (dungeonId === null) {
+      return
+    }
+
+    selectedDungeonId.value = dungeonId
+
+    const playerId = sessionStore.playerId
+    if (!playerId || run.value.player_id === 0 || run.value.dungeon_id === dungeonId) {
+      return
+    }
+
+    try {
+      run.value = await enterDungeon(playerId, dungeonId)
+      errorMessage.value = ""
+    } catch (error) {
+      errorMessage.value = error instanceof APIError ? error.message : "进入副本失败，请稍后重试。"
+    }
   },
 )
 </script>

@@ -251,3 +251,70 @@ test("reads dungeon id from route query when entering missing run", async () => 
   expect(enterDungeon).toHaveBeenCalledWith(3005, 2)
   expect(wrapper.text()).toContain("寒渊裂隙")
 })
+
+test("restarts into query dungeon when stale run belongs to another dungeon", async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const sessionStore = useSessionStore()
+  sessionStore.setSession({
+    token: "guest-token",
+    playerId: 3006,
+    nickname: "旧档旅人",
+  })
+  mockedRouteQuery = { dungeon_id: "2" }
+
+  vi.mocked(getDungeonStatus).mockResolvedValue({
+    player_id: 3006,
+    dungeon_id: 1,
+    remain_dice: 12,
+    current_floor: 4,
+    status: "ongoing",
+    started_at: "2026-04-04T00:00:00Z",
+    last_reward: {
+      label: "怪物掉落",
+      spirit_power: 5,
+      soul_pieces: 0,
+    },
+    wallet_snapshot: {
+      player_id: 3006,
+      spirit_power: 125,
+      spirit_free_wash: 3,
+      bone_level: 1,
+      soul_pieces: 0,
+      manor_plots: 2,
+    },
+  })
+  vi.mocked(enterDungeon).mockResolvedValue({
+    player_id: 3006,
+    dungeon_id: 2,
+    remain_dice: 15,
+    current_floor: 1,
+    status: "ongoing",
+    started_at: "2026-04-04T00:05:00Z",
+    last_reward: {
+      label: "无掉落",
+      spirit_power: 0,
+      soul_pieces: 0,
+    },
+    wallet_snapshot: {
+      player_id: 3006,
+      spirit_power: 125,
+      spirit_free_wash: 3,
+      bone_level: 1,
+      soul_pieces: 0,
+      manor_plots: 2,
+    },
+  })
+
+  const wrapper = mount(DungeonRunPage, {
+    global: {
+      plugins: [pinia],
+    },
+  })
+  await flushPromises()
+
+  expect(getDungeonStatus).toHaveBeenCalledWith(3006)
+  expect(enterDungeon).toHaveBeenCalledWith(3006, 2)
+  expect(wrapper.text()).toContain("寒渊裂隙")
+  expect(wrapper.text()).toContain("15")
+})
