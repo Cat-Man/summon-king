@@ -17,3 +17,14 @@ func (s *BoneService) GetBoneState(ctx context.Context, playerID int64) Bone {
 		Level: wallet.BoneLevel,
 	}
 }
+
+func (s *BoneService) Upgrade(ctx context.Context, playerID int64) (Bone, error) {
+	wallet, err := s.repo.UpgradeBoneLevel(ctx, playerID, 1)
+	if err != nil {
+		return Bone{}, err
+	}
+	return Bone{
+		Name:  "战骨",
+		Level: wallet.BoneLevel,
+	}, nil
+}

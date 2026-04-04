@@ -11,18 +11,23 @@ type Repository interface {
 	BeginFreeWash(ctx context.Context, playerID int64) (bool, error)
 	CommitWash(ctx context.Context, playerID int64, delta int64) error
 	UpdateSpiritPower(ctx context.Context, playerID int64, delta int64) error
+	UpgradeBoneLevel(ctx context.Context, playerID int64, delta int) (Wallet, error)
+	GetManorPlots(ctx context.Context, playerID int64) ([]ManorPlot, error)
+	HarvestManor(ctx context.Context, playerID int64) ([]ManorPlot, error)
 }
 
 type MemoryRepository struct {
 	mu      sync.Mutex
 	wallets map[int64]Wallet
 	updated map[int64]time.Time
+	plots   map[int64][]ManorPlot
 }
 
 func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{
 		wallets: make(map[int64]Wallet),
 		updated: make(map[int64]time.Time),
+		plots:   make(map[int64][]ManorPlot),
 	}
 }
 
@@ -75,4 +80,51 @@ func (r *MemoryRepository) CommitWash(ctx context.Context, playerID int64, delta
 
 func (r *MemoryRepository) UpdateSpiritPower(ctx context.Context, playerID int64, delta int64) error {
 	return r.CommitWash(ctx, playerID, delta)
+}
+
+func (r *MemoryRepository) UpgradeBoneLevel(_ context.Context, playerID int64, delta int) (Wallet, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	wallet := r.ensureWallet(playerID)
+	wallet.BoneLevel += delta
+	if wallet.BoneLevel < 1 {
+		wallet.BoneLevel = 1
+	}
+	r.wallets[playerID] = wallet
+	r.updated[playerID] = time.Now()
+	return wallet, nil
+}
+
+func (r *MemoryRepository) GetManorPlots(_ context.Context, playerID int64) ([]ManorPlot, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	return append([]ManorPlot(nil), r.ensurePlots(playerID)...), nil
+}
+
+func (r *MemoryRepository) HarvestManor(_ context.Context, playerID int64) ([]ManorPlot, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	plots := r.ensurePlots(playerID)
+	next := make([]ManorPlot, len(plots))
+	for i, plot := range plots {
+		plot.State = "冷却中"
+		next[i] = plot
+	}
+	r.plots[playerID] = next
+	return append([]ManorPlot(nil), next...), nil
+}
+
+func (r *MemoryRepository) ensurePlots(playerID int64) []ManorPlot {
+	if plots, ok := r.plots[playerID]; ok {
+		return plots
+	}
+	plots := []ManorPlot{
+		{PlotID: 1, State: "空闲"},
+		{PlotID: 2, State: "成长中"},
+	}
+	r.plots[playerID] = plots
+	return plots
 }

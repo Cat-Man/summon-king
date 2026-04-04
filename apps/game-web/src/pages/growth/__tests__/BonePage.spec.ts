@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from "pinia"
 import { flushPromises, mount } from "@vue/test-utils"
 
-import { getBoneState } from "@/api/modules/growth"
+import { getBoneState, upgradeBone } from "@/api/modules/growth"
 import { useSessionStore } from "@/stores/session"
 
 import BonePage from "../BonePage.vue"
@@ -10,11 +10,13 @@ vi.mock("@/api/modules/growth", () => ({
   getGrowthWallet: vi.fn(),
   washSpirit: vi.fn(),
   getBoneState: vi.fn(),
+  upgradeBone: vi.fn(),
   getSoulState: vi.fn(),
   getManorPlots: vi.fn(),
+  harvestManor: vi.fn(),
 }))
 
-test("loads bone state from api", async () => {
+test("loads bone state from api and upgrades bone", async () => {
   const pinia = createPinia()
   setActivePinia(pinia)
   const sessionStore = useSessionStore()
@@ -24,9 +26,18 @@ test("loads bone state from api", async () => {
     nickname: "战骨旅人",
   })
 
-  vi.mocked(getBoneState).mockResolvedValue({
+  vi.mocked(getBoneState)
+    .mockResolvedValueOnce({
+      name: "战骨",
+      level: 3,
+    })
+    .mockResolvedValueOnce({
+      name: "战骨",
+      level: 4,
+    })
+  vi.mocked(upgradeBone).mockResolvedValue({
     name: "战骨",
-    level: 3,
+    level: 4,
   })
 
   const wrapper = mount(BonePage, {
@@ -39,4 +50,10 @@ test("loads bone state from api", async () => {
   expect(getBoneState).toHaveBeenCalledWith(8202)
   expect(wrapper.text()).toContain("战骨")
   expect(wrapper.text()).toContain("3")
+
+  await wrapper.get("button.primary").trigger("click")
+  await flushPromises()
+
+  expect(upgradeBone).toHaveBeenCalledWith(8202)
+  expect(wrapper.text()).toContain("4")
 })

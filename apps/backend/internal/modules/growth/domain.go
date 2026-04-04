@@ -32,3 +32,8 @@ type ManorPlot struct {
 	PlotID int64  `json:"plot_id"`
 	State  string `json:"state"`
 }
+
+type ManorHarvestResult struct {
+	Message string      `json:"message"`
+	Plots   []ManorPlot `json:"plots"`
+}

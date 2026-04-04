@@ -16,6 +16,7 @@
         <span>{{ bone.level >= 3 ? "稳固" : "初成" }}</span>
       </article>
     </div>
+    <button class="primary" type="button" @click="upgradeNow">升级战骨</button>
     <div class="panel">
       <p>当前战骨正在吸收雷火精华，后续再补升级资源与强化动作。</p>
     </div>
@@ -26,7 +27,7 @@
 import { onMounted, ref } from "vue"
 
 import { APIError } from "@/api/http"
-import { getBoneState, type BoneState } from "@/api/modules/growth"
+import { getBoneState, type BoneState, upgradeBone } from "@/api/modules/growth"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
@@ -36,7 +37,7 @@ const bone = ref<BoneState>({
 })
 const errorMessage = ref("")
 
-onMounted(async () => {
+async function loadBone() {
   const playerId = sessionStore.playerId
   if (!playerId) {
     errorMessage.value = "当前未登录，无法加载战骨。"
@@ -49,6 +50,25 @@ onMounted(async () => {
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "战骨状态加载失败。"
   }
+}
+
+async function upgradeNow() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法升级战骨。"
+    return
+  }
+
+  try {
+    bone.value = await upgradeBone(playerId)
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "战骨升级失败。"
+  }
+}
+
+onMounted(async () => {
+  await loadBone()
 })
 </script>
 
@@ -77,6 +97,16 @@ onMounted(async () => {
 .status-text {
   margin-top: 1rem;
   color: #ffd7e4;
+}
+.primary {
+  align-self: flex-start;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #8fb3ff, #b8a0ff);
+  color: #130b30;
+  font-weight: 700;
+  cursor: pointer;
 }
 .metrics {
   display: grid;
