@@ -2,6 +2,7 @@ package tower
 
 import (
 	stdhttp "net/http"
+	"strconv"
 
 	httpx "github.com/Cat-Man/summon-king/apps/backend/internal/infra/http"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
@@ -21,8 +22,27 @@ func NewHandler(service *Service) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(group *gin.RouterGroup) {
+	group.GET("/pagoda/status", h.pagodaStatus)
+	group.GET("/spirit-tower/status", h.spiritStatus)
 	group.POST("/pagoda/start", h.startPagoda)
 	group.POST("/spirit-tower/start", h.startSpirit)
+}
+
+func (h *Handler) pagodaStatus(c *gin.Context) {
+	h.status(c, "pagoda")
+}
+
+func (h *Handler) spiritStatus(c *gin.Context) {
+	h.status(c, "spirit")
+}
+
+func (h *Handler) status(c *gin.Context, tower string) {
+	playerID, ok := parsePlayerID(c)
+	if !ok {
+		return
+	}
+
+	c.JSON(stdhttp.StatusOK, httpx.Success(h.service.GetStatus(c.Request.Context(), playerID, tower), middleware.GetTraceID(c)))
 }
 
 func (h *Handler) startPagoda(c *gin.Context) {
@@ -51,4 +71,13 @@ func (h *Handler) start(c *gin.Context, tower string) {
 	}
 
 	c.JSON(stdhttp.StatusOK, httpx.Success(result, middleware.GetTraceID(c)))
+}
+
+func parsePlayerID(c *gin.Context) (int64, bool) {
+	playerID, err := strconv.ParseInt(c.Query("player_id"), 10, 64)
+	if err != nil || playerID == 0 {
+		c.JSON(stdhttp.StatusBadRequest, httpx.Error(4002, "player_id is required", middleware.GetTraceID(c)))
+		return 0, false
+	}
+	return playerID, true
 }

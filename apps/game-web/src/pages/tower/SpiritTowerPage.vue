@@ -1,33 +1,85 @@
 <template>
   <section class="spirit-tower-page">
     <div class="spirits-header">
-      <p>战灵塔试炼</p>
+      <p>{{ status.label || "战灵塔试炼" }}</p>
       <h1>灵息共鸣，魂魄觉醒</h1>
-      <p class="hint">每一次挑战都能刷新防守者组合，灵魂碎片与灵石随层级上升。</p>
+      <p class="hint">当前塔层、剩余次数与奖励预览已接入真实接口。</p>
       <div class="spirits-status">
-        <span>当前层级：幽渊 7层</span>
-        <span>可挑战次数：2/5</span>
+        <span>当前层级：第 {{ status.current_floor }} 层</span>
+        <span>可挑战次数：{{ status.remaining_challenges }}/5</span>
+      </div>
+      <div class="spirits-actions">
+        <button class="primary" type="button" @click="startChallenge">开始挑战</button>
+        <button class="ghost" type="button" @click="loadStatus">刷新状态</button>
       </div>
     </div>
+    <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
     <div class="spirits-list">
-      <article v-for="guard in guards" :key="guard.name">
-        <h3>{{ guard.name }}</h3>
-        <p>{{ guard.detail }}</p>
+      <article>
+        <h3>奖励预览</h3>
+        <p>{{ status.reward_preview }}</p>
         <div class="guard-meta">
-          <span>抗性：{{ guard.resistance }}</span>
-          <span>技能：{{ guard.skill }}</span>
+          <span>最高层数：{{ status.max_floor }}</span>
+          <span>最近奖励：{{ lastReward || "尚未挑战" }}</span>
         </div>
       </article>
     </div>
   </section>
 </template>
 
-<script setup>
-const guards = [
-  { name: '玄冰灵灵', detail: '冰封之心，群体减速附加破盾。', resistance: '霜/水', skill: '寒风裂地' },
-  { name: '炎纹魂甲', detail: '生命越低伤害越高，附带反震。', resistance: '火/物', skill: '烈焰反噬' },
-  { name: '雷影追魂', detail: '快速突袭目标、累积印记后爆发。', resistance: '雷/速', skill: '电光幻影' }
-]
+<script setup lang="ts">
+import { onMounted, ref } from "vue"
+
+import { APIError } from "@/api/http"
+import { getTowerStatus, startTowerChallenge, type TowerStatus } from "@/api/modules/tower"
+import { useSessionStore } from "@/stores/session"
+
+const sessionStore = useSessionStore()
+const status = ref<TowerStatus>({
+  tower: "spirit",
+  label: "战灵塔",
+  current_floor: 0,
+  max_floor: 12,
+  remaining_challenges: 0,
+  reward_preview: "",
+})
+const lastReward = ref("")
+const errorMessage = ref("")
+
+async function loadStatus() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法加载战灵塔。"
+    return
+  }
+
+  try {
+    status.value = await getTowerStatus("spirit", playerId)
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "战灵塔状态加载失败。"
+  }
+}
+
+async function startChallenge() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法挑战战灵塔。"
+    return
+  }
+
+  try {
+    const result = await startTowerChallenge("spirit", playerId)
+    lastReward.value = result.reward
+    await loadStatus()
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "战灵塔挑战失败。"
+  }
+}
+
+onMounted(async () => {
+  await loadStatus()
+})
 </script>
 
 <style scoped>
@@ -68,6 +120,36 @@ const guards = [
   margin-top: 1rem;
   font-family: 'Source Sans Pro', sans-serif;
   color: #d3d4ff;
+}
+
+.spirits-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.primary,
+.ghost {
+  border-radius: 999px;
+  padding: 0.75rem 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary {
+  border: none;
+  color: #180b2f;
+  background: linear-gradient(135deg, #bfc5ff, #8a7cff);
+}
+
+.ghost {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: transparent;
+  color: #fff;
+}
+
+.status-text {
+  color: #ffd8f4;
 }
 
 .spirits-list {

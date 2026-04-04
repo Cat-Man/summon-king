@@ -1,36 +1,91 @@
 <template>
   <section class="pagoda-page">
     <div class="pagoda-hero">
-      <p class="pagoda-label">通天塔挑战</p>
+      <p class="pagoda-label">{{ status.label || "通天塔挑战" }}</p>
       <h1>登顶每一层，换取秘宝</h1>
       <p class="pagoda-subtitle">
-        快速通关可获得战骨、战灵、魔魂器具。每一层的秘宝由游戏后台配置、可通过排行刷新。
+        当前塔层与挑战次数已接入真实接口，先完成最小挑战闭环，后续再扩奖励详情与战斗展开。
       </p>
       <div class="pagoda-actions">
-        <button class="primary">刷新层数</button>
-        <button class="ghost">查看奖励</button>
+        <button class="primary" type="button" @click="startChallenge">开始挑战</button>
+        <button class="ghost" type="button" @click="loadStatus">刷新状态</button>
       </div>
     </div>
 
+    <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
+
     <div class="pagoda-grid">
-      <article v-for="floor in floors" :key="floor.level" class="pagoda-card">
+      <article class="pagoda-card">
         <header>
-          <strong>第 {{ floor.number }} 层</strong>
-          <span>{{ floor.reward }}</span>
+          <strong>当前层级</strong>
+          <span>第 {{ status.current_floor }} 层</span>
         </header>
-        <p>{{ floor.description }}</p>
+        <p>最高 {{ status.max_floor }} 层，当前剩余挑战 {{ status.remaining_challenges }}/5。</p>
+      </article>
+      <article class="pagoda-card">
+        <header>
+          <strong>奖励预览</strong>
+          <span>{{ status.reward_preview }}</span>
+        </header>
+        <p>最近挑战奖励：{{ lastReward || "尚未挑战" }}</p>
       </article>
     </div>
   </section>
 </template>
 
-<script setup>
-const floors = [
-  { number: 1, level: '入门', reward: '灵石礼包', description: '轻松摩擦，摸清节奏' },
-  { number: 2, level: '试炼', reward: '战灵之鉴', description: '秘宝渐丰，小心反震' },
-  { number: 3, level: '大荒', reward: '魔魂碎片', description: '怪物攻击力略增' },
-  { number: 4, level: '终极', reward: '战骨锻造', description: '挑战极限速度与耐力' }
-]
+<script setup lang="ts">
+import { onMounted, ref } from "vue"
+
+import { APIError } from "@/api/http"
+import { getTowerStatus, startTowerChallenge, type TowerStatus } from "@/api/modules/tower"
+import { useSessionStore } from "@/stores/session"
+
+const sessionStore = useSessionStore()
+const status = ref<TowerStatus>({
+  tower: "pagoda",
+  label: "通天塔",
+  current_floor: 0,
+  max_floor: 10,
+  remaining_challenges: 0,
+  reward_preview: "",
+})
+const lastReward = ref("")
+const errorMessage = ref("")
+
+async function loadStatus() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法加载通天塔。"
+    return
+  }
+
+  try {
+    status.value = await getTowerStatus("pagoda", playerId)
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "通天塔状态加载失败。"
+  }
+}
+
+async function startChallenge() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法挑战通天塔。"
+    return
+  }
+
+  try {
+    const result = await startTowerChallenge("pagoda", playerId)
+    lastReward.value = result.reward
+    await loadStatus()
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "通天塔挑战失败。"
+  }
+}
+
+onMounted(async () => {
+  await loadStatus()
+})
 </script>
 
 <style scoped>
@@ -102,6 +157,11 @@ const floors = [
 
 .pagoda-actions button:hover {
   transform: translateY(-2px);
+}
+
+.status-text {
+  margin-top: 1rem;
+  color: #b13c00;
 }
 
 .pagoda-grid {
