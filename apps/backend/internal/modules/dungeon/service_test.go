@@ -136,6 +136,69 @@ func TestRollDice_ReturnsRewardAndWalletSnapshot(t *testing.T) {
 	}
 }
 
+func TestResolveRollReward_OngoingStatus(t *testing.T) {
+	reward := resolveRollReward(DungeonRun{Status: "ongoing"})
+
+	if reward.Label != "怪物掉落" {
+		t.Fatalf("expected reward label 怪物掉落, got %s", reward.Label)
+	}
+	if reward.SpiritPower != 5 {
+		t.Fatalf("expected spirit reward 5, got %d", reward.SpiritPower)
+	}
+	if reward.SoulPieces != 0 {
+		t.Fatalf("expected soul reward 0, got %d", reward.SoulPieces)
+	}
+}
+
+func TestResolveRollReward_BossStatus(t *testing.T) {
+	reward := resolveRollReward(DungeonRun{Status: "boss"})
+
+	if reward.Label != "Boss掉落" {
+		t.Fatalf("expected reward label Boss掉落, got %s", reward.Label)
+	}
+	if reward.SpiritPower != 8 {
+		t.Fatalf("expected spirit reward 8, got %d", reward.SpiritPower)
+	}
+	if reward.SoulPieces != 1 {
+		t.Fatalf("expected soul reward 1, got %d", reward.SoulPieces)
+	}
+}
+
+func TestRollDice_ExhaustedRunDoesNotGrantReward(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	svc := NewService(NewMemoryRepository(), growthRepo)
+	playerID := int64(1013)
+
+	if _, err := svc.EnterDungeon(ctx, playerID, 1); err != nil {
+		t.Fatalf("expected enter dungeon success, got %v", err)
+	}
+
+	for i := 0; i < 15; i++ {
+		if _, err := svc.RollDice(ctx, playerID); err != nil {
+			t.Fatalf("expected roll dice success, got %v", err)
+		}
+	}
+
+	run, err := svc.RollDice(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected exhausted roll success, got %v", err)
+	}
+
+	if run.Status != "exhausted" {
+		t.Fatalf("expected exhausted status, got %s", run.Status)
+	}
+	if run.LastReward.Label != "无掉落" {
+		t.Fatalf("expected no-drop label, got %s", run.LastReward.Label)
+	}
+	if run.LastReward.SpiritPower != 0 {
+		t.Fatalf("expected spirit reward 0, got %d", run.LastReward.SpiritPower)
+	}
+	if run.WalletSnapshot.SpiritPower != 184 {
+		t.Fatalf("expected wallet spirit 184 without extra reward, got %d", run.WalletSnapshot.SpiritPower)
+	}
+}
+
 func newTestDungeonService(t *testing.T) *Service {
 	t.Helper()
 	repo := NewMemoryRepository()

@@ -17,8 +17,23 @@ type Service struct {
 	wallets spiritWalletUpdater
 }
 
-const rollSpiritReward int64 = 5
-const bossSoulReward = 1
+var rewardRules = map[string]RollReward{
+	"ongoing": {
+		Label:       "怪物掉落",
+		SpiritPower: 5,
+		SoulPieces:  0,
+	},
+	"boss": {
+		Label:       "Boss掉落",
+		SpiritPower: 8,
+		SoulPieces:  1,
+	},
+	"exhausted": {
+		Label:       "无掉落",
+		SpiritPower: 0,
+		SoulPieces:  0,
+	},
+}
 
 func NewService(repo Repository, wallets ...spiritWalletUpdater) *Service {
 	service := &Service{repo: repo}
@@ -49,16 +64,10 @@ func (s *Service) RollDice(ctx context.Context, playerID int64) (DungeonRun, err
 	if err != nil {
 		return DungeonRun{}, err
 	}
+	run.LastReward = resolveRollReward(run)
 	if s.wallets != nil {
-		if err := s.wallets.UpdateSpiritPower(ctx, playerID, rollSpiritReward); err != nil {
+		if err := s.applyReward(ctx, playerID, run.LastReward); err != nil {
 			return DungeonRun{}, err
-		}
-		run.LastReward.SpiritPower = rollSpiritReward
-		if run.Status == "boss" {
-			if _, err := s.wallets.UpgradeSoulPower(ctx, playerID, bossSoulReward); err != nil {
-				return DungeonRun{}, err
-			}
-			run.LastReward.SoulPieces = bossSoulReward
 		}
 	}
 	return s.attachWalletSnapshot(ctx, playerID, run)
@@ -103,4 +112,25 @@ func (s *Service) attachWalletSnapshot(ctx context.Context, playerID int64, run 
 	}
 	run.WalletSnapshot = wallet
 	return run, nil
+}
+
+func resolveRollReward(run DungeonRun) RollReward {
+	if reward, ok := rewardRules[run.Status]; ok {
+		return reward
+	}
+	return rewardRules["ongoing"]
+}
+
+func (s *Service) applyReward(ctx context.Context, playerID int64, reward RollReward) error {
+	if reward.SpiritPower > 0 {
+		if err := s.wallets.UpdateSpiritPower(ctx, playerID, reward.SpiritPower); err != nil {
+			return err
+		}
+	}
+	if reward.SoulPieces > 0 {
+		if _, err := s.wallets.UpgradeSoulPower(ctx, playerID, reward.SoulPieces); err != nil {
+			return err
+		}
+	}
+	return nil
 }

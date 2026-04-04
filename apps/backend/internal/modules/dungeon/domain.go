@@ -18,6 +18,7 @@ type DungeonRun struct {
 }
 
 type RollReward struct {
+	Label       string `json:"label"`
 	SpiritPower int64 `json:"spirit_power"`
 	SoulPieces  int   `json:"soul_pieces"`
 }

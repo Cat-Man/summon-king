@@ -34,6 +34,7 @@ test("enters dungeon when status is missing and rolls forward", async () => {
     status: "ongoing",
     started_at: "2026-04-04T00:00:00Z",
     last_reward: {
+      label: "无掉落",
       spirit_power: 0,
       soul_pieces: 0,
     },
@@ -49,20 +50,21 @@ test("enters dungeon when status is missing and rolls forward", async () => {
   vi.mocked(rollDungeonDice).mockResolvedValue({
     player_id: 3003,
     dungeon_id: 1,
-    remain_dice: 14,
-    current_floor: 2,
-    status: "ongoing",
+    remain_dice: 11,
+    current_floor: 5,
+    status: "boss",
     started_at: "2026-04-04T00:00:00Z",
     last_reward: {
-      spirit_power: 5,
-      soul_pieces: 0,
+      label: "Boss掉落",
+      spirit_power: 8,
+      soul_pieces: 1,
     },
     wallet_snapshot: {
       player_id: 3003,
-      spirit_power: 105,
+      spirit_power: 108,
       spirit_free_wash: 3,
       bone_level: 1,
-      soul_pieces: 0,
+      soul_pieces: 1,
       manor_plots: 2,
     },
   })
@@ -81,8 +83,9 @@ test("enters dungeon when status is missing and rolls forward", async () => {
   await flushPromises()
 
   expect(rollDungeonDice).toHaveBeenCalledWith(3003)
-  expect(wrapper.text()).toContain("2")
-  expect(wrapper.text()).toContain("本次掉落")
-  expect(wrapper.text()).toContain("灵力 +5")
-  expect(wrapper.text()).toContain("当前灵力 105")
+  expect(wrapper.text()).toContain("5")
+  expect(wrapper.text()).toContain("Boss掉落")
+  expect(wrapper.text()).toContain("灵力 +8")
+  expect(wrapper.text()).toContain("魂力 +1")
+  expect(wrapper.text()).toContain("当前灵力 108")
 })

@@ -19,6 +19,7 @@ export type DungeonRun = {
   status: string
   started_at: string
   last_reward: {
+    label: string
     spirit_power: number
     soul_pieces: number
   }

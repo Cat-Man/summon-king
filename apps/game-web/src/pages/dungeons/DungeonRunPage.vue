@@ -20,7 +20,7 @@
     </div>
     <div class="reward-panel">
       <article>
-        <p>本次掉落</p>
+        <p>{{ run.last_reward.label || "本次掉落" }}</p>
         <strong>灵力 +{{ run.last_reward.spirit_power }}</strong>
         <span>魂力 +{{ run.last_reward.soul_pieces }}</span>
       </article>
@@ -63,6 +63,7 @@ const defaultRun: DungeonRun = {
   status: "idle",
   started_at: "",
   last_reward: {
+    label: "",
     spirit_power: 0,
     soul_pieces: 0,
   },
