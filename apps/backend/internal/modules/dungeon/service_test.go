@@ -50,17 +50,20 @@ func TestGetWorldMap_IncludesPrimaryDungeonBinding(t *testing.T) {
 	if len(world.Cities) != 2 {
 		t.Fatalf("expected 2 cities, got %d", len(world.Cities))
 	}
-	if world.Cities[0].DungeonID != 1 {
-		t.Fatalf("expected first city dungeon id 1, got %d", world.Cities[0].DungeonID)
+	if len(world.Cities[0].Dungeons) != 2 {
+		t.Fatalf("expected first city 2 dungeons, got %d", len(world.Cities[0].Dungeons))
 	}
-	if world.Cities[0].DungeonName != "妖窟试炼" {
-		t.Fatalf("expected first city dungeon name 妖窟试炼, got %s", world.Cities[0].DungeonName)
+	if world.Cities[0].Dungeons[0].DungeonID != 1 {
+		t.Fatalf("expected first city first dungeon id 1, got %d", world.Cities[0].Dungeons[0].DungeonID)
 	}
-	if world.Cities[1].DungeonID != 2 {
-		t.Fatalf("expected second city dungeon id 2, got %d", world.Cities[1].DungeonID)
+	if world.Cities[0].Dungeons[1].DungeonID != 2 {
+		t.Fatalf("expected first city second dungeon id 2, got %d", world.Cities[0].Dungeons[1].DungeonID)
 	}
-	if world.Cities[1].DungeonName != "寒渊裂隙" {
-		t.Fatalf("expected second city dungeon name 寒渊裂隙, got %s", world.Cities[1].DungeonName)
+	if len(world.Cities[1].Dungeons) != 2 {
+		t.Fatalf("expected second city 2 dungeons, got %d", len(world.Cities[1].Dungeons))
+	}
+	if world.Cities[1].Dungeons[0].DungeonName != "寒渊裂隙" {
+		t.Fatalf("expected second city first dungeon name 寒渊裂隙, got %s", world.Cities[1].Dungeons[0].DungeonName)
 	}
 }
 

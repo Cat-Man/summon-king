@@ -26,8 +26,16 @@ test("renders world map from api", async () => {
         region: "东境",
         loc_x: 110.5,
         loc_y: 220.4,
-        dungeon_id: 1,
-        dungeon_name: "妖窟试炼",
+        dungeons: [
+          {
+            dungeon_id: 1,
+            dungeon_name: "妖窟试炼",
+          },
+          {
+            dungeon_id: 2,
+            dungeon_name: "寒渊裂隙",
+          },
+        ],
       },
       {
         city_id: 2,
@@ -35,8 +43,16 @@ test("renders world map from api", async () => {
         region: "南境",
         loc_x: 190.8,
         loc_y: 180.1,
-        dungeon_id: 2,
-        dungeon_name: "寒渊裂隙",
+        dungeons: [
+          {
+            dungeon_id: 2,
+            dungeon_name: "寒渊裂隙",
+          },
+          {
+            dungeon_id: 1,
+            dungeon_name: "妖窟试炼",
+          },
+        ],
       },
     ],
   })
@@ -47,13 +63,14 @@ test("renders world map from api", async () => {
   expect(wrapper.text()).toContain("玄境")
   expect(wrapper.text()).toContain("晨曦城")
   expect(wrapper.text()).toContain("妖窟试炼")
+  expect(wrapper.text()).toContain("寒渊裂隙")
 
-  await wrapper.findAll("button")[0].trigger("click")
+  await wrapper.get('[data-city-id="1"][data-dungeon-id="2"]').trigger("click")
 
   expect(push).toHaveBeenCalledWith({
     name: "dungeon",
     query: {
-      dungeon_id: "1",
+      dungeon_id: "2",
     },
   })
 })

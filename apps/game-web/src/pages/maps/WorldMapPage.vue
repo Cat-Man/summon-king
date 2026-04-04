@@ -13,8 +13,20 @@
           <span>{{ city.region }}</span>
         </header>
         <p>坐标 {{ city.loc_x }} / {{ city.loc_y }}</p>
-        <p>主副本 {{ city.dungeon_name }}</p>
-        <button class="ghost-btn" type="button" @click="goToDungeon(city)">传送到 {{ city.name }}</button>
+        <div class="dungeon-list">
+          <p>可进入副本</p>
+          <button
+            v-for="dungeon in city.dungeons"
+            :key="`${city.city_id}-${dungeon.dungeon_id}`"
+            :data-city-id="city.city_id"
+            :data-dungeon-id="dungeon.dungeon_id"
+            class="ghost-btn"
+            type="button"
+            @click="goToDungeon(dungeon)"
+          >
+            进入 {{ dungeon.dungeon_name }}
+          </button>
+        </div>
       </article>
     </div>
   </section>
@@ -34,11 +46,11 @@ const router = useRouter()
 const title = computed(() => (world.value ? `${world.value.name}世界地图` : "环天世界地图"))
 const cities = computed(() => world.value?.cities ?? [])
 
-function goToDungeon(city: WorldMap["cities"][number]) {
+function goToDungeon(dungeon: WorldMap["cities"][number]["dungeons"][number]) {
   void router.push({
     name: "dungeon",
     query: {
-      dungeon_id: String(city.dungeon_id),
+      dungeon_id: String(dungeon.dungeon_id),
     },
   })
 }
@@ -117,6 +129,18 @@ onMounted(async () => {
 .map-card header span {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.7);
+}
+.dungeon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dungeon-list p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 .ghost-btn {
   border: 1px solid rgba(255, 255, 255, 0.4);

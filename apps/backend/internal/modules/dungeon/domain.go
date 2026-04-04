@@ -19,8 +19,8 @@ type DungeonRun struct {
 
 type RollReward struct {
 	Label       string `json:"label"`
-	SpiritPower int64 `json:"spirit_power"`
-	SoulPieces  int   `json:"soul_pieces"`
+	SpiritPower int64  `json:"spirit_power"`
+	SoulPieces  int    `json:"soul_pieces"`
 }
 
 type WorldMap struct {
@@ -28,14 +28,18 @@ type WorldMap struct {
 	Cities []MapCity `json:"cities"`
 }
 
+type MapDungeon struct {
+	DungeonID   int64  `json:"dungeon_id"`
+	DungeonName string `json:"dungeon_name"`
+}
+
 type MapCity struct {
-	CityID      int64   `json:"city_id"`
-	Name        string  `json:"name"`
-	Region      string  `json:"region"`
-	LocX        float64 `json:"loc_x"`
-	LocY        float64 `json:"loc_y"`
-	DungeonID   int64   `json:"dungeon_id"`
-	DungeonName string  `json:"dungeon_name"`
+	CityID   int64        `json:"city_id"`
+	Name     string       `json:"name"`
+	Region   string       `json:"region"`
+	LocX     float64      `json:"loc_x"`
+	LocY     float64      `json:"loc_y"`
+	Dungeons []MapDungeon `json:"dungeons"`
 }
 
 type CultivationStatus struct {
