@@ -2,16 +2,70 @@
   <section class="growth-page growth-page--spirit">
     <header>
       <p class="tag">战灵</p>
-      <h1>Spirit Forge</h1>
-      <p>灵石数量 8 | 洗炼剩余次数 3</p>
+      <h1>{{ wallet.player_id ? "Spirit Forge" : "战灵熔炉" }}</h1>
+      <p>灵力 {{ wallet.spirit_power }} | 洗炼剩余次数 {{ wallet.spirit_free_wash }}</p>
     </header>
     <div class="banner">
       <span>免费洗炼优先消耗</span>
-      <span>保底属性提升 +5%</span>
+      <span>战骨 {{ wallet.bone_level }} · 魔魂 {{ wallet.soul_pieces }}</span>
     </div>
-    <button class="primary">立刻洗炼</button>
+    <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
+    <button class="primary" type="button" @click="washNow">立刻洗炼</button>
   </section>
 </template>
+
+<script setup lang="ts">
+import { onMounted, ref } from "vue"
+
+import { APIError } from "@/api/http"
+import { getGrowthWallet, washSpirit, type GrowthWallet } from "@/api/modules/growth"
+import { useSessionStore } from "@/stores/session"
+
+const sessionStore = useSessionStore()
+const wallet = ref<GrowthWallet>({
+  player_id: 0,
+  spirit_power: 0,
+  spirit_free_wash: 0,
+  bone_level: 0,
+  soul_pieces: 0,
+  manor_plots: 0,
+})
+const errorMessage = ref("")
+
+async function loadWallet() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法加载战灵。"
+    return
+  }
+
+  try {
+    wallet.value = await getGrowthWallet(playerId)
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "战灵状态加载失败。"
+  }
+}
+
+async function washNow() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法洗炼战灵。"
+    return
+  }
+
+  try {
+    await washSpirit(playerId)
+    await loadWallet()
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "战灵洗炼失败。"
+  }
+}
+
+onMounted(async () => {
+  await loadWallet()
+})
+</script>
 
 <style scoped>
 .growth-page--spirit {
@@ -35,6 +89,10 @@
   background: rgba(255, 255, 255, 0.4);
   display: flex;
   justify-content: space-between;
+}
+.status-text {
+  margin: 0;
+  color: #651327;
 }
 .primary {
   padding: 14px 24px;

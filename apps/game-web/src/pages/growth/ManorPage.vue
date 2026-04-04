@@ -3,8 +3,9 @@
     <header>
       <p class="tag">庄园</p>
       <h1>Elder Grove</h1>
-      <p>两个地块运行中，预计收获 3h 后</p>
+      <p>已接入真实地块状态，当前共 {{ plots.length }} 个地块</p>
     </header>
+    <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
     <div class="plots">
       <article v-for="plot in plots" :key="plot.plot_id">
         <strong>地块 {{ plot.plot_id }}</strong>
@@ -12,16 +13,36 @@
       </article>
     </div>
     <div class="panel">
-      <p>庄园扩建可解锁更多地块，当前可领地 2 个，收获后可直接兑换灵晶。</p>
+      <p>庄园扩建和收获动作后续再补，这轮先打通状态读取。</p>
     </div>
   </section>
 </template>
 
-<script setup>
-const plots = [
-  { plot_id: 1, state: '智慧草苗 · 成长中' },
-  { plot_id: 2, state: '灵根· 休眠中' }
-]
+<script setup lang="ts">
+import { onMounted, ref } from "vue"
+
+import { APIError } from "@/api/http"
+import { getManorPlots, type ManorPlot } from "@/api/modules/growth"
+import { useSessionStore } from "@/stores/session"
+
+const sessionStore = useSessionStore()
+const plots = ref<ManorPlot[]>([])
+const errorMessage = ref("")
+
+onMounted(async () => {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法加载庄园。"
+    return
+  }
+
+  try {
+    plots.value = await getManorPlots(playerId)
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "庄园状态加载失败。"
+  }
+})
 </script>
 
 <style scoped>
@@ -44,6 +65,10 @@ const plots = [
   background: rgba(255, 255, 255, 0.05);
   display: flex;
   justify-content: space-between;
+}
+.status-text {
+  margin-top: 1rem;
+  color: #ffddb8;
 }
 .panel {
   padding: 16px;

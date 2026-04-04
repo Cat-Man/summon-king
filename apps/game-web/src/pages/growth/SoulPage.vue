@@ -2,22 +2,53 @@
   <section class="growth-page growth-page--soul">
     <header>
       <p class="tag">魔魂</p>
-      <h1>Soul Catcher</h1>
-      <p>当前附魔残片 4 | 能量池 320</p>
+      <h1>{{ soul.name || "Soul Catcher" }}</h1>
+      <p>当前魂力 {{ soul.power }}</p>
     </header>
+    <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
     <div class="grid">
       <article>
-        <strong>搜魂速度</strong>
-        <span>+22%</span>
+        <strong>魂力值</strong>
+        <span>{{ soul.power }}</span>
       </article>
       <article>
-        <strong>灵魂护盾</strong>
-        <span>+18%</span>
+        <strong>状态</strong>
+        <span>{{ soul.power > 0 ? "已凝聚" : "待收集" }}</span>
       </article>
     </div>
-    <p class="note">魔魂猎魂时间越短，掉落越丰厚。灵魂池刷新：12min</p>
+    <p class="note">魔魂线当前先接真实数值，后续再扩猎魂与掉落玩法。</p>
   </section>
 </template>
+
+<script setup lang="ts">
+import { onMounted, ref } from "vue"
+
+import { APIError } from "@/api/http"
+import { getSoulState, type SoulState } from "@/api/modules/growth"
+import { useSessionStore } from "@/stores/session"
+
+const sessionStore = useSessionStore()
+const soul = ref<SoulState>({
+  name: "",
+  power: 0,
+})
+const errorMessage = ref("")
+
+onMounted(async () => {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法加载魔魂。"
+    return
+  }
+
+  try {
+    soul.value = await getSoulState(playerId)
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "魔魂状态加载失败。"
+  }
+})
+</script>
 
 <style scoped>
 .growth-page--soul {
@@ -44,6 +75,10 @@
   font-size: 12px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
+}
+.status-text {
+  margin: 0;
+  color: #ffdce8;
 }
 .note {
   max-width: 420px;

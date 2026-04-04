@@ -2,24 +2,55 @@
   <section class="growth-page growth-page--bone">
     <header>
       <p class="tag">战骨</p>
-      <h1>Pyramid Bone</h1>
-      <p>铸魂之骨为成长基石，当前等级：5 级</p>
+      <h1>{{ bone.name || "Pyramid Bone" }}</h1>
+      <p>铸魂之骨为成长基石，当前等级：{{ bone.level }} 级</p>
     </header>
+    <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
     <div class="metrics">
       <article>
-        <strong>力量</strong>
-        <span>+18%</span>
+        <strong>当前等级</strong>
+        <span>{{ bone.level }}</span>
       </article>
       <article>
-        <strong>坚韧</strong>
-        <span>+12%</span>
+        <strong>成长评价</strong>
+        <span>{{ bone.level >= 3 ? "稳固" : "初成" }}</span>
       </article>
     </div>
     <div class="panel">
-      <p>当前战骨正在吸收雷火精华，下一层成就需要 12 个战骨石。</p>
+      <p>当前战骨正在吸收雷火精华，后续再补升级资源与强化动作。</p>
     </div>
   </section>
 </template>
+
+<script setup lang="ts">
+import { onMounted, ref } from "vue"
+
+import { APIError } from "@/api/http"
+import { getBoneState, type BoneState } from "@/api/modules/growth"
+import { useSessionStore } from "@/stores/session"
+
+const sessionStore = useSessionStore()
+const bone = ref<BoneState>({
+  name: "",
+  level: 0,
+})
+const errorMessage = ref("")
+
+onMounted(async () => {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法加载战骨。"
+    return
+  }
+
+  try {
+    bone.value = await getBoneState(playerId)
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "战骨状态加载失败。"
+  }
+})
+</script>
 
 <style scoped>
 .growth-page {
@@ -42,6 +73,10 @@
   font-size: 12px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
+}
+.status-text {
+  margin-top: 1rem;
+  color: #ffd7e4;
 }
 .metrics {
   display: grid;
