@@ -3,6 +3,7 @@ import { flushPromises, mount } from "@vue/test-utils"
 
 import { APIError } from "@/api/http"
 import { enterDungeon, getDungeonStatus, rollDungeonDice } from "@/api/modules/dungeon"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 import DungeonRunPage from "../DungeonRunPage.vue"
@@ -13,10 +14,15 @@ vi.mock("@/api/modules/dungeon", () => ({
   rollDungeonDice: vi.fn(),
 }))
 
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
 test("enters dungeon when status is missing and rolls forward", async () => {
   const pinia = createPinia()
   setActivePinia(pinia)
   const sessionStore = useSessionStore()
+  const syncStore = useResourceSyncStore()
   sessionStore.setSession({
     token: "guest-token",
     playerId: 3003,
@@ -83,6 +89,7 @@ test("enters dungeon when status is missing and rolls forward", async () => {
   await flushPromises()
 
   expect(rollDungeonDice).toHaveBeenCalledWith(3003)
+  expect(syncStore.version).toBe(1)
   expect(wrapper.text()).toContain("5")
   expect(wrapper.text()).toContain("Boss掉落")
   expect(wrapper.text()).toContain("灵力 +8")

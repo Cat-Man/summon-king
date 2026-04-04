@@ -3,6 +3,7 @@ import { flushPromises, mount } from "@vue/test-utils"
 
 import { claimCultivation, startCultivation } from "@/api/modules/dungeon"
 import { getHomeOverview } from "@/api/modules/home"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 import CultivationPage from "../CultivationPage.vue"
@@ -20,6 +21,7 @@ test("loads cultivation status and updates after start and claim", async () => {
   const pinia = createPinia()
   setActivePinia(pinia)
   const sessionStore = useSessionStore()
+  const syncStore = useResourceSyncStore()
   sessionStore.setSession({
     token: "guest-token",
     playerId: 4004,
@@ -81,10 +83,12 @@ test("loads cultivation status and updates after start and claim", async () => {
   await wrapper.get("button.primary").trigger("click")
   await flushPromises()
   expect(startCultivation).toHaveBeenCalledWith(4004)
+  expect(syncStore.version).toBe(1)
   expect(wrapper.text()).toContain("cultivating")
 
   await wrapper.get("button.ghost").trigger("click")
   await flushPromises()
   expect(claimCultivation).toHaveBeenCalledWith(4004)
+  expect(syncStore.version).toBe(2)
   expect(wrapper.text()).toContain("110")
 })

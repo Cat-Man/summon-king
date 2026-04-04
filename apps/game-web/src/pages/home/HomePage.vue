@@ -27,13 +27,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 
 import { APIError } from "@/api/http"
 import { getHomeOverview, type HomeOverview } from "@/api/modules/home"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
+const resourceSyncStore = useResourceSyncStore()
 const overview = ref<HomeOverview | null>(null)
 const errorMessage = ref("")
 
@@ -81,7 +83,7 @@ const cards = computed(() => {
   ]
 })
 
-onMounted(async () => {
+async function loadOverview() {
   if (!sessionStore.playerId) {
     errorMessage.value = "当前未登录，无法加载首页总览。"
     return
@@ -89,6 +91,7 @@ onMounted(async () => {
 
   try {
     overview.value = await getHomeOverview(sessionStore.playerId)
+    errorMessage.value = ""
   } catch (error) {
     if (error instanceof APIError) {
       errorMessage.value = error.message
@@ -96,6 +99,20 @@ onMounted(async () => {
     }
     errorMessage.value = "首页总览加载失败，请稍后重试。"
   }
+}
+
+watch(
+  () => resourceSyncStore.version,
+  async (next, prev) => {
+    if (next === prev) {
+      return
+    }
+    await loadOverview()
+  },
+)
+
+onMounted(async () => {
+  await loadOverview()
 })
 </script>
 

@@ -15,13 +15,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { onMounted, ref, watch } from "vue"
 
 import { APIError } from "@/api/http"
 import { getGrowthWallet, washSpirit, type GrowthWallet } from "@/api/modules/growth"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
+const resourceSyncStore = useResourceSyncStore()
 const wallet = ref<GrowthWallet>({
   player_id: 0,
   spirit_power: 0,
@@ -56,11 +58,21 @@ async function washNow() {
 
   try {
     await washSpirit(playerId)
-    await loadWallet()
+    resourceSyncStore.touch()
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "战灵洗炼失败。"
   }
 }
+
+watch(
+  () => resourceSyncStore.version,
+  async (next, prev) => {
+    if (next === prev) {
+      return
+    }
+    await loadWallet()
+  },
+)
 
 onMounted(async () => {
   await loadWallet()

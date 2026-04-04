@@ -28,9 +28,11 @@ import { onMounted, ref } from "vue"
 
 import { APIError } from "@/api/http"
 import { getBoneState, type BoneState, upgradeBone } from "@/api/modules/growth"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
+const resourceSyncStore = useResourceSyncStore()
 const bone = ref<BoneState>({
   name: "",
   level: 0,
@@ -62,6 +64,7 @@ async function upgradeNow() {
   try {
     bone.value = await upgradeBone(playerId)
     errorMessage.value = ""
+    resourceSyncStore.touch()
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "战骨升级失败。"
   }

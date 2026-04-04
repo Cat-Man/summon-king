@@ -53,6 +53,7 @@ import { computed, onMounted, ref } from "vue"
 
 import { APIError } from "@/api/http"
 import { enterDungeon, getDungeonStatus, rollDungeonDice, type DungeonRun } from "@/api/modules/dungeon"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const defaultRun: DungeonRun = {
@@ -78,6 +79,7 @@ const defaultRun: DungeonRun = {
 }
 
 const sessionStore = useSessionStore()
+const resourceSyncStore = useResourceSyncStore()
 const run = ref<DungeonRun>(defaultRun)
 const errorMessage = ref("")
 
@@ -113,6 +115,7 @@ async function rollForward() {
   try {
     run.value = await rollDungeonDice(playerId)
     errorMessage.value = ""
+    resourceSyncStore.touch()
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "掷骰失败，请稍后重试。"
   }
@@ -128,6 +131,7 @@ async function restartRun() {
   try {
     run.value = await enterDungeon(playerId, 1)
     errorMessage.value = ""
+    resourceSyncStore.touch()
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "进入副本失败，请稍后重试。"
   }

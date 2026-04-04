@@ -24,13 +24,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { onMounted, ref, watch } from "vue"
 
 import { APIError } from "@/api/http"
 import { getSoulState, type SoulState, upgradeSoul } from "@/api/modules/growth"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
+const resourceSyncStore = useResourceSyncStore()
 const soul = ref<SoulState>({
   name: "",
   power: 0,
@@ -60,12 +62,22 @@ async function upgradeNow() {
   }
 
   try {
-    soul.value = await upgradeSoul(playerId)
-    errorMessage.value = ""
+    await upgradeSoul(playerId)
+    resourceSyncStore.touch()
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "魔魂升级失败。"
   }
 }
+
+watch(
+  () => resourceSyncStore.version,
+  async (next, prev) => {
+    if (next === prev) {
+      return
+    }
+    await loadSoul()
+  },
+)
 
 onMounted(async () => {
   await loadSoul()

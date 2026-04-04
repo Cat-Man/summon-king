@@ -40,9 +40,11 @@ import { computed, onMounted, ref } from "vue"
 import { APIError } from "@/api/http"
 import { claimCultivation, startCultivation, type CultivationStatus } from "@/api/modules/dungeon"
 import { getHomeOverview } from "@/api/modules/home"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
+const resourceSyncStore = useResourceSyncStore()
 const cultivation = ref<CultivationStatus>({
   player_id: 0,
   spirit_power: 0,
@@ -84,6 +86,7 @@ async function beginCultivation() {
   try {
     cultivation.value = await startCultivation(playerId)
     errorMessage.value = ""
+    resourceSyncStore.touch()
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "开始修行失败。"
   }
@@ -100,6 +103,7 @@ async function claimReward() {
     cultivation.value = await claimCultivation(playerId)
     walletPower.value += cultivation.value.spirit_power
     errorMessage.value = ""
+    resourceSyncStore.touch()
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "领取灵力失败。"
   }
