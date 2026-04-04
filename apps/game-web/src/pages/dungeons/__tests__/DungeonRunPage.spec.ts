@@ -74,6 +74,13 @@ test("enters dungeon when status is missing and rolls forward", async () => {
       spirit_power: 8,
       soul_pieces: 1,
     },
+    battle_result: {
+      battle_type: "dungeon",
+      result: "success",
+      rounds: 1,
+      attacker_power: 180,
+      defender_power: 140,
+    },
     wallet_snapshot: {
       player_id: 3003,
       spirit_power: 108,
@@ -104,6 +111,11 @@ test("enters dungeon when status is missing and rolls forward", async () => {
   expect(wrapper.text()).toContain("灵力 +8")
   expect(wrapper.text()).toContain("魂力 +1")
   expect(wrapper.text()).toContain("当前灵力 108")
+  expect(wrapper.text()).toContain("战斗摘要")
+  expect(wrapper.text()).toContain("战斗结果")
+  expect(wrapper.text()).toContain("回合数")
+  expect(wrapper.text()).toContain("我方战力")
+  expect(wrapper.text()).toContain("敌方战力")
 })
 
 test("switches dungeon and restarts with selected dungeon", async () => {

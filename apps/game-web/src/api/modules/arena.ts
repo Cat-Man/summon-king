@@ -17,9 +17,18 @@ export type ArenaWalletSnapshot = {
   soul_pieces: number
 }
 
+export type ArenaBattleSummary = {
+  battle_type: string
+  result: string
+  rounds: number
+  attacker_power: number
+  defender_power: number
+}
+
 export type ArenaBattleResult = {
   record: ArenaRecord
   reward_delta: ArenaRewardDelta
+  battle: ArenaBattleSummary
   wallet_snapshot: ArenaWalletSnapshot
 }
 

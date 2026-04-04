@@ -30,6 +30,13 @@ export type DungeonRun = {
     spirit_power: number
     soul_pieces: number
   }
+  last_battle?: {
+    battle_type: string
+    result: string
+    rounds: number
+    attacker_power: number
+    defender_power: number
+  }
   wallet_snapshot: {
     player_id: number
     spirit_power: number

@@ -53,6 +53,15 @@ func TestService_StartChallengeAppliesTowerRewardsToWallet(t *testing.T) {
 	if result.WalletSnapshot.BoneLevel != before.BoneLevel+1 {
 		t.Fatalf("expected bone level %d, got %d", before.BoneLevel+1, result.WalletSnapshot.BoneLevel)
 	}
+	if result.BattleResult.BattleType != "tower" {
+		t.Fatalf("expected tower battle summary, got %s", result.BattleResult.BattleType)
+	}
+	if result.BattleResult.Result != "success" {
+		t.Fatalf("expected success battle result, got %s", result.BattleResult.Result)
+	}
+	if result.BattleResult.AttackerPower <= 0 {
+		t.Fatalf("expected attacker power > 0, got %d", result.BattleResult.AttackerPower)
+	}
 }
 
 func TestService_StartChallengeRejectsWhenNoChallengesRemain(t *testing.T) {

@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/battle"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
 )
 
 type assetWriter interface {
@@ -12,9 +14,19 @@ type assetWriter interface {
 	Snapshot(ctx context.Context, playerID int64) (growth.Wallet, error)
 }
 
+type teamReader interface {
+	GetBattleTeam(ctx context.Context, playerID int64) (pet.TeamSnapshot, error)
+}
+
+type battleResolver interface {
+	Resolve(ctx context.Context, req battle.Request) (battle.Summary, error)
+}
+
 type Service struct {
-	repo  Repository
-	asset assetWriter
+	repo    Repository
+	asset   assetWriter
+	teams   teamReader
+	battles battleResolver
 }
 
 type rewardRule struct {
@@ -114,8 +126,10 @@ var rewardRules = []rewardRule{
 
 func NewService(repo Repository, assetWriter assetWriter) *Service {
 	return &Service{
-		repo:  repo,
-		asset: assetWriter,
+		repo:    repo,
+		asset:   assetWriter,
+		teams:   pet.NewService(pet.NewMemoryRepository()),
+		battles: battle.NewService(),
 	}
 }
 
@@ -148,6 +162,10 @@ func (s *Service) RollDice(ctx context.Context, playerID int64) (DungeonRun, err
 		if err := s.applyReward(ctx, playerID, run.LastReward); err != nil {
 			return DungeonRun{}, err
 		}
+	}
+	run, err = s.attachBattleSummary(ctx, playerID, run)
+	if err != nil {
+		return DungeonRun{}, err
 	}
 	return s.attachWalletSnapshot(ctx, playerID, run)
 }
@@ -218,6 +236,60 @@ func (s *Service) applyReward(ctx context.Context, playerID int64, reward RollRe
 		return err
 	}
 	return nil
+}
+
+func (s *Service) attachBattleSummary(ctx context.Context, playerID int64, run DungeonRun) (DungeonRun, error) {
+	if run.Status == "exhausted" || s.teams == nil || s.battles == nil {
+		return run, nil
+	}
+
+	attacker, err := s.teams.GetBattleTeam(ctx, playerID)
+	if err != nil {
+		return DungeonRun{}, err
+	}
+
+	summary, err := s.battles.Resolve(ctx, battle.Request{
+		Type:         "dungeon",
+		PresetResult: "success",
+		Attacker:     attacker,
+		Defender:     dungeonEnemyTeam(run),
+	})
+	if err != nil {
+		return DungeonRun{}, err
+	}
+
+	run.BattleResult = summary
+	return run, nil
+}
+
+func dungeonEnemyTeam(run DungeonRun) pet.TeamSnapshot {
+	power := int64(90 + run.CurrentFloor*12)
+	if run.DungeonID == 2 {
+		power += 24
+	}
+	if run.Status == "boss" {
+		power += 36
+	}
+
+	level := run.CurrentFloor
+	if level < 1 {
+		level = 1
+	}
+
+	return pet.TeamSnapshot{
+		PlayerID:   0,
+		TotalPower: power,
+		Pets: []pet.BattlePet{
+			{
+				PetID:    run.DungeonID*1000 + int64(level),
+				Slot:     1,
+				Name:     run.LastReward.Label,
+				Level:    level,
+				Power:    power,
+				IsActive: true,
+			},
+		},
+	}
 }
 
 func matchesRewardRule(run DungeonRun, rule rewardRule) bool {

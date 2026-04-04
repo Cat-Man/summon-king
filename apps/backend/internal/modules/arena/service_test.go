@@ -78,4 +78,27 @@ func TestArena_WinBattleAppliesRewardAndReturnsSnapshot(t *testing.T) {
 	if result.Record.CurrentStreak != 1 {
 		t.Fatalf("expected current streak 1, got %d", result.Record.CurrentStreak)
 	}
+	if result.BattleResult.BattleType != "arena" {
+		t.Fatalf("expected arena battle summary, got %s", result.BattleResult.BattleType)
+	}
+	if result.BattleResult.Result != "success" {
+		t.Fatalf("expected success battle result, got %s", result.BattleResult.Result)
+	}
+	if result.BattleResult.AttackerPower <= 0 {
+		t.Fatalf("expected attacker power > 0, got %d", result.BattleResult.AttackerPower)
+	}
+}
+
+func TestArena_LoseBattleReturnsFailedBattleSummary(t *testing.T) {
+	ctx := context.Background()
+	svc := newTestArenaService(t)
+	playerID := int64(3004)
+
+	result, err := svc.RecordBattleResult(ctx, playerID, false)
+	if err != nil {
+		t.Fatalf("expected record battle result success, got %v", err)
+	}
+	if result.BattleResult.Result != "fail" {
+		t.Fatalf("expected fail battle result, got %s", result.BattleResult.Result)
+	}
 }

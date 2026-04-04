@@ -50,6 +50,13 @@ test("loads pagoda status and refreshes after challenge", async () => {
       bone_level: 1,
       spirit_power: 5,
     },
+    battle_result: {
+      battle_type: "tower",
+      result: "success",
+      rounds: 1,
+      attacker_power: 180,
+      defender_power: 120,
+    },
     wallet_snapshot: {
       spirit_power: 125,
       bone_level: 3,
@@ -77,6 +84,11 @@ test("loads pagoda status and refreshes after challenge", async () => {
   expect(wrapper.text()).toContain("4/5")
   expect(wrapper.text()).toContain("战骨 +1")
   expect(wrapper.text()).toContain("灵力 +5")
+  expect(wrapper.text()).toContain("战斗摘要")
+  expect(wrapper.text()).toContain("战斗结果")
+  expect(wrapper.text()).toContain("回合数")
+  expect(wrapper.text()).toContain("我方战力")
+  expect(wrapper.text()).toContain("敌方战力")
   expect(resourceSyncStore.version).toBe(1)
 })
 
@@ -109,6 +121,13 @@ test("still syncs resources when pagoda status refresh fails after challenge", a
     remaining_challenges: 4,
     reward_delta: {
       bone_level: 1,
+    },
+    battle_result: {
+      battle_type: "tower",
+      result: "success",
+      rounds: 1,
+      attacker_power: 170,
+      defender_power: 130,
     },
     wallet_snapshot: {
       spirit_power: 100,

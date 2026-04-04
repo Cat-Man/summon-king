@@ -254,6 +254,15 @@ func TestRollDice_ReturnsRewardAndWalletSnapshot(t *testing.T) {
 	if run.WalletSnapshot.SpiritPower != 105 {
 		t.Fatalf("expected wallet snapshot spirit 105, got %d", run.WalletSnapshot.SpiritPower)
 	}
+	if run.BattleResult.BattleType != "dungeon" {
+		t.Fatalf("expected dungeon battle summary, got %s", run.BattleResult.BattleType)
+	}
+	if run.BattleResult.Result != "success" {
+		t.Fatalf("expected success battle result, got %s", run.BattleResult.Result)
+	}
+	if run.BattleResult.AttackerPower <= 0 {
+		t.Fatalf("expected attacker power > 0, got %d", run.BattleResult.AttackerPower)
+	}
 }
 
 func TestResolveRollReward_OngoingStatus(t *testing.T) {
@@ -344,6 +353,9 @@ func TestRollDice_ExhaustedRunDoesNotGrantReward(t *testing.T) {
 	}
 	if run.WalletSnapshot.SpiritPower != 193 {
 		t.Fatalf("expected wallet spirit 193 without extra reward, got %d", run.WalletSnapshot.SpiritPower)
+	}
+	if run.BattleResult.BattleType != "" {
+		t.Fatalf("expected no battle summary for exhausted run, got %s", run.BattleResult.BattleType)
 	}
 }
 

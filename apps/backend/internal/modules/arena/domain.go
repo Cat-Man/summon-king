@@ -1,6 +1,9 @@
 package arena
 
-import "github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+import (
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/battle"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+)
 
 type DailyRecord struct {
 	PlayerID      int64 `json:"player_id"`
@@ -16,5 +19,6 @@ type ArenaRewardDelta struct {
 type BattleResult struct {
 	Record         DailyRecord      `json:"record"`
 	RewardDelta    ArenaRewardDelta `json:"reward_delta"`
+	BattleResult   battle.Summary   `json:"battle_result"`
 	WalletSnapshot growth.Wallet    `json:"wallet_snapshot"`
 }

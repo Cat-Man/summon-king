@@ -1,6 +1,7 @@
 package tower
 
 import (
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/battle"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 )
 
@@ -26,5 +27,6 @@ type TowerResult struct {
 	Reward              string           `json:"reward"`
 	RemainingChallenges int              `json:"remaining_challenges"`
 	RewardDelta         TowerRewardDelta `json:"reward_delta"`
+	BattleResult        battle.Summary   `json:"battle_result"`
 	WalletSnapshot      growth.Wallet    `json:"wallet_snapshot"`
 }

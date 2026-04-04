@@ -30,6 +30,30 @@
         <li v-for="line in rewardLines" :key="line">{{ line }}</li>
       </ul>
     </article>
+    <article v-if="battleSummary !== null" class="spirits-list reward-card">
+      <header class="battle-header">
+        <h3>战斗摘要</h3>
+        <span>{{ battleSummary.battle_type }}</span>
+      </header>
+      <dl class="battle-grid">
+        <div>
+          <dt>战斗结果</dt>
+          <dd>{{ battleSummary.result }}</dd>
+        </div>
+        <div>
+          <dt>回合数</dt>
+          <dd>{{ battleSummary.rounds }}</dd>
+        </div>
+        <div>
+          <dt>我方战力</dt>
+          <dd>{{ battleSummary.attacker_power }}</dd>
+        </div>
+        <div>
+          <dt>敌方战力</dt>
+          <dd>{{ battleSummary.defender_power }}</dd>
+        </div>
+      </dl>
+    </article>
   </section>
 </template>
 
@@ -40,6 +64,7 @@ import { APIError } from "@/api/http"
 import {
   getTowerStatus,
   startTowerChallenge,
+  type TowerBattleSummary,
   type TowerRewardDelta,
   type TowerStatus,
 } from "@/api/modules/tower"
@@ -57,6 +82,7 @@ const status = ref<TowerStatus>({
   reward_preview: "",
 })
 const lastReward = ref("")
+const battleSummary = ref<TowerBattleSummary | null>(null)
 const rewardLines = ref<string[]>([])
 const errorMessage = ref("")
 
@@ -99,6 +125,7 @@ async function startChallenge() {
   try {
     const result = await startTowerChallenge("spirit", playerId)
     lastReward.value = result.reward
+    battleSummary.value = result.battle ? { ...result.battle } : null
     summarizeRewards(result.reward_delta)
     await loadStatus()
     resourceSyncStore.touch()
@@ -223,5 +250,33 @@ onMounted(async () => {
 
 .reward-card li {
   margin-bottom: 6px;
+}
+
+.battle-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.battle-header span {
+  color: #bbb8ff;
+  text-transform: uppercase;
+}
+
+.battle-grid {
+  margin: 0.75rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.battle-grid dt {
+  color: #bbb8ff;
+  font-size: 0.85rem;
+}
+
+.battle-grid dd {
+  margin: 0.3rem 0 0;
+  font-weight: 700;
 }
 </style>

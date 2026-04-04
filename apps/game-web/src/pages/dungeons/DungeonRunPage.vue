@@ -43,6 +43,30 @@
         <span>当前魂力 {{ run.wallet_snapshot.soul_pieces }}</span>
       </article>
     </div>
+    <article v-if="run.last_battle?.battle_type" class="battle-panel">
+      <header>
+        <strong>战斗摘要</strong>
+        <span>{{ run.last_battle?.battle_type }}</span>
+      </header>
+      <dl>
+        <div>
+          <dt>战斗结果</dt>
+          <dd>{{ run.last_battle?.result }}</dd>
+        </div>
+        <div>
+          <dt>回合数</dt>
+          <dd>{{ run.last_battle?.rounds }}</dd>
+        </div>
+        <div>
+          <dt>我方战力</dt>
+          <dd>{{ run.last_battle?.attacker_power }}</dd>
+        </div>
+        <div>
+          <dt>敌方战力</dt>
+          <dd>{{ run.last_battle?.defender_power }}</dd>
+        </div>
+      </dl>
+    </article>
     <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
     <div class="action-panel">
       <button class="action-btn primary" type="button" @click="rollForward">掷骰推进</button>
@@ -87,6 +111,13 @@ const defaultRun: DungeonRun = {
     spirit_power: 0,
     soul_pieces: 0,
   },
+  last_battle: {
+    battle_type: "",
+    result: "",
+    rounds: 0,
+    attacker_power: 0,
+    defender_power: 0,
+  },
   wallet_snapshot: {
     player_id: 0,
     spirit_power: 0,
@@ -108,6 +139,25 @@ const floors = computed(() => Math.max(6, run.value.current_floor + 2))
 const currentDungeonName = computed(() => {
   return dungeonOptions.find((option) => option.id === selectedDungeonId.value)?.name ?? "妖窟试炼"
 })
+
+function normalizeRun(nextRun: Partial<DungeonRun>): DungeonRun {
+  return {
+    ...defaultRun,
+    ...nextRun,
+    last_reward: {
+      ...defaultRun.last_reward,
+      ...nextRun.last_reward,
+    },
+    last_battle: {
+      ...defaultRun.last_battle,
+      ...nextRun.last_battle,
+    },
+    wallet_snapshot: {
+      ...defaultRun.wallet_snapshot,
+      ...nextRun.wallet_snapshot,
+    },
+  }
+}
 
 function parseDungeonId(value: unknown) {
   const rawValue = Array.isArray(value) ? value[0] : value
@@ -144,17 +194,17 @@ async function refreshRun() {
 
     if (currentRun.dungeon_id && currentRun.dungeon_id !== targetDungeonId) {
       selectedDungeonId.value = targetDungeonId
-      run.value = await enterDungeon(playerId, targetDungeonId)
+      run.value = normalizeRun(await enterDungeon(playerId, targetDungeonId))
       errorMessage.value = ""
       return
     }
 
-    run.value = currentRun
+    run.value = normalizeRun(currentRun)
     selectedDungeonId.value = currentRun.dungeon_id || selectedDungeonId.value
     errorMessage.value = ""
   } catch (error) {
     if (error instanceof APIError && error.status === 404) {
-      run.value = await enterDungeon(playerId, selectedDungeonId.value)
+      run.value = normalizeRun(await enterDungeon(playerId, selectedDungeonId.value))
       errorMessage.value = ""
       return
     }
@@ -170,7 +220,7 @@ async function rollForward() {
   }
 
   try {
-    run.value = await rollDungeonDice(playerId)
+    run.value = normalizeRun(await rollDungeonDice(playerId))
     errorMessage.value = ""
     resourceSyncStore.touch()
   } catch (error) {
@@ -186,7 +236,7 @@ async function restartRun() {
   }
 
   try {
-    run.value = await enterDungeon(playerId, selectedDungeonId.value)
+    run.value = normalizeRun(await enterDungeon(playerId, selectedDungeonId.value))
     errorMessage.value = ""
     resourceSyncStore.touch()
   } catch (error) {
@@ -215,7 +265,7 @@ watch(
     }
 
     try {
-      run.value = await enterDungeon(playerId, dungeonId)
+      run.value = normalizeRun(await enterDungeon(playerId, dungeonId))
       errorMessage.value = ""
     } catch (error) {
       errorMessage.value = error instanceof APIError ? error.message : "进入副本失败，请稍后重试。"
@@ -267,6 +317,32 @@ watch(
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.battle-panel {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.battle-panel header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.battle-panel dl {
+  margin: 0.8rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+.battle-panel dt {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+.battle-panel dd {
+  margin: 0.3rem 0 0;
+  font-weight: 700;
 }
 .reward-panel p,
 .reward-panel strong,

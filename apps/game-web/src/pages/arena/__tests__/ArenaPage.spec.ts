@@ -38,6 +38,13 @@ test("loads arena record and updates after battle", async () => {
       reward_delta: {
         spirit_power: 10,
       },
+      battle_result: {
+        battle_type: "arena",
+        result: "success",
+        rounds: 1,
+        attacker_power: 160,
+        defender_power: 140,
+      },
       wallet_snapshot: {
         spirit_power: 110,
         bone_level: 1,
@@ -51,6 +58,13 @@ test("loads arena record and updates after battle", async () => {
         last_win: false,
       },
       reward_delta: {},
+      battle_result: {
+        battle_type: "arena",
+        result: "fail",
+        rounds: 1,
+        attacker_power: 160,
+        defender_power: 180,
+      },
       wallet_snapshot: {
         spirit_power: 110,
         bone_level: 1,
@@ -80,6 +94,11 @@ test("loads arena record and updates after battle", async () => {
   expect(wrapper.text()).toContain("胜")
   expect(wrapper.text()).toContain("奖励拆分")
   expect(wrapper.text()).toContain("灵力 +10")
+  expect(wrapper.text()).toContain("战斗摘要")
+  expect(wrapper.text()).toContain("战斗结果")
+  expect(wrapper.text()).toContain("回合数")
+  expect(wrapper.text()).toContain("我方战力")
+  expect(wrapper.text()).toContain("敌方战力")
   expect(wrapper.text()).toContain("查看排行榜")
   expect(resourceSyncStore.version).toBe(1)
 

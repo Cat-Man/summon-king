@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/battle"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
 )
 
 type assetWriter interface {
@@ -12,15 +14,27 @@ type assetWriter interface {
 	Snapshot(ctx context.Context, playerID int64) (growth.Wallet, error)
 }
 
+type teamReader interface {
+	GetBattleTeam(ctx context.Context, playerID int64) (pet.TeamSnapshot, error)
+}
+
+type battleResolver interface {
+	Resolve(ctx context.Context, req battle.Request) (battle.Summary, error)
+}
+
 type Service struct {
-	repo  Repository
-	asset assetWriter
+	repo    Repository
+	asset   assetWriter
+	teams   teamReader
+	battles battleResolver
 }
 
 func NewService(repo Repository, assetWriter assetWriter) *Service {
 	return &Service{
-		repo:  repo,
-		asset: assetWriter,
+		repo:    repo,
+		asset:   assetWriter,
+		teams:   pet.NewService(pet.NewMemoryRepository()),
+		battles: battle.NewService(),
 	}
 }
 
@@ -40,6 +54,10 @@ func (s *Service) StartChallenge(ctx context.Context, playerID int64, tower stri
 	}
 
 	result.RewardDelta = delta
+	result.BattleResult, err = s.battleSummary(ctx, playerID, result)
+	if err != nil {
+		return TowerResult{}, err
+	}
 	wallet, err := s.walletSnapshot(ctx, playerID, delta)
 	if err != nil {
 		return TowerResult{}, err
@@ -50,6 +68,24 @@ func (s *Service) StartChallenge(ctx context.Context, playerID int64, tower stri
 
 func (s *Service) GetStatus(ctx context.Context, playerID int64, tower string) TowerStatus {
 	return s.repo.GetStatus(ctx, playerID, tower)
+}
+
+func (s *Service) battleSummary(ctx context.Context, playerID int64, result TowerResult) (battle.Summary, error) {
+	if s.teams == nil || s.battles == nil {
+		return battle.Summary{}, nil
+	}
+
+	attacker, err := s.teams.GetBattleTeam(ctx, playerID)
+	if err != nil {
+		return battle.Summary{}, err
+	}
+
+	return s.battles.Resolve(ctx, battle.Request{
+		Type:         "tower",
+		PresetResult: "success",
+		Attacker:     attacker,
+		Defender:     towerEnemyTeam(result),
+	})
 }
 
 func (s *Service) walletSnapshot(ctx context.Context, playerID int64, delta TowerRewardDelta) (growth.Wallet, error) {
@@ -68,4 +104,26 @@ func (s *Service) walletSnapshot(ctx context.Context, playerID int64, delta Towe
 		return result.Wallet, nil
 	}
 	return s.asset.Snapshot(ctx, playerID)
+}
+
+func towerEnemyTeam(result TowerResult) pet.TeamSnapshot {
+	power := int64(100 + result.Floor*16)
+	if result.Tower == "spirit" {
+		power += 24
+	}
+
+	return pet.TeamSnapshot{
+		PlayerID:   0,
+		TotalPower: power,
+		Pets: []pet.BattlePet{
+			{
+				PetID:    int64(result.Floor),
+				Slot:     1,
+				Name:     result.Reward,
+				Level:    max(result.Floor, 1),
+				Power:    power,
+				IsActive: true,
+			},
+		},
+	}
 }

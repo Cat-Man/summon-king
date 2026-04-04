@@ -33,6 +33,31 @@
       </ul>
     </article>
 
+    <article v-if="battleSummary !== null" class="battle-card">
+      <header>
+        <h3>战斗摘要</h3>
+        <span>{{ battleSummary.battle_type }}</span>
+      </header>
+      <dl>
+        <div>
+          <dt>战斗结果</dt>
+          <dd>{{ battleSummary.result }}</dd>
+        </div>
+        <div>
+          <dt>回合数</dt>
+          <dd>{{ battleSummary.rounds }}</dd>
+        </div>
+        <div>
+          <dt>我方战力</dt>
+          <dd>{{ battleSummary.attacker_power }}</dd>
+        </div>
+        <div>
+          <dt>敌方战力</dt>
+          <dd>{{ battleSummary.defender_power }}</dd>
+        </div>
+      </dl>
+    </article>
+
     <div class="arena-links" v-if="rewardLines.length">
       <RouterLink to="/ranking">查看排行榜</RouterLink>
       <RouterLink to="/home">返回首页</RouterLink>
@@ -45,7 +70,12 @@ import { onMounted, ref } from "vue"
 import { RouterLink } from "vue-router"
 
 import { APIError } from "@/api/http"
-import { challengeArena, getArenaStatus, type ArenaRecord } from "@/api/modules/arena"
+import {
+  challengeArena,
+  getArenaStatus,
+  type ArenaBattleSummary,
+  type ArenaRecord,
+} from "@/api/modules/arena"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
@@ -56,6 +86,7 @@ const record = ref<ArenaRecord>({
   current_streak: 0,
   last_win: false,
 })
+const battleSummary = ref<ArenaBattleSummary | null>(null)
 const rewardLines = ref<string[]>([])
 const errorMessage = ref("")
 
@@ -95,6 +126,7 @@ async function battle(won: boolean) {
   try {
     const result = await challengeArena(playerId, won)
     record.value = result.record
+    battleSummary.value = result.battle ? { ...result.battle } : null
     summarizeRewards(result.reward_delta.spirit_power, result.reward_delta.soul_pieces)
     resourceSyncStore.touch()
     errorMessage.value = ""
@@ -223,6 +255,48 @@ onMounted(async () => {
 .reward-card ul {
   margin: 0.8rem 0 0;
   padding-left: 1.2rem;
+}
+
+.battle-card {
+  margin-top: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 247, 239, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.battle-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.battle-card h3,
+.battle-card span {
+  margin: 0;
+}
+
+.battle-card span {
+  color: rgba(255, 247, 239, 0.65);
+  text-transform: uppercase;
+}
+
+.battle-card dl {
+  margin: 0.8rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.battle-card dt {
+  color: rgba(255, 247, 239, 0.65);
+  font-size: 0.85rem;
+}
+
+.battle-card dd {
+  margin: 0.3rem 0 0;
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .arena-links {

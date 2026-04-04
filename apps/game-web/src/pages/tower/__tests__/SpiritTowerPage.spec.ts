@@ -83,6 +83,13 @@ test("challenges spirit tower and refreshes resources", async () => {
       spirit_power: 12,
       soul_pieces: 1,
     },
+    battle_result: {
+      battle_type: "tower",
+      result: "success",
+      rounds: 1,
+      attacker_power: 190,
+      defender_power: 150,
+    },
     wallet_snapshot: {
       spirit_power: 132,
       bone_level: 2,
@@ -103,6 +110,11 @@ test("challenges spirit tower and refreshes resources", async () => {
   expect(startTowerChallenge).toHaveBeenCalledWith("spirit", 6205)
   expect(wrapper.text()).toContain("灵力 +12")
   expect(wrapper.text()).toContain("魔魂碎片 +1")
+  expect(wrapper.text()).toContain("战斗摘要")
+  expect(wrapper.text()).toContain("战斗结果")
+  expect(wrapper.text()).toContain("回合数")
+  expect(wrapper.text()).toContain("我方战力")
+  expect(wrapper.text()).toContain("敌方战力")
   expect(resourceSyncStore.version).toBe(1)
 })
 
@@ -136,6 +148,13 @@ test("still syncs resources when spirit tower status refresh fails after challen
     reward_delta: {
       spirit_power: 12,
       soul_pieces: 1,
+    },
+    battle_result: {
+      battle_type: "tower",
+      result: "success",
+      rounds: 1,
+      attacker_power: 195,
+      defender_power: 152,
     },
     wallet_snapshot: {
       spirit_power: 132,

@@ -23,6 +23,14 @@ export type WalletSnapshot = {
   soul_pieces: number
 }
 
+export type TowerBattleSummary = {
+  battle_type: string
+  result: string
+  rounds: number
+  attacker_power: number
+  defender_power: number
+}
+
 export type TowerChallengeResult = {
   player_id: number
   tower: TowerKind
@@ -30,6 +38,7 @@ export type TowerChallengeResult = {
   reward: string
   remaining_challenges: number
   reward_delta: TowerRewardDelta
+  battle: TowerBattleSummary
   wallet_snapshot: WalletSnapshot
 }
 
