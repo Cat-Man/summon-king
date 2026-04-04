@@ -54,9 +54,14 @@ func (r *MemoryRepository) RecordBattleResult(_ context.Context, playerID int64,
 func (r *MemoryRepository) GetDailyRecord(_ context.Context, playerID int64) (DailyRecord, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+
 	record, ok := r.records[playerID]
 	if !ok {
-		return DailyRecord{}, ErrArenaRecordNotFound
+		return DailyRecord{
+			PlayerID:      playerID,
+			CurrentStreak: 0,
+			LastWin:       false,
+		}, nil
 	}
 	return record, nil
 }

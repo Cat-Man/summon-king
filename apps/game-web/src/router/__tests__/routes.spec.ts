@@ -5,3 +5,9 @@ test("contains dungeon route", () => {
 
   expect(hasRoute).toBe(true)
 })
+
+test("contains arena route", () => {
+  const hasRoute = router.getRoutes().some((route) => route.path === "/arena")
+
+  expect(hasRoute).toBe(true)
+})

@@ -40,6 +40,7 @@ const featureNav = [
   { to: "/growth/manor", label: "庄园" },
   { to: "/tower/pagoda", label: "通天塔" },
   { to: "/tower/spirit", label: "战灵塔" },
+  { to: "/arena", label: "竞技场" },
   { to: "/ranking", label: "排行榜" },
 ]
 </script>
