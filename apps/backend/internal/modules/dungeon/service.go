@@ -17,21 +17,98 @@ type Service struct {
 	wallets spiritWalletUpdater
 }
 
-var rewardRules = map[string]RollReward{
-	"ongoing": {
-		Label:       "怪物掉落",
-		SpiritPower: 5,
-		SoulPieces:  0,
+type rewardRule struct {
+	DungeonID int64
+	MinFloor  int
+	MaxFloor  int
+	Status    string
+	Reward    RollReward
+}
+
+var rewardRules = []rewardRule{
+	{
+		Status: "exhausted",
+		Reward: RollReward{
+			Label:       "无掉落",
+			SpiritPower: 0,
+			SoulPieces:  0,
+		},
 	},
-	"boss": {
-		Label:       "Boss掉落",
-		SpiritPower: 8,
-		SoulPieces:  1,
+	{
+		DungeonID: 1,
+		MinFloor:  10,
+		Status:    "boss",
+		Reward: RollReward{
+			Label:       "深层妖窟Boss掉落",
+			SpiritPower: 10,
+			SoulPieces:  2,
+		},
 	},
-	"exhausted": {
-		Label:       "无掉落",
-		SpiritPower: 0,
-		SoulPieces:  0,
+	{
+		DungeonID: 1,
+		MinFloor:  10,
+		Status:    "ongoing",
+		Reward: RollReward{
+			Label:       "深层妖窟掉落",
+			SpiritPower: 6,
+			SoulPieces:  0,
+		},
+	},
+	{
+		DungeonID: 2,
+		MinFloor:  10,
+		Status:    "boss",
+		Reward: RollReward{
+			Label:       "寒渊深层Boss掉落",
+			SpiritPower: 15,
+			SoulPieces:  3,
+		},
+	},
+	{
+		DungeonID: 2,
+		MaxFloor:  9,
+		Status:    "boss",
+		Reward: RollReward{
+			Label:       "寒渊Boss掉落",
+			SpiritPower: 12,
+			SoulPieces:  2,
+		},
+	},
+	{
+		DungeonID: 2,
+		MinFloor:  10,
+		Status:    "ongoing",
+		Reward: RollReward{
+			Label:       "寒渊深层掉落",
+			SpiritPower: 9,
+			SoulPieces:  0,
+		},
+	},
+	{
+		DungeonID: 2,
+		MaxFloor:  9,
+		Status:    "ongoing",
+		Reward: RollReward{
+			Label:       "寒渊裂隙掉落",
+			SpiritPower: 7,
+			SoulPieces:  0,
+		},
+	},
+	{
+		Status: "boss",
+		Reward: RollReward{
+			Label:       "Boss掉落",
+			SpiritPower: 8,
+			SoulPieces:  1,
+		},
+	},
+	{
+		Status: "ongoing",
+		Reward: RollReward{
+			Label:       "怪物掉落",
+			SpiritPower: 5,
+			SoulPieces:  0,
+		},
 	},
 }
 
@@ -115,10 +192,16 @@ func (s *Service) attachWalletSnapshot(ctx context.Context, playerID int64, run 
 }
 
 func resolveRollReward(run DungeonRun) RollReward {
-	if reward, ok := rewardRules[run.Status]; ok {
-		return reward
+	for _, rule := range rewardRules {
+		if matchesRewardRule(run, rule) {
+			return rule.Reward
+		}
 	}
-	return rewardRules["ongoing"]
+	return RollReward{
+		Label:       "怪物掉落",
+		SpiritPower: 5,
+		SoulPieces:  0,
+	}
 }
 
 func (s *Service) applyReward(ctx context.Context, playerID int64, reward RollReward) error {
@@ -133,4 +216,20 @@ func (s *Service) applyReward(ctx context.Context, playerID int64, reward RollRe
 		}
 	}
 	return nil
+}
+
+func matchesRewardRule(run DungeonRun, rule rewardRule) bool {
+	if rule.Status != run.Status {
+		return false
+	}
+	if rule.DungeonID != 0 && run.DungeonID != rule.DungeonID {
+		return false
+	}
+	if rule.MinFloor > 0 && run.CurrentFloor < rule.MinFloor {
+		return false
+	}
+	if rule.MaxFloor > 0 && run.CurrentFloor > rule.MaxFloor {
+		return false
+	}
+	return true
 }

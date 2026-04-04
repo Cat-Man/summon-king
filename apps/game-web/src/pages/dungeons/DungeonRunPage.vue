@@ -2,7 +2,20 @@
   <section class="dungeon-page">
     <div class="dungeon-meta">
       <h1>地下城跑动</h1>
-      <p>掷骰进入楼层，打响各路 Boss 抢夺装备与材料。</p>
+      <p>当前副本 {{ currentDungeonName }}，掷骰进入楼层，打响各路 Boss 抢夺装备与材料。</p>
+      <div class="dungeon-switch">
+        <button
+          v-for="option in dungeonOptions"
+          :key="option.id"
+          :data-dungeon-id="option.id"
+          class="switch-btn"
+          :class="{ active: option.id === selectedDungeonId }"
+          type="button"
+          @click="selectedDungeonId = option.id"
+        >
+          {{ option.name }}
+        </button>
+      </div>
       <div class="stat-grid">
         <article>
           <h2>{{ run.current_floor }}</h2>
@@ -33,7 +46,7 @@
     <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
     <div class="action-panel">
       <button class="action-btn primary" type="button" @click="rollForward">掷骰推进</button>
-      <button class="action-btn" type="button" @click="restartRun">重新进入副本</button>
+      <button class="action-btn restart-btn" type="button" @click="restartRun">重新进入副本</button>
       <button class="action-btn ghost" type="button" @click="refreshRun">刷新当前状态</button>
     </div>
     <div class="timeline">
@@ -55,6 +68,11 @@ import { APIError } from "@/api/http"
 import { enterDungeon, getDungeonStatus, rollDungeonDice, type DungeonRun } from "@/api/modules/dungeon"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
+
+const dungeonOptions = [
+  { id: 1, name: "妖窟试炼" },
+  { id: 2, name: "寒渊裂隙" },
+]
 
 const defaultRun: DungeonRun = {
   player_id: 0,
@@ -82,8 +100,12 @@ const sessionStore = useSessionStore()
 const resourceSyncStore = useResourceSyncStore()
 const run = ref<DungeonRun>(defaultRun)
 const errorMessage = ref("")
+const selectedDungeonId = ref(1)
 
 const floors = computed(() => Math.max(6, run.value.current_floor + 2))
+const currentDungeonName = computed(() => {
+  return dungeonOptions.find((option) => option.id === selectedDungeonId.value)?.name ?? "妖窟试炼"
+})
 
 async function refreshRun() {
   const playerId = sessionStore.playerId
@@ -94,10 +116,11 @@ async function refreshRun() {
 
   try {
     run.value = await getDungeonStatus(playerId)
+    selectedDungeonId.value = run.value.dungeon_id || selectedDungeonId.value
     errorMessage.value = ""
   } catch (error) {
     if (error instanceof APIError && error.status === 404) {
-      run.value = await enterDungeon(playerId, 1)
+      run.value = await enterDungeon(playerId, selectedDungeonId.value)
       errorMessage.value = ""
       return
     }
@@ -129,7 +152,7 @@ async function restartRun() {
   }
 
   try {
-    run.value = await enterDungeon(playerId, 1)
+    run.value = await enterDungeon(playerId, selectedDungeonId.value)
     errorMessage.value = ""
     resourceSyncStore.touch()
   } catch (error) {
@@ -155,6 +178,25 @@ onMounted(async () => {
 .status-text {
   margin: 0;
   color: #ffcfb8;
+}
+.dungeon-switch {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.switch-btn {
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+}
+.switch-btn.active {
+  border-color: rgba(255, 204, 51, 0.5);
+  background: rgba(255, 204, 51, 0.14);
+  color: #ffdd7a;
 }
 .reward-panel {
   display: grid;

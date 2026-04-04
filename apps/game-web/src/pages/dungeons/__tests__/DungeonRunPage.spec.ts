@@ -96,3 +96,102 @@ test("enters dungeon when status is missing and rolls forward", async () => {
   expect(wrapper.text()).toContain("魂力 +1")
   expect(wrapper.text()).toContain("当前灵力 108")
 })
+
+test("switches dungeon and restarts with selected dungeon", async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const sessionStore = useSessionStore()
+  sessionStore.setSession({
+    token: "guest-token",
+    playerId: 3004,
+    nickname: "裂隙旅人",
+  })
+
+  vi.mocked(getDungeonStatus).mockRejectedValue(
+    new APIError("dungeon run not found", { status: 404, code: 4041 }),
+  )
+  vi.mocked(enterDungeon)
+    .mockResolvedValueOnce({
+      player_id: 3004,
+      dungeon_id: 1,
+      remain_dice: 15,
+      current_floor: 1,
+      status: "ongoing",
+      started_at: "2026-04-04T00:00:00Z",
+      last_reward: {
+        label: "无掉落",
+        spirit_power: 0,
+        soul_pieces: 0,
+      },
+      wallet_snapshot: {
+        player_id: 3004,
+        spirit_power: 100,
+        spirit_free_wash: 3,
+        bone_level: 1,
+        soul_pieces: 0,
+        manor_plots: 2,
+      },
+    })
+    .mockResolvedValueOnce({
+      player_id: 3004,
+      dungeon_id: 2,
+      remain_dice: 15,
+      current_floor: 1,
+      status: "ongoing",
+      started_at: "2026-04-04T00:00:00Z",
+      last_reward: {
+        label: "无掉落",
+        spirit_power: 0,
+        soul_pieces: 0,
+      },
+      wallet_snapshot: {
+        player_id: 3004,
+        spirit_power: 100,
+        spirit_free_wash: 3,
+        bone_level: 1,
+        soul_pieces: 0,
+        manor_plots: 2,
+      },
+    })
+  vi.mocked(rollDungeonDice).mockResolvedValue({
+    player_id: 3004,
+    dungeon_id: 2,
+    remain_dice: 14,
+    current_floor: 2,
+    status: "ongoing",
+    started_at: "2026-04-04T00:00:00Z",
+    last_reward: {
+      label: "寒渊裂隙掉落",
+      spirit_power: 7,
+      soul_pieces: 0,
+    },
+    wallet_snapshot: {
+      player_id: 3004,
+      spirit_power: 107,
+      spirit_free_wash: 3,
+      bone_level: 1,
+      soul_pieces: 0,
+      manor_plots: 2,
+    },
+  })
+
+  const wrapper = mount(DungeonRunPage, {
+    global: {
+      plugins: [pinia],
+    },
+  })
+  await flushPromises()
+
+  await wrapper.get('[data-dungeon-id="2"]').trigger("click")
+  await wrapper.get("button.restart-btn").trigger("click")
+  await flushPromises()
+
+  expect(enterDungeon).toHaveBeenLastCalledWith(3004, 2)
+
+  await wrapper.get("button.primary").trigger("click")
+  await flushPromises()
+
+  expect(wrapper.text()).toContain("寒渊裂隙")
+  expect(wrapper.text()).toContain("灵力 +7")
+  expect(wrapper.text()).toContain("当前灵力 107")
+})

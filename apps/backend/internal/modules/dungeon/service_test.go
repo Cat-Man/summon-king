@@ -164,6 +164,34 @@ func TestResolveRollReward_BossStatus(t *testing.T) {
 	}
 }
 
+func TestResolveRollReward_DungeonTwoOngoingStatus(t *testing.T) {
+	reward := resolveRollReward(DungeonRun{DungeonID: 2, CurrentFloor: 2, Status: "ongoing"})
+
+	if reward.Label != "寒渊裂隙掉落" {
+		t.Fatalf("expected reward label 寒渊裂隙掉落, got %s", reward.Label)
+	}
+	if reward.SpiritPower != 7 {
+		t.Fatalf("expected spirit reward 7, got %d", reward.SpiritPower)
+	}
+	if reward.SoulPieces != 0 {
+		t.Fatalf("expected soul reward 0, got %d", reward.SoulPieces)
+	}
+}
+
+func TestResolveRollReward_DungeonOneDeepBossStatus(t *testing.T) {
+	reward := resolveRollReward(DungeonRun{DungeonID: 1, CurrentFloor: 10, Status: "boss"})
+
+	if reward.Label != "深层妖窟Boss掉落" {
+		t.Fatalf("expected reward label 深层妖窟Boss掉落, got %s", reward.Label)
+	}
+	if reward.SpiritPower != 10 {
+		t.Fatalf("expected spirit reward 10, got %d", reward.SpiritPower)
+	}
+	if reward.SoulPieces != 2 {
+		t.Fatalf("expected soul reward 2, got %d", reward.SoulPieces)
+	}
+}
+
 func TestRollDice_ExhaustedRunDoesNotGrantReward(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
@@ -194,8 +222,31 @@ func TestRollDice_ExhaustedRunDoesNotGrantReward(t *testing.T) {
 	if run.LastReward.SpiritPower != 0 {
 		t.Fatalf("expected spirit reward 0, got %d", run.LastReward.SpiritPower)
 	}
-	if run.WalletSnapshot.SpiritPower != 184 {
-		t.Fatalf("expected wallet spirit 184 without extra reward, got %d", run.WalletSnapshot.SpiritPower)
+	if run.WalletSnapshot.SpiritPower != 193 {
+		t.Fatalf("expected wallet spirit 193 without extra reward, got %d", run.WalletSnapshot.SpiritPower)
+	}
+}
+
+func TestRollDice_DungeonTwoUsesConfiguredReward(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	svc := NewService(NewMemoryRepository(), growthRepo)
+	playerID := int64(1014)
+
+	if _, err := svc.EnterDungeon(ctx, playerID, 2); err != nil {
+		t.Fatalf("expected enter dungeon success, got %v", err)
+	}
+
+	run, err := svc.RollDice(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected roll dice success, got %v", err)
+	}
+
+	if run.LastReward.Label != "寒渊裂隙掉落" {
+		t.Fatalf("expected reward label 寒渊裂隙掉落, got %s", run.LastReward.Label)
+	}
+	if run.WalletSnapshot.SpiritPower != 107 {
+		t.Fatalf("expected wallet spirit 107, got %d", run.WalletSnapshot.SpiritPower)
 	}
 }
 
