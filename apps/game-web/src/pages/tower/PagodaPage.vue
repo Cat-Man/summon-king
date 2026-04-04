@@ -30,6 +30,16 @@
         <p>最近挑战奖励：{{ lastReward || "尚未挑战" }}</p>
       </article>
     </div>
+
+    <article v-if="rewardLines.length" class="pagoda-card reward-card">
+      <header>
+        <strong>奖励拆分</strong>
+        <span>实时写回成长</span>
+      </header>
+      <ul>
+        <li v-for="line in rewardLines" :key="line">{{ line }}</li>
+      </ul>
+    </article>
   </section>
 </template>
 
@@ -37,10 +47,17 @@
 import { onMounted, ref } from "vue"
 
 import { APIError } from "@/api/http"
-import { getTowerStatus, startTowerChallenge, type TowerStatus } from "@/api/modules/tower"
+import {
+  getTowerStatus,
+  startTowerChallenge,
+  type TowerRewardDelta,
+  type TowerStatus,
+} from "@/api/modules/tower"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
+const resourceSyncStore = useResourceSyncStore()
 const status = ref<TowerStatus>({
   tower: "pagoda",
   label: "通天塔",
@@ -50,7 +67,22 @@ const status = ref<TowerStatus>({
   reward_preview: "",
 })
 const lastReward = ref("")
+const rewardLines = ref<string[]>([])
 const errorMessage = ref("")
+
+function summarizeRewards(delta: TowerRewardDelta) {
+  const lines: string[] = []
+  if (delta.bone_level) {
+    lines.push(`战骨 ${delta.bone_level > 0 ? "+" : ""}${delta.bone_level}`)
+  }
+  if (delta.spirit_power) {
+    lines.push(`灵力 ${delta.spirit_power > 0 ? "+" : ""}${delta.spirit_power}`)
+  }
+  if (delta.soul_pieces) {
+    lines.push(`魔魂碎片 ${delta.soul_pieces > 0 ? "+" : ""}${delta.soul_pieces}`)
+  }
+  rewardLines.value = lines
+}
 
 async function loadStatus() {
   const playerId = sessionStore.playerId
@@ -77,7 +109,9 @@ async function startChallenge() {
   try {
     const result = await startTowerChallenge("pagoda", playerId)
     lastReward.value = result.reward
+    summarizeRewards(result.reward_delta)
     await loadStatus()
+    resourceSyncStore.touch()
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "通天塔挑战失败。"
   }
@@ -190,5 +224,21 @@ onMounted(async () => {
   color: #2b231f;
   line-height: 1.6;
   font-family: 'Source Sans Pro', 'PingFang SC', sans-serif;
+}
+
+.reward-card {
+  margin-top: 1.5rem;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.reward-card ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #1d1d1d;
+}
+
+.reward-card li {
+  margin-bottom: 6px;
+  font-weight: 600;
 }
 </style>

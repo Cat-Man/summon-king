@@ -6,6 +6,7 @@ import (
 	httpx "github.com/Cat-Man/summon-king/apps/backend/internal/infra/http"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
@@ -33,21 +34,24 @@ func NewRouter() *gin.Engine {
 	accountRepo := account.NewMemoryRepository()
 	dungeonRepo := dungeon.NewMemoryRepository()
 	growthRepo := growth.NewMemoryRepository()
+	assetService := asset.NewService(growthRepo)
 	accountService := account.NewService(accountRepo)
-	dungeonService := dungeon.NewService(dungeonRepo, growthRepo)
+	dungeonService := dungeon.NewService(dungeonRepo, assetService)
+	arenaService := arena.NewService(arena.NewMemoryRepository(), assetService)
+	towerService := tower.NewService(tower.NewMemoryRepository(), assetService)
 
 	authGroup := api.Group("/auth")
 	account.NewHandler(accountService).RegisterRoutes(authGroup)
 
 	homeGroup := api.Group("/home")
-	home.NewHandler(home.NewService(accountRepo, dungeonService, growthRepo)).RegisterRoutes(homeGroup)
+	home.NewHandler(home.NewService(accountRepo, dungeonService, growthRepo, towerService)).RegisterRoutes(homeGroup)
 
 	rankingGroup := api.Group("/ranking")
-	ranking.NewHandler(ranking.NewService(accountRepo, growthRepo, dungeonService)).RegisterRoutes(rankingGroup)
+	ranking.NewHandler(ranking.NewService(accountRepo, growthRepo, dungeonService, arenaService)).RegisterRoutes(rankingGroup)
 
 	arenaGroup := api.Group("/arena")
 	registerModuleRoot(arenaGroup, "arena")
-	arena.NewHandler(arena.NewService(arena.NewMemoryRepository())).RegisterRoutes(arenaGroup)
+	arena.NewHandler(arenaService).RegisterRoutes(arenaGroup)
 
 	dungeonGroup := api.Group("/dungeon")
 	registerModuleRoot(dungeonGroup, "dungeon")
@@ -59,7 +63,7 @@ func NewRouter() *gin.Engine {
 
 	towerGroup := api.Group("/tower")
 	registerModuleRoot(towerGroup, "tower")
-	tower.NewHandler(tower.NewService(tower.NewMemoryRepository())).RegisterRoutes(towerGroup)
+	tower.NewHandler(towerService).RegisterRoutes(towerGroup)
 
 	return router
 }

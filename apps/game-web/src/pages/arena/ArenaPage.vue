@@ -22,23 +22,53 @@
         <p>上次结果</p>
       </article>
     </div>
+
+    <article v-if="rewardLines.length" class="reward-card">
+      <header>
+        <h3>奖励拆分</h3>
+        <span>已写回成长钱包</span>
+      </header>
+      <ul>
+        <li v-for="line in rewardLines" :key="line">{{ line }}</li>
+      </ul>
+    </article>
+
+    <div class="arena-links" v-if="rewardLines.length">
+      <RouterLink to="/ranking">查看排行榜</RouterLink>
+      <RouterLink to="/home">返回首页</RouterLink>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from "vue"
+import { RouterLink } from "vue-router"
 
 import { APIError } from "@/api/http"
 import { challengeArena, getArenaStatus, type ArenaRecord } from "@/api/modules/arena"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
+const resourceSyncStore = useResourceSyncStore()
 const record = ref<ArenaRecord>({
   player_id: 0,
   current_streak: 0,
   last_win: false,
 })
+const rewardLines = ref<string[]>([])
 const errorMessage = ref("")
+
+function summarizeRewards(spiritPower: number, soulPieces: number) {
+  const lines: string[] = []
+  if (spiritPower) {
+    lines.push(`灵力 +${spiritPower}`)
+  }
+  if (soulPieces) {
+    lines.push(`魔魂碎片 +${soulPieces}`)
+  }
+  rewardLines.value = lines
+}
 
 async function loadStatus() {
   const playerId = sessionStore.playerId
@@ -63,7 +93,10 @@ async function battle(won: boolean) {
   }
 
   try {
-    record.value = await challengeArena(playerId, won)
+    const result = await challengeArena(playerId, won)
+    record.value = result.record
+    summarizeRewards(result.reward_delta.spirit_power, result.reward_delta.soul_pieces)
+    resourceSyncStore.touch()
     errorMessage.value = ""
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "竞技场切磋失败。"
@@ -162,5 +195,49 @@ onMounted(async () => {
 .arena-grid p {
   margin-top: 0.5rem;
   color: rgba(255, 247, 239, 0.72);
+}
+
+.reward-card {
+  margin-top: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 247, 239, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.reward-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.reward-card h3,
+.reward-card span {
+  margin: 0;
+}
+
+.reward-card span {
+  color: rgba(255, 247, 239, 0.65);
+}
+
+.reward-card ul {
+  margin: 0.8rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.arena-links {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.arena-links a {
+  display: inline-flex;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  background: rgba(255, 177, 111, 0.12);
+  color: #ffcfaa;
+  border: 1px solid rgba(255, 177, 111, 0.28);
 }
 </style>

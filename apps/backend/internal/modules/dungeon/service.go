@@ -3,18 +3,18 @@ package dungeon
 import (
 	"context"
 
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 )
 
-type spiritWalletUpdater interface {
-	UpdateSpiritPower(ctx context.Context, playerID int64, delta int64) error
-	UpgradeSoulPower(ctx context.Context, playerID int64, delta int) (growth.Wallet, error)
-	GetWallet(ctx context.Context, playerID int64) (growth.Wallet, error)
+type assetWriter interface {
+	Apply(ctx context.Context, playerID int64, delta asset.Delta) (asset.ApplyResult, error)
+	Snapshot(ctx context.Context, playerID int64) (growth.Wallet, error)
 }
 
 type Service struct {
-	repo    Repository
-	wallets spiritWalletUpdater
+	repo  Repository
+	asset assetWriter
 }
 
 type rewardRule struct {
@@ -112,12 +112,11 @@ var rewardRules = []rewardRule{
 	},
 }
 
-func NewService(repo Repository, wallets ...spiritWalletUpdater) *Service {
-	service := &Service{repo: repo}
-	if len(wallets) > 0 {
-		service.wallets = wallets[0]
+func NewService(repo Repository, assetWriter assetWriter) *Service {
+	return &Service{
+		repo:  repo,
+		asset: assetWriter,
 	}
-	return service
 }
 
 func (s *Service) GetWorldMap(ctx context.Context) (WorldMap, error) {
@@ -145,7 +144,7 @@ func (s *Service) RollDice(ctx context.Context, playerID int64) (DungeonRun, err
 		return DungeonRun{}, err
 	}
 	run.LastReward = resolveRollReward(run)
-	if s.wallets != nil {
+	if s.asset != nil {
 		if err := s.applyReward(ctx, playerID, run.LastReward); err != nil {
 			return DungeonRun{}, err
 		}
@@ -170,8 +169,8 @@ func (s *Service) ClaimCultivation(ctx context.Context, playerID int64) (Cultiva
 	if err != nil {
 		return CultivationStatus{}, err
 	}
-	if s.wallets != nil && status.SpiritPower > 0 {
-		if err := s.wallets.UpdateSpiritPower(ctx, playerID, int64(status.SpiritPower)); err != nil {
+	if s.asset != nil && status.SpiritPower > 0 {
+		if _, err := s.asset.Apply(ctx, playerID, asset.Delta{SpiritPower: int64(status.SpiritPower)}); err != nil {
 			return CultivationStatus{}, err
 		}
 	}
@@ -183,10 +182,10 @@ func (s *Service) GetCultivationStatus(ctx context.Context, playerID int64) (Cul
 }
 
 func (s *Service) attachWalletSnapshot(ctx context.Context, playerID int64, run DungeonRun) (DungeonRun, error) {
-	if s.wallets == nil {
+	if s.asset == nil {
 		return run, nil
 	}
-	wallet, err := s.wallets.GetWallet(ctx, playerID)
+	wallet, err := s.asset.Snapshot(ctx, playerID)
 	if err != nil {
 		return DungeonRun{}, err
 	}
@@ -208,15 +207,15 @@ func resolveRollReward(run DungeonRun) RollReward {
 }
 
 func (s *Service) applyReward(ctx context.Context, playerID int64, reward RollReward) error {
-	if reward.SpiritPower > 0 {
-		if err := s.wallets.UpdateSpiritPower(ctx, playerID, reward.SpiritPower); err != nil {
-			return err
-		}
+	if s.asset == nil {
+		return nil
 	}
-	if reward.SoulPieces > 0 {
-		if _, err := s.wallets.UpgradeSoulPower(ctx, playerID, reward.SoulPieces); err != nil {
-			return err
-		}
+	_, err := s.asset.Apply(ctx, playerID, asset.Delta{
+		SpiritPower: reward.SpiritPower,
+		SoulPieces:  reward.SoulPieces,
+	})
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -238,7 +237,7 @@ func matchesRewardRule(run DungeonRun, rule rewardRule) bool {
 }
 
 func (s *Service) validateDungeonUnlock(ctx context.Context, playerID, dungeonID int64) error {
-	if s.wallets == nil {
+	if s.asset == nil {
 		return nil
 	}
 
@@ -247,11 +246,17 @@ func (s *Service) validateDungeonUnlock(ctx context.Context, playerID, dungeonID
 		return err
 	}
 
-	wallet, err := s.wallets.GetWallet(ctx, playerID)
+	wallet, err := s.asset.Snapshot(ctx, playerID)
 	if err != nil {
 		return err
 	}
 	if wallet.SpiritPower < dungeon.UnlockSpiritPower {
+		return ErrDungeonLocked
+	}
+	if dungeon.UnlockBoneLevel > 0 && wallet.BoneLevel < dungeon.UnlockBoneLevel {
+		return ErrDungeonLocked
+	}
+	if dungeon.UnlockSoulPieces > 0 && wallet.SoulPieces < dungeon.UnlockSoulPieces {
 		return ErrDungeonLocked
 	}
 	return nil

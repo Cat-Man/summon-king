@@ -10,6 +10,7 @@ import (
 
 	httpx "github.com/Cat-Man/summon-king/apps/backend/internal/infra/http"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	"github.com/gin-gonic/gin"
 )
@@ -19,7 +20,7 @@ func TestHandler_StatusRequiresPlayerID(t *testing.T) {
 
 	r := gin.New()
 	r.Use(middleware.InjectTraceID())
-	h := NewHandler(NewService(NewMemoryRepository()))
+	h := NewHandler(NewService(NewMemoryRepository(), nil))
 	g := r.Group("/dungeon")
 	h.RegisterRoutes(g)
 
@@ -47,7 +48,7 @@ func TestHandler_StatusReadsPlayerIDFromQuery(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	repo := NewMemoryRepository()
-	svc := NewService(repo)
+	svc := NewService(repo, nil)
 	if _, err := svc.EnterDungeon(context.Background(), 1002, 1); err != nil {
 		t.Fatalf("expected enter dungeon success, got %v", err)
 	}
@@ -90,7 +91,7 @@ func TestHandler_EnterDungeonRejectsLockedDungeon(t *testing.T) {
 
 	repo := NewMemoryRepository()
 	growthRepo := growth.NewMemoryRepository()
-	svc := NewService(repo, growthRepo)
+	svc := NewService(repo, asset.NewService(growthRepo))
 
 	r := gin.New()
 	r.Use(middleware.InjectTraceID())

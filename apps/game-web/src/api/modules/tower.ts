@@ -11,12 +11,26 @@ export type TowerStatus = {
   reward_preview: string
 }
 
+export type TowerRewardDelta = {
+  bone_level?: number
+  spirit_power?: number
+  soul_pieces?: number
+}
+
+export type WalletSnapshot = {
+  spirit_power: number
+  bone_level: number
+  soul_pieces: number
+}
+
 export type TowerChallengeResult = {
   player_id: number
   tower: TowerKind
   floor: number
   reward: string
   remaining_challenges: number
+  reward_delta: TowerRewardDelta
+  wallet_snapshot: WalletSnapshot
 }
 
 function towerPath(tower: TowerKind) {

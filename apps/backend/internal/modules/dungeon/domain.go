@@ -32,6 +32,8 @@ type MapDungeon struct {
 	DungeonID         int64  `json:"dungeon_id"`
 	DungeonName       string `json:"dungeon_name"`
 	UnlockSpiritPower int64  `json:"unlock_spirit_power"`
+	UnlockBoneLevel   int    `json:"unlock_bone_level"`
+	UnlockSoulPieces  int    `json:"unlock_soul_pieces"`
 }
 
 type MapCity struct {

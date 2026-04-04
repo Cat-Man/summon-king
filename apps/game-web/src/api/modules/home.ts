@@ -9,6 +9,24 @@ export type Wallet = {
   manor_plots: number
 }
 
+export type TowerSummary = {
+  current_floor: number
+  remaining_challenges: number
+  reward_preview: string
+}
+
+export type TowerOverview = {
+  pagoda: TowerSummary
+  spirit: TowerSummary
+}
+
+export type NextAction = {
+  title: string
+  description: string
+  route: string
+  cta: string
+}
+
 export type HomeOverview = {
   player_id: number
   nickname: string
@@ -28,7 +46,9 @@ export type HomeOverview = {
       claimable: boolean
       claimable_at?: string
     }
+    tower: TowerOverview
   }
+  next_action: NextAction
 }
 
 export function getHomeOverview(playerId: number) {

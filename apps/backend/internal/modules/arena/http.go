@@ -53,13 +53,13 @@ func (h *Handler) challenge(c *gin.Context) {
 		return
 	}
 
-	if err := h.service.RecordBattleResult(c.Request.Context(), req.PlayerID, req.Won); err != nil {
+	result, err := h.service.RecordBattleResult(c.Request.Context(), req.PlayerID, req.Won)
+	if err != nil {
 		c.JSON(stdhttp.StatusInternalServerError, httpx.Error(5001, "failed to record result", middleware.GetTraceID(c)))
 		return
 	}
 
-	record, _ := h.service.GetDailyRecord(c.Request.Context(), req.PlayerID)
-	c.JSON(stdhttp.StatusOK, httpx.Success(record, middleware.GetTraceID(c)))
+	c.JSON(stdhttp.StatusOK, httpx.Success(result, middleware.GetTraceID(c)))
 }
 
 func parsePlayerID(c *gin.Context) (int64, bool) {

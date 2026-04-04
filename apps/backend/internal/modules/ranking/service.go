@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 )
@@ -23,17 +24,23 @@ type dungeonReader interface {
 	GetRun(ctx context.Context, playerID int64) (dungeon.DungeonRun, error)
 }
 
+type arenaReader interface {
+	GetDailyRecord(ctx context.Context, playerID int64) (arena.DailyRecord, error)
+}
+
 type Service struct {
 	accounts accountReader
 	growth   growthReader
 	dungeons dungeonReader
+	arena    arenaReader
 }
 
-func NewService(accounts accountReader, growth growthReader, dungeons dungeonReader) *Service {
+func NewService(accounts accountReader, growth growthReader, dungeons dungeonReader, arena arenaReader) *Service {
 	return &Service{
 		accounts: accounts,
 		growth:   growth,
 		dungeons: dungeons,
+		arena:    arena,
 	}
 }
 
@@ -63,9 +70,9 @@ func (s *Service) GetLeaderboard(ctx context.Context, playerID int64, limit int)
 
 func (s *Service) seedEntries(now time.Time) []LeaderboardEntry {
 	return []LeaderboardEntry{
-		{PlayerID: 9001, Name: "星痕丶苍穹", Score: 1480, Updated: now.Add(-2 * time.Minute).UnixMilli()},
-		{PlayerID: 9002, Name: "雨落荒原", Score: 1320, Updated: now.Add(-5 * time.Minute).UnixMilli()},
-		{PlayerID: 9003, Name: "剑舞倾城", Score: 1200, Updated: now.Add(-8 * time.Minute).UnixMilli()},
+		{PlayerID: 9001, Name: "星痕丶苍穹", Score: 1480, ArenaStreak: 9, Updated: now.Add(-2 * time.Minute).UnixMilli()},
+		{PlayerID: 9002, Name: "雨落荒原", Score: 1320, ArenaStreak: 6, Updated: now.Add(-5 * time.Minute).UnixMilli()},
+		{PlayerID: 9003, Name: "剑舞倾城", Score: 1200, ArenaStreak: 4, Updated: now.Add(-8 * time.Minute).UnixMilli()},
 	}
 }
 
@@ -86,12 +93,18 @@ func (s *Service) buildCurrentPlayerEntry(ctx context.Context, playerID int64, n
 		score += int64(run.CurrentFloor * 180)
 		score += int64(run.RemainDice * 15)
 	}
+	arenaStreak := 0
+	if record, err := s.arena.GetDailyRecord(ctx, playerID); err == nil {
+		arenaStreak = record.CurrentStreak
+		score += int64(record.CurrentStreak * 700)
+	}
 
 	return LeaderboardEntry{
-		PlayerID: playerID,
-		Name:     name,
-		Score:    score,
-		Updated:  now.UnixMilli(),
-		IsSelf:   true,
+		PlayerID:    playerID,
+		Name:        name,
+		Score:       score,
+		ArenaStreak: arenaStreak,
+		Updated:     now.UnixMilli(),
+		IsSelf:      true,
 	}
 }

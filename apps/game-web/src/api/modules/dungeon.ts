@@ -12,6 +12,8 @@ export type WorldMap = {
       dungeon_id: number
       dungeon_name: string
       unlock_spirit_power: number
+      unlock_bone_level?: number
+      unlock_soul_pieces?: number
     }>
   }>
 }

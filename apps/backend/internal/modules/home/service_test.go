@@ -5,8 +5,10 @@ import (
 	"testing"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/tower"
 )
 
 func TestOverview_ReturnsCoreSections(t *testing.T) {
@@ -20,7 +22,9 @@ func TestOverview_ReturnsCoreSections(t *testing.T) {
 	}
 
 	dungeonRepo := dungeon.NewMemoryRepository()
-	dungeonSvc := dungeon.NewService(dungeonRepo)
+	growthRepo := growth.NewMemoryRepository()
+	assetSvc := asset.NewService(growthRepo)
+	dungeonSvc := dungeon.NewService(dungeonRepo, assetSvc)
 	if _, err := dungeonSvc.EnterDungeon(ctx, guest.PlayerID, 1); err != nil {
 		t.Fatalf("expected enter dungeon success, got %v", err)
 	}
@@ -28,8 +32,11 @@ func TestOverview_ReturnsCoreSections(t *testing.T) {
 		t.Fatalf("expected cultivation start success, got %v", err)
 	}
 
-	growthRepo := growth.NewMemoryRepository()
-	svc := NewService(accountRepo, dungeonSvc, growthRepo)
+	towerSvc := tower.NewService(tower.NewMemoryRepository(), assetSvc)
+	if _, err := towerSvc.StartChallenge(ctx, guest.PlayerID, "pagoda"); err != nil {
+		t.Fatalf("expected pagoda start, got %v", err)
+	}
+	svc := NewService(accountRepo, dungeonSvc, growthRepo, towerSvc)
 
 	overview, err := svc.GetOverview(ctx, guest.PlayerID, guest.Token)
 	if err != nil {
@@ -52,5 +59,49 @@ func TestOverview_ReturnsCoreSections(t *testing.T) {
 	}
 	if overview.Modules.Cultivation.State != "cultivating" {
 		t.Fatalf("expected cultivation state cultivating, got %s", overview.Modules.Cultivation.State)
+	}
+	if overview.Modules.Tower.Pagoda.CurrentFloor != 1 {
+		t.Fatalf("expected pagoda floor 1, got %d", overview.Modules.Tower.Pagoda.CurrentFloor)
+	}
+	if overview.NextAction.Route != "/dungeon" {
+		t.Fatalf("expected next action dungeon, got %s", overview.NextAction.Route)
+	}
+}
+
+func TestOverview_SkipsExhaustedDungeonWhenChoosingNextAction(t *testing.T) {
+	ctx := context.Background()
+
+	accountRepo := account.NewMemoryRepository()
+	accountSvc := account.NewService(accountRepo)
+	guest, err := accountSvc.GuestLogin(ctx, "疲劳修士")
+	if err != nil {
+		t.Fatalf("expected guest login success, got %v", err)
+	}
+
+	dungeonRepo := dungeon.NewMemoryRepository()
+	growthRepo := growth.NewMemoryRepository()
+	assetSvc := asset.NewService(growthRepo)
+	dungeonSvc := dungeon.NewService(dungeonRepo, assetSvc)
+	if _, err := dungeonSvc.EnterDungeon(ctx, guest.PlayerID, 1); err != nil {
+		t.Fatalf("expected enter dungeon success, got %v", err)
+	}
+	for i := 0; i < 16; i++ {
+		if _, err := dungeonSvc.RollDice(ctx, guest.PlayerID); err != nil {
+			t.Fatalf("expected roll success, got %v", err)
+		}
+	}
+
+	towerSvc := tower.NewService(tower.NewMemoryRepository(), assetSvc)
+	svc := NewService(accountRepo, dungeonSvc, growthRepo, towerSvc)
+
+	overview, err := svc.GetOverview(ctx, guest.PlayerID, guest.Token)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if overview.Modules.Dungeon.Status != "exhausted" {
+		t.Fatalf("expected exhausted dungeon, got %s", overview.Modules.Dungeon.Status)
+	}
+	if overview.NextAction.Route != "/tower/pagoda" {
+		t.Fatalf("expected next action /tower/pagoda, got %s", overview.NextAction.Route)
 	}
 }

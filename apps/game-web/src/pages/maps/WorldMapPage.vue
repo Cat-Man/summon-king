@@ -16,26 +16,39 @@
         <div class="dungeon-list">
           <p>可进入副本</p>
           <span class="spirit-text">当前灵力 {{ currentSpiritPower }}</span>
-          <button
+          <div
             v-for="dungeon in city.dungeons"
             :key="`${city.city_id}-${dungeon.dungeon_id}`"
-            :data-city-id="city.city_id"
-            :data-dungeon-id="dungeon.dungeon_id"
-            class="ghost-btn"
-            :class="{ locked: !canEnterDungeon(dungeon) }"
-            type="button"
-            :disabled="!canEnterDungeon(dungeon)"
-            @click="goToDungeon(dungeon)"
+            class="dungeon-entry"
           >
-            进入 {{ dungeon.dungeon_name }}
-          </button>
-          <span
-            v-for="dungeon in city.dungeons"
-            :key="`${city.city_id}-${dungeon.dungeon_id}-hint`"
-            class="dungeon-hint"
-          >
-            {{ dungeon.unlock_spirit_power > 0 ? `需灵力 ${dungeon.unlock_spirit_power}` : "已开放" }}
-          </span>
+            <button
+              :data-city-id="city.city_id"
+              :data-dungeon-id="dungeon.dungeon_id"
+              class="ghost-btn"
+              :class="{ locked: !canEnterDungeon(dungeon) }"
+              type="button"
+              :disabled="!canEnterDungeon(dungeon)"
+              @click="goToDungeon(dungeon)"
+            >
+              进入 {{ dungeon.dungeon_name }}
+            </button>
+            <p v-if="!canEnterDungeon(dungeon)" class="dungeon-summary">
+              {{ lockSummary(dungeon) }}
+            </p>
+            <div v-if="!canEnterDungeon(dungeon)" class="lock-details">
+              <p v-for="missing in missingRequirements(dungeon)" :key="missing.label">{{ missing.label }}</p>
+              <div class="lock-ctas">
+                <RouterLink
+                  v-for="missing in missingRequirements(dungeon)"
+                  :key="`${city.city_id}-${dungeon.dungeon_id}-${missing.route}`"
+                  class="lock-cta"
+                  :to="missing.route"
+                >
+                  {{ missing.ctaLabel }}
+                </RouterLink>
+              </div>
+            </div>
+          </div>
         </div>
       </article>
     </div>
@@ -44,7 +57,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue"
-import { useRouter } from "vue-router"
+import { RouterLink, useRouter } from "vue-router"
 
 import { APIError } from "@/api/http"
 import { getWorldMap, type WorldMap } from "@/api/modules/dungeon"
@@ -56,12 +69,20 @@ const errorMessage = ref("")
 const router = useRouter()
 const sessionStore = useSessionStore()
 const currentSpiritPower = ref(0)
+const currentBoneLevel = ref(0)
+const currentSoulPieces = ref(0)
 
 const title = computed(() => (world.value ? `${world.value.name}世界地图` : "环天世界地图"))
 const cities = computed(() => world.value?.cities ?? [])
 
 function canEnterDungeon(dungeon: WorldMap["cities"][number]["dungeons"][number]) {
-  return currentSpiritPower.value >= dungeon.unlock_spirit_power
+  const boneReq = dungeon.unlock_bone_level ?? 0
+  const soulReq = dungeon.unlock_soul_pieces ?? 0
+  return (
+    currentSpiritPower.value >= (dungeon.unlock_spirit_power ?? 0) &&
+    currentBoneLevel.value >= boneReq &&
+    currentSoulPieces.value >= soulReq
+  )
 }
 
 function goToDungeon(dungeon: WorldMap["cities"][number]["dungeons"][number]) {
@@ -73,6 +94,36 @@ function goToDungeon(dungeon: WorldMap["cities"][number]["dungeons"][number]) {
   })
 }
 
+function lockSummary(dungeon: WorldMap["cities"][number]["dungeons"][number]) {
+  const spirit = dungeon.unlock_spirit_power ?? 0
+  const bone = dungeon.unlock_bone_level ?? 0
+  const soul = dungeon.unlock_soul_pieces ?? 0
+  return `需灵力 ${spirit} · 战骨 ${bone} · 魔魂 ${soul}`
+}
+
+type MissingRequirement = {
+  label: string
+  route: string
+  ctaLabel: string
+}
+
+function missingRequirements(dungeon: WorldMap["cities"][number]["dungeons"][number]) {
+  const requirements: MissingRequirement[] = []
+  const spiritGap = Math.max(0, (dungeon.unlock_spirit_power ?? 0) - currentSpiritPower.value)
+  if (spiritGap > 0) {
+    requirements.push({ label: `还差灵力 ${spiritGap}`, route: "/cultivation", ctaLabel: "去修行" })
+  }
+  const boneGap = Math.max(0, (dungeon.unlock_bone_level ?? 0) - currentBoneLevel.value)
+  if (boneGap > 0) {
+    requirements.push({ label: `还差战骨 ${boneGap}`, route: "/growth/bone", ctaLabel: "去战骨" })
+  }
+  const soulGap = Math.max(0, (dungeon.unlock_soul_pieces ?? 0) - currentSoulPieces.value)
+  if (soulGap > 0) {
+    requirements.push({ label: `还差魔魂 ${soulGap}`, route: "/growth/soul", ctaLabel: "去魔魂" })
+  }
+  return requirements
+}
+
 async function loadWallet() {
   if (!sessionStore.playerId) {
     return
@@ -80,6 +131,8 @@ async function loadWallet() {
 
   const wallet = await getGrowthWallet(sessionStore.playerId)
   currentSpiritPower.value = wallet.spirit_power
+  currentBoneLevel.value = wallet.bone_level
+  currentSoulPieces.value = wallet.soul_pieces
 }
 
 onMounted(async () => {
@@ -191,5 +244,35 @@ onMounted(async () => {
 .ghost-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+.dungeon-entry {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dungeon-summary {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+}
+.lock-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 10px;
+}
+.lock-ctas {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.lock-cta {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #f4f6ff;
+  text-decoration: none;
 }
 </style>

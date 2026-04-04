@@ -1,5 +1,5 @@
 import { createPinia, setActivePinia } from "pinia"
-import { flushPromises, mount } from "@vue/test-utils"
+import { flushPromises, mount, RouterLinkStub } from "@vue/test-utils"
 
 import { getWorldMap } from "@/api/modules/dungeon"
 import { getGrowthWallet } from "@/api/modules/growth"
@@ -21,6 +21,7 @@ vi.mock("vue-router", () => ({
   useRouter: () => ({
     push,
   }),
+  RouterLink: RouterLinkStub,
 }))
 
 beforeEach(() => {
@@ -51,11 +52,15 @@ test("renders world map from api", async () => {
             dungeon_id: 1,
             dungeon_name: "妖窟试炼",
             unlock_spirit_power: 0,
+            unlock_bone_level: 0,
+            unlock_soul_pieces: 0,
           },
           {
             dungeon_id: 2,
             dungeon_name: "寒渊裂隙",
             unlock_spirit_power: 120,
+            unlock_bone_level: 2,
+            unlock_soul_pieces: 3,
           },
         ],
       },
@@ -70,11 +75,15 @@ test("renders world map from api", async () => {
             dungeon_id: 2,
             dungeon_name: "寒渊裂隙",
             unlock_spirit_power: 120,
+            unlock_bone_level: 2,
+            unlock_soul_pieces: 3,
           },
           {
             dungeon_id: 1,
             dungeon_name: "妖窟试炼",
             unlock_spirit_power: 0,
+            unlock_bone_level: 0,
+            unlock_soul_pieces: 0,
           },
         ],
       },
@@ -92,6 +101,9 @@ test("renders world map from api", async () => {
   const wrapper = mount(WorldMapPage, {
     global: {
       plugins: [pinia],
+      stubs: {
+        RouterLink: RouterLinkStub,
+      },
     },
   })
   await flushPromises()
@@ -101,6 +113,14 @@ test("renders world map from api", async () => {
   expect(wrapper.text()).toContain("妖窟试炼")
   expect(wrapper.text()).toContain("寒渊裂隙")
   expect(wrapper.text()).toContain("需灵力 120")
+  expect(wrapper.text()).toContain("战骨 2")
+  expect(wrapper.text()).toContain("魔魂 3")
+  expect(wrapper.text()).toContain("还差灵力 20")
+  expect(wrapper.text()).toContain("还差战骨 1")
+  expect(wrapper.text()).toContain("还差魔魂 3")
+  expect(wrapper.text()).toContain("去修行")
+  expect(wrapper.text()).toContain("去战骨")
+  expect(wrapper.text()).toContain("去魔魂")
 
   const lockedEntry = wrapper.get('[data-city-id="1"][data-dungeon-id="2"]')
   expect(lockedEntry.attributes("disabled")).toBeDefined()
@@ -115,4 +135,10 @@ test("renders world map from api", async () => {
       dungeon_id: "1",
     },
   })
+
+  const ctas = wrapper.findAllComponents(RouterLinkStub)
+  const routes = ctas.map((cta) => cta.props("to"))
+  expect(routes).toContain("/cultivation")
+  expect(routes).toContain("/growth/bone")
+  expect(routes).toContain("/growth/soul")
 })

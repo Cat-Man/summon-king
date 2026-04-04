@@ -5,6 +5,7 @@ export type LeaderboardEntry = {
   player_id: number
   name: string
   score: number
+  arena_streak: number
   updated: number
   is_self: boolean
 }

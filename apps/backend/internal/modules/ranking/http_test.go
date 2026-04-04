@@ -9,6 +9,8 @@ import (
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	"github.com/gin-gonic/gin"
@@ -26,8 +28,13 @@ func TestHandler_LeaderboardReturnsUnifiedPayload(t *testing.T) {
 	}
 
 	growthRepo := growth.NewMemoryRepository()
-	dungeonSvc := dungeon.NewService(dungeon.NewMemoryRepository(), growthRepo)
-	svc := NewService(accountRepo, growthRepo, dungeonSvc)
+	assetSvc := asset.NewService(growthRepo)
+	dungeonSvc := dungeon.NewService(dungeon.NewMemoryRepository(), assetSvc)
+	arenaSvc := arena.NewService(arena.NewMemoryRepository(), assetSvc)
+	if _, err := arenaSvc.RecordBattleResult(ctx, guest.PlayerID, true); err != nil {
+		t.Fatalf("expected arena win success, got %v", err)
+	}
+	svc := NewService(accountRepo, growthRepo, dungeonSvc, arenaSvc)
 
 	r := gin.New()
 	r.Use(middleware.InjectTraceID())
@@ -64,6 +71,9 @@ func TestHandler_LeaderboardReturnsUnifiedPayload(t *testing.T) {
 	for _, entry := range payload.Data {
 		if entry.PlayerID == guest.PlayerID {
 			foundSelf = true
+			if entry.ArenaStreak == 0 {
+				t.Fatal("expected current player arena streak in leaderboard response")
+			}
 		}
 	}
 	if !foundSelf {

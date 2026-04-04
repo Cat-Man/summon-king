@@ -2,8 +2,11 @@ package tower
 
 import (
 	"context"
+	"errors"
 	"sync"
 )
+
+var ErrNoChallengesRemaining = errors.New("tower challenges exhausted")
 
 type Repository interface {
 	StartChallenge(ctx context.Context, playerID int64, tower string) (TowerResult, error)
@@ -29,6 +32,9 @@ func (r *MemoryRepository) StartChallenge(_ context.Context, playerID int64, tow
 	defer r.mu.Unlock()
 
 	progress := r.ensureTowerProgress(tower)
+	if progress[playerID] >= 5 {
+		return TowerResult{}, ErrNoChallengesRemaining
+	}
 	floor := progress[playerID] + 1
 	progress[playerID] = floor
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 )
 
@@ -25,7 +26,7 @@ func TestEnterDungeon_GivesInitialDice(t *testing.T) {
 func TestEnterDungeon_ReturnsWalletSnapshot(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
-	svc := NewService(NewMemoryRepository(), growthRepo)
+	svc := NewService(NewMemoryRepository(), asset.NewService(growthRepo))
 	playerID := int64(1003)
 
 	run, err := svc.EnterDungeon(ctx, playerID, 1)
@@ -70,10 +71,85 @@ func TestGetWorldMap_IncludesPrimaryDungeonBinding(t *testing.T) {
 	}
 }
 
+func TestGetWorldMap_IncludesCompositeUnlockRequirements(t *testing.T) {
+	svc := newTestDungeonService(t)
+
+	world, err := svc.GetWorldMap(context.Background())
+	if err != nil {
+		t.Fatalf("expected get world map success, got %v", err)
+	}
+
+	if len(world.Cities) == 0 {
+		t.Fatal("expected at least one city")
+	}
+
+	found := false
+	for _, city := range world.Cities {
+		for _, dungeon := range city.Dungeons {
+			if dungeon.DungeonID == 2 {
+				found = true
+				if dungeon.UnlockBoneLevel != 2 {
+					t.Fatalf("expected bone level 2, got %d", dungeon.UnlockBoneLevel)
+				}
+				if dungeon.UnlockSoulPieces != 3 {
+					t.Fatalf("expected soul pieces 3, got %d", dungeon.UnlockSoulPieces)
+				}
+			}
+		}
+	}
+	if !found {
+		t.Fatal("expected to find dungeon id 2")
+	}
+}
+
+func TestEnterDungeon_RejectsWhenCompositeRequirementsNotMet(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	svc := NewService(NewMemoryRepository(), asset.NewService(growthRepo))
+	playerID := int64(1016)
+
+	if err := growthRepo.UpdateSpiritPower(ctx, playerID, 40); err != nil {
+		t.Fatalf("expected spirit update success, got %v", err)
+	}
+
+	_, err := svc.EnterDungeon(ctx, playerID, 2)
+	if err == nil {
+		t.Fatal("expected an error for locked dungeon")
+	}
+	if err != ErrDungeonLocked {
+		t.Fatalf("expected ErrDungeonLocked, got %v", err)
+	}
+}
+
+func TestEnterDungeon_AllowsWhenCompositeRequirementsAreMet(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	svc := NewService(NewMemoryRepository(), asset.NewService(growthRepo))
+	playerID := int64(1017)
+
+	if err := growthRepo.UpdateSpiritPower(ctx, playerID, 140); err != nil {
+		t.Fatalf("expected spirit update success, got %v", err)
+	}
+	if _, err := growthRepo.UpgradeBoneLevel(ctx, playerID, 1); err != nil {
+		t.Fatalf("expected bone upgrade success, got %v", err)
+	}
+	if _, err := growthRepo.UpgradeSoulPower(ctx, playerID, 3); err != nil {
+		t.Fatalf("expected soul upgrade success, got %v", err)
+	}
+
+	run, err := svc.EnterDungeon(ctx, playerID, 2)
+	if err != nil {
+		t.Fatalf("expected dungeon enter success, got %v", err)
+	}
+	if run.DungeonID != 2 {
+		t.Fatalf("expected dungeon 2, got %d", run.DungeonID)
+	}
+}
+
 func TestEnterDungeon_RejectsLockedDungeonWithoutEnoughSpiritPower(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
-	svc := NewService(NewMemoryRepository(), growthRepo)
+	svc := NewService(NewMemoryRepository(), asset.NewService(growthRepo))
 
 	_, err := svc.EnterDungeon(ctx, 1015, 2)
 	if err == nil {
@@ -87,7 +163,7 @@ func TestEnterDungeon_RejectsLockedDungeonWithoutEnoughSpiritPower(t *testing.T)
 func TestClaimCultivation_UpdatesSpiritWallet(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
-	svc := NewService(NewMemoryRepository(), growthRepo)
+	svc := NewService(NewMemoryRepository(), asset.NewService(growthRepo))
 	playerID := int64(1009)
 
 	if _, err := svc.StartCultivation(ctx, playerID); err != nil {
@@ -109,7 +185,7 @@ func TestClaimCultivation_UpdatesSpiritWallet(t *testing.T) {
 func TestRollDice_UpdatesSpiritWallet(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
-	svc := NewService(NewMemoryRepository(), growthRepo)
+	svc := NewService(NewMemoryRepository(), asset.NewService(growthRepo))
 	playerID := int64(1010)
 
 	if _, err := svc.EnterDungeon(ctx, playerID, 1); err != nil {
@@ -132,7 +208,7 @@ func TestRollDice_UpdatesSpiritWallet(t *testing.T) {
 func TestRollDice_BossFloorAddsSoulReward(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
-	svc := NewService(NewMemoryRepository(), growthRepo)
+	svc := NewService(NewMemoryRepository(), asset.NewService(growthRepo))
 	playerID := int64(1011)
 
 	if _, err := svc.EnterDungeon(ctx, playerID, 1); err != nil {
@@ -157,7 +233,7 @@ func TestRollDice_BossFloorAddsSoulReward(t *testing.T) {
 func TestRollDice_ReturnsRewardAndWalletSnapshot(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
-	svc := NewService(NewMemoryRepository(), growthRepo)
+	svc := NewService(NewMemoryRepository(), asset.NewService(growthRepo))
 	playerID := int64(1012)
 
 	if _, err := svc.EnterDungeon(ctx, playerID, 1); err != nil {
@@ -239,7 +315,7 @@ func TestResolveRollReward_DungeonOneDeepBossStatus(t *testing.T) {
 func TestRollDice_ExhaustedRunDoesNotGrantReward(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
-	svc := NewService(NewMemoryRepository(), growthRepo)
+	svc := NewService(NewMemoryRepository(), asset.NewService(growthRepo))
 	playerID := int64(1013)
 
 	if _, err := svc.EnterDungeon(ctx, playerID, 1); err != nil {
@@ -274,11 +350,17 @@ func TestRollDice_ExhaustedRunDoesNotGrantReward(t *testing.T) {
 func TestRollDice_DungeonTwoUsesConfiguredReward(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
-	svc := NewService(NewMemoryRepository(), growthRepo)
+	svc := NewService(NewMemoryRepository(), asset.NewService(growthRepo))
 	playerID := int64(1014)
 
 	if err := growthRepo.UpdateSpiritPower(ctx, playerID, 20); err != nil {
 		t.Fatalf("expected wallet spirit update success, got %v", err)
+	}
+	if _, err := growthRepo.UpgradeBoneLevel(ctx, playerID, 1); err != nil {
+		t.Fatalf("expected bone upgrade success before entering, got %v", err)
+	}
+	if _, err := growthRepo.UpgradeSoulPower(ctx, playerID, 3); err != nil {
+		t.Fatalf("expected soul upgrade success before entering, got %v", err)
 	}
 	if _, err := svc.EnterDungeon(ctx, playerID, 2); err != nil {
 		t.Fatalf("expected enter dungeon success, got %v", err)
@@ -300,5 +382,5 @@ func TestRollDice_DungeonTwoUsesConfiguredReward(t *testing.T) {
 func newTestDungeonService(t *testing.T) *Service {
 	t.Helper()
 	repo := NewMemoryRepository()
-	return NewService(repo)
+	return NewService(repo, asset.NewService(growth.NewMemoryRepository()))
 }

@@ -9,8 +9,10 @@ import (
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/tower"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,17 +28,19 @@ func TestHandler_OverviewReturnsAggregatedPayload(t *testing.T) {
 	}
 
 	dungeonRepo := dungeon.NewMemoryRepository()
-	dungeonSvc := dungeon.NewService(dungeonRepo)
+	growthRepo := growth.NewMemoryRepository()
+	assetSvc := asset.NewService(growthRepo)
+	dungeonSvc := dungeon.NewService(dungeonRepo, assetSvc)
 	if _, err := dungeonSvc.EnterDungeon(ctx, guest.PlayerID, 1); err != nil {
 		t.Fatalf("expected enter dungeon success, got %v", err)
 	}
-	growthRepo := growth.NewMemoryRepository()
+	towerSvc := tower.NewService(tower.NewMemoryRepository(), assetSvc)
 
 	r := gin.New()
 	r.Use(middleware.InjectTraceID())
 	r.Use(middleware.InjectAuthToken())
 
-	h := NewHandler(NewService(accountRepo, dungeonSvc, growthRepo))
+	h := NewHandler(NewService(accountRepo, dungeonSvc, growthRepo, towerSvc))
 	g := r.Group("/home")
 	h.RegisterRoutes(g)
 
@@ -79,7 +83,10 @@ func TestHandler_OverviewRequiresPlayerID(t *testing.T) {
 
 	r := gin.New()
 	r.Use(middleware.InjectTraceID())
-	h := NewHandler(NewService(account.NewMemoryRepository(), dungeon.NewService(dungeon.NewMemoryRepository()), growth.NewMemoryRepository()))
+	growthRepo := growth.NewMemoryRepository()
+	assetSvc := asset.NewService(growthRepo)
+	towerSvc2 := tower.NewService(tower.NewMemoryRepository(), assetSvc)
+	h := NewHandler(NewService(account.NewMemoryRepository(), dungeon.NewService(dungeon.NewMemoryRepository(), assetSvc), growthRepo, towerSvc2))
 	g := r.Group("/home")
 	h.RegisterRoutes(g)
 

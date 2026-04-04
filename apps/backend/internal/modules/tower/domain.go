@@ -1,5 +1,9 @@
 package tower
 
+import (
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+)
+
 type TowerStatus struct {
 	Tower               string `json:"tower"`
 	Label               string `json:"label"`
@@ -9,10 +13,18 @@ type TowerStatus struct {
 	RewardPreview       string `json:"reward_preview"`
 }
 
+type TowerRewardDelta struct {
+	BoneLevel   int   `json:"bone_level"`
+	SpiritPower int64 `json:"spirit_power"`
+	SoulPieces  int   `json:"soul_pieces"`
+}
+
 type TowerResult struct {
-	PlayerID            int64  `json:"player_id"`
-	Tower               string `json:"tower"`
-	Floor               int    `json:"floor"`
-	Reward              string `json:"reward"`
-	RemainingChallenges int    `json:"remaining_challenges"`
+	PlayerID            int64            `json:"player_id"`
+	Tower               string           `json:"tower"`
+	Floor               int              `json:"floor"`
+	Reward              string           `json:"reward"`
+	RemainingChallenges int              `json:"remaining_challenges"`
+	RewardDelta         TowerRewardDelta `json:"reward_delta"`
+	WalletSnapshot      growth.Wallet    `json:"wallet_snapshot"`
 }

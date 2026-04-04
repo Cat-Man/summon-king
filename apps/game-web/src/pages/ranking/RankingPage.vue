@@ -6,22 +6,38 @@
       <p>当前排行榜展示最近上榜的战力和更新时间，榜内玩家可获取额外奖励。</p>
     </div>
 
+    <article v-if="selfEntry" class="self-summary">
+      <p>我的排名</p>
+      <h2>NO. {{ selfEntry.rank }}</h2>
+      <span>战力 {{ selfEntry.score }} · 当前连胜 {{ selfEntry.arena_streak }} 场</span>
+    </article>
+
     <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
 
     <div class="ranking-table">
-      <article v-for="entry in leaderboard" :key="entry.player_id">
+      <article
+        v-for="entry in leaderboard"
+        :key="entry.player_id"
+        :class="{ 'self-entry': entry.is_self }"
+      >
         <span class="rank">NO. {{ entry.rank }}</span>
         <div>
           <h3>{{ entry.name }}</h3>
-          <p>战力 {{ entry.score }} · {{ formatUpdated(entry.updated) }}</p>
+          <p>战力 {{ entry.score }} · 连胜 {{ entry.arena_streak }} · {{ formatUpdated(entry.updated) }}</p>
         </div>
       </article>
+    </div>
+
+    <div class="ranking-links">
+      <RouterLink to="/home">返回首页</RouterLink>
+      <RouterLink to="/arena">继续斗法</RouterLink>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { computed, onMounted, ref } from "vue"
+import { RouterLink } from "vue-router"
 
 import { APIError } from "@/api/http"
 import { getLeaderboard, type LeaderboardEntry } from "@/api/modules/ranking"
@@ -30,6 +46,7 @@ import { useSessionStore } from "@/stores/session"
 const sessionStore = useSessionStore()
 const leaderboard = ref<LeaderboardEntry[]>([])
 const errorMessage = ref("")
+const selfEntry = computed(() => leaderboard.value.find((entry) => entry.is_self) ?? null)
 
 function formatUpdated(updated: number) {
   const diffMinutes = Math.max(0, Math.floor((Date.now() - updated) / 60_000))
@@ -82,6 +99,38 @@ onMounted(async () => {
   color: #ffb7b7;
 }
 
+.self-summary {
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 18px;
+  border: 1px solid rgba(138, 227, 255, 0.25);
+  background: rgba(138, 227, 255, 0.06);
+}
+
+.self-summary p,
+.self-summary h2,
+.self-summary span {
+  margin: 0;
+}
+
+.self-summary p {
+  color: #8ae3ff;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.self-summary h2 {
+  margin-top: 0.4rem;
+  font-size: 2rem;
+}
+
+.self-summary span {
+  display: block;
+  margin-top: 0.35rem;
+  color: rgba(248, 251, 255, 0.72);
+}
+
 .ranking-table {
   margin-top: 2rem;
   display: flex;
@@ -99,6 +148,11 @@ onMounted(async () => {
   gap: 1rem;
 }
 
+.ranking-table article.self-entry {
+  border-color: rgba(138, 227, 255, 0.35);
+  background: rgba(138, 227, 255, 0.08);
+}
+
 .rank {
   font-size: 1rem;
   letter-spacing: 0.2em;
@@ -114,5 +168,21 @@ onMounted(async () => {
 .ranking-table p {
   margin: 0.2rem 0 0;
   color: rgba(248, 251, 255, 0.6);
+}
+
+.ranking-links {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.ranking-links a {
+  display: inline-flex;
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  background: rgba(138, 227, 255, 0.08);
+  color: #b9f0ff;
+  border: 1px solid rgba(138, 227, 255, 0.25);
 }
 </style>

@@ -4,7 +4,7 @@
       <p class="hero-tag">召唤之王</p>
       <h2>首页总览</h2>
       <p class="hero-copy">
-        欢迎回来，{{ displayNickname }}。当前首页已经接入真实 overview 接口，作为地图、副本与修行的聚合入口。
+        欢迎回来，{{ displayNickname }}。当前首页已经接入真实 overview 接口，作为地图、副本、修行以及塔的聚合入口。
       </p>
       <div class="hero-actions">
         <span>玩家 ID：{{ sessionStore.playerId ?? "-" }}</span>
@@ -14,13 +14,39 @@
 
     <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
 
+    <div v-if="nextActionCard" class="next-action-card">
+      <div>
+        <p>下一步推荐</p>
+        <h3>{{ nextActionCard.title }}</h3>
+        <p class="next-action-copy">{{ nextActionCard.description }}</p>
+      </div>
+      <RouterLink class="next-action-cta" :to="nextActionCard.route">
+        {{ nextActionCard.cta }}
+      </RouterLink>
+    </div>
+
     <div class="overview-grid">
-      <article v-for="card in cards" :key="card.title" class="overview-card">
+      <article v-for="card in moduleCards" :key="card.title" class="overview-card">
         <p>{{ card.eyebrow }}</p>
         <h3>{{ card.title }}</h3>
         <strong>{{ card.value }}</strong>
         <span>{{ card.description }}</span>
-        <a class="entry-link" :href="card.href">{{ card.cta }}</a>
+        <RouterLink class="entry-link" :to="card.route">{{ card.cta }}</RouterLink>
+      </article>
+    </div>
+
+    <div class="tower-grid" v-if="towerCards.length">
+      <article v-for="tower in towerCards" :key="tower.title" class="tower-card">
+        <header>
+          <h3>{{ tower.title }}</h3>
+          <span>{{ tower.label }}</span>
+        </header>
+        <p>{{ tower.description }}</p>
+        <div class="tower-meta">
+          <span>当前层级：第 {{ tower.currentFloor }} 层</span>
+          <span>剩余挑战：{{ tower.remainingChallenges }}/5</span>
+        </div>
+        <RouterLink class="entry-link" :to="tower.route">{{ tower.cta }}</RouterLink>
       </article>
     </div>
   </section>
@@ -28,6 +54,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue"
+import { RouterLink } from "vue-router"
 
 import { APIError } from "@/api/http"
 import { getHomeOverview, type HomeOverview } from "@/api/modules/home"
@@ -41,7 +68,14 @@ const errorMessage = ref("")
 
 const displayNickname = computed(() => overview.value?.nickname || sessionStore.nickname || "未登录玩家")
 
-const cards = computed(() => {
+const nextActionCard = computed(() => {
+  if (!overview.value?.next_action) {
+    return null
+  }
+  return overview.value.next_action
+})
+
+const moduleCards = computed(() => {
   if (!overview.value) {
     return [
       {
@@ -49,7 +83,7 @@ const cards = computed(() => {
         title: "首页状态",
         value: "加载中",
         description: "正在同步地图、副本与修行的最新状态。",
-        href: "/home",
+        route: "/home",
         cta: "刷新中",
       },
     ]
@@ -61,7 +95,7 @@ const cards = computed(() => {
       title: "世界探索",
       value: overview.value.modules.map_label,
       description: `当前开放 ${overview.value.modules.map_city_count} 座城市，下一步可直接进入世界地图。`,
-      href: "/map",
+      route: "/map",
       cta: "前往地图",
     },
     {
@@ -69,7 +103,7 @@ const cards = computed(() => {
       title: "地下城状态",
       value: `第 ${overview.value.modules.dungeon.current_floor} 层`,
       description: `状态 ${overview.value.modules.dungeon.status}，剩余骰子 ${overview.value.modules.dungeon.remain_dice}。`,
-      href: "/dungeon",
+      route: "/dungeon",
       cta: "进入副本",
     },
     {
@@ -77,8 +111,45 @@ const cards = computed(() => {
       title: "修行进度",
       value: overview.value.modules.cultivation.state,
       description: `当前灵力 ${overview.value.modules.cultivation.spirit_power}，钱包灵力 ${overview.value.wallet.spirit_power}。`,
-      href: "/cultivation",
+      route: "/cultivation",
       cta: "前往修行",
+    },
+  ]
+})
+
+type TowerCard = {
+  route: string
+  title: string
+  label: string
+  currentFloor: number
+  remainingChallenges: number
+  description: string
+  cta: string
+}
+
+const towerCards = computed<TowerCard[]>(() => {
+  const tower = overview.value?.modules.tower
+  if (!tower) {
+    return []
+  }
+  return [
+    {
+      title: "通天塔试炼",
+      label: "pagoda",
+      currentFloor: tower.pagoda.current_floor,
+      remainingChallenges: tower.pagoda.remaining_challenges,
+      description: `当前奖励预览：${tower.pagoda.reward_preview}，累计挑战带来成长收益。`,
+      route: "/tower/pagoda",
+      cta: "继续挑战",
+    },
+    {
+      title: "战灵塔试炼",
+      label: "spirit",
+      currentFloor: tower.spirit.current_floor,
+      remainingChallenges: tower.spirit.remaining_challenges,
+      description: `当前奖励预览：${tower.spirit.reward_preview}，灵力与魔魂成长同步。`,
+      route: "/tower/spirit",
+      cta: "前往战灵塔",
     },
   ]
 })
@@ -183,6 +254,44 @@ onMounted(async () => {
   font-size: 14px;
 }
 
+.next-action-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-radius: 24px;
+  border: 1px solid rgba(247, 239, 225, 0.12);
+  background: rgba(15, 18, 28, 0.85);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+
+.next-action-card p {
+  margin: 0;
+  color: rgba(247, 189, 120, 0.78);
+  letter-spacing: 0.2em;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.next-action-card h3 {
+  margin: 6px 0;
+  font-size: 32px;
+}
+
+.next-action-copy {
+  margin: 0;
+  color: rgba(247, 239, 225, 0.72);
+}
+
+.next-action-cta {
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: rgba(247, 189, 120, 0.12);
+  color: #f7d8a8;
+  border: 1px solid rgba(247, 189, 120, 0.4);
+  text-decoration: none;
+}
+
 .overview-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -237,11 +346,60 @@ onMounted(async () => {
   border-radius: 999px;
   background: rgba(247, 189, 120, 0.12);
   color: #f7d8a8;
+  text-decoration: none;
+}
+
+.tower-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.tower-card {
+  padding: 22px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 147, 97, 0.3);
+  background: linear-gradient(180deg, rgba(15, 8, 3, 0.85), rgba(30, 7, 7, 0.95));
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
+}
+
+.tower-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.tower-card h3 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.tower-card span {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tower-card p {
+  margin: 16px 0 12px;
+  color: rgba(247, 239, 225, 0.7);
+}
+
+.tower-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 12px;
 }
 
 @media (max-width: 720px) {
   .hero-panel {
     padding: 24px;
+  }
+
+  .next-action-card {
+    flex-direction: column;
+    gap: 12px;
   }
 }
 </style>

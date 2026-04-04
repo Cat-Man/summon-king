@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 )
@@ -24,7 +26,8 @@ func TestGetLeaderboard_IncludesCurrentPlayerAndSortsByScore(t *testing.T) {
 		t.Fatalf("expected update spirit power success, got %v", err)
 	}
 
-	dungeonSvc := dungeon.NewService(dungeon.NewMemoryRepository(), growthRepo)
+	assetSvc := asset.NewService(growthRepo)
+	dungeonSvc := dungeon.NewService(dungeon.NewMemoryRepository(), assetSvc)
 	if _, err := dungeonSvc.EnterDungeon(ctx, guest.PlayerID, 1); err != nil {
 		t.Fatalf("expected enter dungeon success, got %v", err)
 	}
@@ -32,7 +35,8 @@ func TestGetLeaderboard_IncludesCurrentPlayerAndSortsByScore(t *testing.T) {
 		t.Fatalf("expected roll dice success, got %v", err)
 	}
 
-	svc := NewService(accountRepo, growthRepo, dungeonSvc)
+	arenaSvc := arena.NewService(arena.NewMemoryRepository(), assetSvc)
+	svc := NewService(accountRepo, growthRepo, dungeonSvc, arenaSvc)
 	board, err := svc.GetLeaderboard(ctx, guest.PlayerID, 5)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -61,5 +65,43 @@ func TestGetLeaderboard_IncludesCurrentPlayerAndSortsByScore(t *testing.T) {
 	}
 	if !foundSelf {
 		t.Fatal("expected leaderboard to include current player entry")
+	}
+}
+
+func TestGetLeaderboard_UsesArenaStreakToRaiseScore(t *testing.T) {
+	ctx := context.Background()
+
+	accountRepo := account.NewMemoryRepository()
+	accountSvc := account.NewService(accountRepo)
+	guest, err := accountSvc.GuestLogin(ctx, "斗法榜首")
+	if err != nil {
+		t.Fatalf("expected guest login success, got %v", err)
+	}
+
+	growthRepo := growth.NewMemoryRepository()
+	assetSvc := asset.NewService(growthRepo)
+	dungeonSvc := dungeon.NewService(dungeon.NewMemoryRepository(), assetSvc)
+	arenaSvc := arena.NewService(arena.NewMemoryRepository(), assetSvc)
+
+	if _, err := arenaSvc.RecordBattleResult(ctx, guest.PlayerID, true); err != nil {
+		t.Fatalf("expected first arena win success, got %v", err)
+	}
+	if _, err := arenaSvc.RecordBattleResult(ctx, guest.PlayerID, true); err != nil {
+		t.Fatalf("expected second arena win success, got %v", err)
+	}
+
+	svc := NewService(accountRepo, growthRepo, dungeonSvc, arenaSvc)
+	board, err := svc.GetLeaderboard(ctx, guest.PlayerID, 10)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if len(board) == 0 {
+		t.Fatal("expected leaderboard entries")
+	}
+	if board[0].PlayerID != guest.PlayerID {
+		t.Fatalf("expected self on top after arena streak, got %d", board[0].PlayerID)
+	}
+	if board[0].ArenaStreak != 2 {
+		t.Fatalf("expected arena streak 2, got %d", board[0].ArenaStreak)
 	}
 }

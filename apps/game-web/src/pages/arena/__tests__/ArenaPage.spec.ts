@@ -1,7 +1,8 @@
 import { createPinia, setActivePinia } from "pinia"
-import { flushPromises, mount } from "@vue/test-utils"
+import { flushPromises, mount, RouterLinkStub } from "@vue/test-utils"
 
 import { challengeArena, getArenaStatus } from "@/api/modules/arena"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 import ArenaPage from "../ArenaPage.vue"
@@ -15,6 +16,7 @@ test("loads arena record and updates after battle", async () => {
   const pinia = createPinia()
   setActivePinia(pinia)
   const sessionStore = useSessionStore()
+  const resourceSyncStore = useResourceSyncStore()
   sessionStore.setSession({
     token: "guest-token",
     playerId: 7101,
@@ -28,19 +30,40 @@ test("loads arena record and updates after battle", async () => {
   })
   vi.mocked(challengeArena)
     .mockResolvedValueOnce({
-      player_id: 7101,
-      current_streak: 1,
-      last_win: true,
+      record: {
+        player_id: 7101,
+        current_streak: 1,
+        last_win: true,
+      },
+      reward_delta: {
+        spirit_power: 10,
+      },
+      wallet_snapshot: {
+        spirit_power: 110,
+        bone_level: 1,
+        soul_pieces: 0,
+      },
     })
     .mockResolvedValueOnce({
-      player_id: 7101,
-      current_streak: 0,
-      last_win: false,
+      record: {
+        player_id: 7101,
+        current_streak: 0,
+        last_win: false,
+      },
+      reward_delta: {},
+      wallet_snapshot: {
+        spirit_power: 110,
+        bone_level: 1,
+        soul_pieces: 0,
+      },
     })
 
   const wrapper = mount(ArenaPage, {
     global: {
       plugins: [pinia],
+      stubs: {
+        RouterLink: RouterLinkStub,
+      },
     },
   })
   await flushPromises()
@@ -55,6 +78,10 @@ test("loads arena record and updates after battle", async () => {
   expect(challengeArena).toHaveBeenCalledWith(7101, true)
   expect(wrapper.text()).toContain("1")
   expect(wrapper.text()).toContain("胜")
+  expect(wrapper.text()).toContain("奖励拆分")
+  expect(wrapper.text()).toContain("灵力 +10")
+  expect(wrapper.text()).toContain("查看排行榜")
+  expect(resourceSyncStore.version).toBe(1)
 
   await wrapper.get("button.ghost").trigger("click")
   await flushPromises()

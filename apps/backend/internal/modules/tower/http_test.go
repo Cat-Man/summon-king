@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,7 +17,7 @@ func TestHandler_PagodaStatusReturnsUnifiedPayload(t *testing.T) {
 
 	r := gin.New()
 	r.Use(middleware.InjectTraceID())
-	h := NewHandler(NewService(NewMemoryRepository()))
+	h := NewHandler(NewService(NewMemoryRepository(), asset.NewService(growth.NewMemoryRepository())))
 	g := r.Group("/tower")
 	h.RegisterRoutes(g)
 

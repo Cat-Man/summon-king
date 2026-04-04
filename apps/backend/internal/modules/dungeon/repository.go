@@ -43,8 +43,14 @@ func NewMemoryRepository() *MemoryRepository {
 					LocX:   110.5,
 					LocY:   220.4,
 					Dungeons: []MapDungeon{
-						{DungeonID: 1, DungeonName: "妖窟试炼", UnlockSpiritPower: 0},
-						{DungeonID: 2, DungeonName: "寒渊裂隙", UnlockSpiritPower: 120},
+					{DungeonID: 1, DungeonName: "妖窟试炼", UnlockSpiritPower: 0},
+					{
+						DungeonID:         2,
+						DungeonName:       "寒渊裂隙",
+						UnlockSpiritPower: 120,
+						UnlockBoneLevel:   2,
+						UnlockSoulPieces:  3,
+					},
 					},
 				},
 				{
@@ -54,7 +60,13 @@ func NewMemoryRepository() *MemoryRepository {
 					LocX:   190.8,
 					LocY:   180.1,
 					Dungeons: []MapDungeon{
-						{DungeonID: 2, DungeonName: "寒渊裂隙", UnlockSpiritPower: 120},
+						{
+							DungeonID:         2,
+							DungeonName:       "寒渊裂隙",
+							UnlockSpiritPower: 120,
+							UnlockBoneLevel:   2,
+							UnlockSoulPieces:  3,
+						},
 						{DungeonID: 1, DungeonName: "妖窟试炼", UnlockSpiritPower: 0},
 					},
 				},
