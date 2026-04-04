@@ -129,6 +129,9 @@ func (s *Service) Teleport(ctx context.Context, cityID int64) (MapCity, error) {
 }
 
 func (s *Service) EnterDungeon(ctx context.Context, playerID, dungeonID int64) (DungeonRun, error) {
+	if err := s.validateDungeonUnlock(ctx, playerID, dungeonID); err != nil {
+		return DungeonRun{}, err
+	}
 	run, err := s.repo.EnterDungeon(ctx, playerID, dungeonID)
 	if err != nil {
 		return DungeonRun{}, err
@@ -232,4 +235,39 @@ func matchesRewardRule(run DungeonRun, rule rewardRule) bool {
 		return false
 	}
 	return true
+}
+
+func (s *Service) validateDungeonUnlock(ctx context.Context, playerID, dungeonID int64) error {
+	if s.wallets == nil {
+		return nil
+	}
+
+	dungeon, found, err := s.findDungeon(ctx, dungeonID)
+	if err != nil || !found || dungeon.UnlockSpiritPower == 0 {
+		return err
+	}
+
+	wallet, err := s.wallets.GetWallet(ctx, playerID)
+	if err != nil {
+		return err
+	}
+	if wallet.SpiritPower < dungeon.UnlockSpiritPower {
+		return ErrDungeonLocked
+	}
+	return nil
+}
+
+func (s *Service) findDungeon(ctx context.Context, dungeonID int64) (MapDungeon, bool, error) {
+	world, err := s.repo.GetWorldMap(ctx)
+	if err != nil {
+		return MapDungeon{}, false, err
+	}
+	for _, city := range world.Cities {
+		for _, dungeon := range city.Dungeons {
+			if dungeon.DungeonID == dungeonID {
+				return dungeon, true, nil
+			}
+		}
+	}
+	return MapDungeon{}, false, nil
 }

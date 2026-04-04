@@ -29,8 +29,9 @@ type WorldMap struct {
 }
 
 type MapDungeon struct {
-	DungeonID   int64  `json:"dungeon_id"`
-	DungeonName string `json:"dungeon_name"`
+	DungeonID         int64  `json:"dungeon_id"`
+	DungeonName       string `json:"dungeon_name"`
+	UnlockSpiritPower int64  `json:"unlock_spirit_power"`
 }
 
 type MapCity struct {

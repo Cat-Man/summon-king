@@ -11,6 +11,7 @@ export type WorldMap = {
     dungeons: Array<{
       dungeon_id: number
       dungeon_name: string
+      unlock_spirit_power: number
     }>
   }>
 }

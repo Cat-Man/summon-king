@@ -15,17 +15,27 @@
         <p>坐标 {{ city.loc_x }} / {{ city.loc_y }}</p>
         <div class="dungeon-list">
           <p>可进入副本</p>
+          <span class="spirit-text">当前灵力 {{ currentSpiritPower }}</span>
           <button
             v-for="dungeon in city.dungeons"
             :key="`${city.city_id}-${dungeon.dungeon_id}`"
             :data-city-id="city.city_id"
             :data-dungeon-id="dungeon.dungeon_id"
             class="ghost-btn"
+            :class="{ locked: !canEnterDungeon(dungeon) }"
             type="button"
+            :disabled="!canEnterDungeon(dungeon)"
             @click="goToDungeon(dungeon)"
           >
             进入 {{ dungeon.dungeon_name }}
           </button>
+          <span
+            v-for="dungeon in city.dungeons"
+            :key="`${city.city_id}-${dungeon.dungeon_id}-hint`"
+            class="dungeon-hint"
+          >
+            {{ dungeon.unlock_spirit_power > 0 ? `需灵力 ${dungeon.unlock_spirit_power}` : "已开放" }}
+          </span>
         </div>
       </article>
     </div>
@@ -38,13 +48,21 @@ import { useRouter } from "vue-router"
 
 import { APIError } from "@/api/http"
 import { getWorldMap, type WorldMap } from "@/api/modules/dungeon"
+import { getGrowthWallet } from "@/api/modules/growth"
+import { useSessionStore } from "@/stores/session"
 
 const world = ref<WorldMap | null>(null)
 const errorMessage = ref("")
 const router = useRouter()
+const sessionStore = useSessionStore()
+const currentSpiritPower = ref(0)
 
 const title = computed(() => (world.value ? `${world.value.name}世界地图` : "环天世界地图"))
 const cities = computed(() => world.value?.cities ?? [])
+
+function canEnterDungeon(dungeon: WorldMap["cities"][number]["dungeons"][number]) {
+  return currentSpiritPower.value >= dungeon.unlock_spirit_power
+}
 
 function goToDungeon(dungeon: WorldMap["cities"][number]["dungeons"][number]) {
   void router.push({
@@ -55,9 +73,19 @@ function goToDungeon(dungeon: WorldMap["cities"][number]["dungeons"][number]) {
   })
 }
 
+async function loadWallet() {
+  if (!sessionStore.playerId) {
+    return
+  }
+
+  const wallet = await getGrowthWallet(sessionStore.playerId)
+  currentSpiritPower.value = wallet.spirit_power
+}
+
 onMounted(async () => {
   try {
-    world.value = await getWorldMap()
+    const [nextWorld] = await Promise.all([getWorldMap(), loadWallet()])
+    world.value = nextWorld
   } catch (error) {
     if (error instanceof APIError) {
       errorMessage.value = error.message
@@ -142,6 +170,11 @@ onMounted(async () => {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+.spirit-text,
+.dungeon-hint {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 13px;
+}
 .ghost-btn {
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 10px;
@@ -153,5 +186,10 @@ onMounted(async () => {
 }
 .ghost-btn:hover {
   background: rgba(255, 255, 255, 0.08);
+}
+.ghost-btn.locked,
+.ghost-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 </style>

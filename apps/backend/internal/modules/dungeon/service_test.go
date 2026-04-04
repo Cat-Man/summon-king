@@ -59,11 +59,28 @@ func TestGetWorldMap_IncludesPrimaryDungeonBinding(t *testing.T) {
 	if world.Cities[0].Dungeons[1].DungeonID != 2 {
 		t.Fatalf("expected first city second dungeon id 2, got %d", world.Cities[0].Dungeons[1].DungeonID)
 	}
+	if world.Cities[0].Dungeons[1].UnlockSpiritPower != 120 {
+		t.Fatalf("expected first city second dungeon unlock spirit 120, got %d", world.Cities[0].Dungeons[1].UnlockSpiritPower)
+	}
 	if len(world.Cities[1].Dungeons) != 2 {
 		t.Fatalf("expected second city 2 dungeons, got %d", len(world.Cities[1].Dungeons))
 	}
 	if world.Cities[1].Dungeons[0].DungeonName != "寒渊裂隙" {
 		t.Fatalf("expected second city first dungeon name 寒渊裂隙, got %s", world.Cities[1].Dungeons[0].DungeonName)
+	}
+}
+
+func TestEnterDungeon_RejectsLockedDungeonWithoutEnoughSpiritPower(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	svc := NewService(NewMemoryRepository(), growthRepo)
+
+	_, err := svc.EnterDungeon(ctx, 1015, 2)
+	if err == nil {
+		t.Fatal("expected locked dungeon error, got nil")
+	}
+	if err != ErrDungeonLocked {
+		t.Fatalf("expected ErrDungeonLocked, got %v", err)
 	}
 }
 
@@ -260,6 +277,9 @@ func TestRollDice_DungeonTwoUsesConfiguredReward(t *testing.T) {
 	svc := NewService(NewMemoryRepository(), growthRepo)
 	playerID := int64(1014)
 
+	if err := growthRepo.UpdateSpiritPower(ctx, playerID, 20); err != nil {
+		t.Fatalf("expected wallet spirit update success, got %v", err)
+	}
 	if _, err := svc.EnterDungeon(ctx, playerID, 2); err != nil {
 		t.Fatalf("expected enter dungeon success, got %v", err)
 	}
@@ -272,8 +292,8 @@ func TestRollDice_DungeonTwoUsesConfiguredReward(t *testing.T) {
 	if run.LastReward.Label != "寒渊裂隙掉落" {
 		t.Fatalf("expected reward label 寒渊裂隙掉落, got %s", run.LastReward.Label)
 	}
-	if run.WalletSnapshot.SpiritPower != 107 {
-		t.Fatalf("expected wallet spirit 107, got %d", run.WalletSnapshot.SpiritPower)
+	if run.WalletSnapshot.SpiritPower != 127 {
+		t.Fatalf("expected wallet spirit 127, got %d", run.WalletSnapshot.SpiritPower)
 	}
 }
 

@@ -58,6 +58,10 @@ func (h *Handler) enterDungeon(c *gin.Context) {
 	}
 	run, err := h.service.EnterDungeon(c.Request.Context(), req.playerID, req.dungeonID)
 	if err != nil {
+		if err == ErrDungeonLocked {
+			c.JSON(stdhttp.StatusForbidden, httpx.Error(4031, "dungeon locked", middleware.GetTraceID(c)))
+			return
+		}
 		c.JSON(stdhttp.StatusInternalServerError, httpx.Error(5002, "failed to enter dungeon", middleware.GetTraceID(c)))
 		return
 	}

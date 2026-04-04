@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	httpx "github.com/Cat-Man/summon-king/apps/backend/internal/infra/http"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	"github.com/gin-gonic/gin"
 )
 
@@ -80,5 +82,39 @@ func TestHandler_StatusReadsPlayerIDFromQuery(t *testing.T) {
 	}
 	if payload.Data.PlayerID != 1002 {
 		t.Fatalf("expected response player_id 1002, got %d", payload.Data.PlayerID)
+	}
+}
+
+func TestHandler_EnterDungeonRejectsLockedDungeon(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	repo := NewMemoryRepository()
+	growthRepo := growth.NewMemoryRepository()
+	svc := NewService(repo, growthRepo)
+
+	r := gin.New()
+	r.Use(middleware.InjectTraceID())
+	h := NewHandler(svc)
+	g := r.Group("/dungeon")
+	h.RegisterRoutes(g)
+
+	req := httptest.NewRequest(http.MethodPost, "/dungeon/enter", strings.NewReader("player_id=1002&dungeon_id=2"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-Trace-ID", "trace-dungeon-locked")
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	var payload httpx.APIResponse
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		t.Fatalf("expected JSON payload, got %v", err)
+	}
+	if resp.Code != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d", resp.Code)
+	}
+	if payload.Code != 4031 {
+		t.Fatalf("expected business code 4031, got %d", payload.Code)
+	}
+	if payload.TraceID != "trace-dungeon-locked" {
+		t.Fatalf("expected propagated trace id, got %s", payload.TraceID)
 	}
 }
