@@ -18,6 +18,18 @@
         </article>
       </div>
     </div>
+    <div class="reward-panel">
+      <article>
+        <p>本次掉落</p>
+        <strong>灵力 +{{ run.last_reward.spirit_power }}</strong>
+        <span>魂力 +{{ run.last_reward.soul_pieces }}</span>
+      </article>
+      <article>
+        <p>当前资源</p>
+        <strong>当前灵力 {{ run.wallet_snapshot.spirit_power }}</strong>
+        <span>当前魂力 {{ run.wallet_snapshot.soul_pieces }}</span>
+      </article>
+    </div>
     <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
     <div class="action-panel">
       <button class="action-btn primary" type="button" @click="rollForward">掷骰推进</button>
@@ -50,6 +62,18 @@ const defaultRun: DungeonRun = {
   current_floor: 0,
   status: "idle",
   started_at: "",
+  last_reward: {
+    spirit_power: 0,
+    soul_pieces: 0,
+  },
+  wallet_snapshot: {
+    player_id: 0,
+    spirit_power: 0,
+    spirit_free_wash: 0,
+    bone_level: 0,
+    soul_pieces: 0,
+    manor_plots: 0,
+  },
 }
 
 const sessionStore = useSessionStore()
@@ -126,6 +150,36 @@ onMounted(async () => {
 .status-text {
   margin: 0;
   color: #ffcfb8;
+}
+.reward-panel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+.reward-panel article {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.reward-panel p,
+.reward-panel strong,
+.reward-panel span {
+  display: block;
+}
+.reward-panel p {
+  margin: 0 0 8px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.reward-panel strong {
+  font-size: 24px;
+}
+.reward-panel span {
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.78);
 }
 .dungeon-meta {
   border-radius: 24px;

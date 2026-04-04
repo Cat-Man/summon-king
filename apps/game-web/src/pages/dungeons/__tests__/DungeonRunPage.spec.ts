@@ -33,6 +33,18 @@ test("enters dungeon when status is missing and rolls forward", async () => {
     current_floor: 1,
     status: "ongoing",
     started_at: "2026-04-04T00:00:00Z",
+    last_reward: {
+      spirit_power: 0,
+      soul_pieces: 0,
+    },
+    wallet_snapshot: {
+      player_id: 3003,
+      spirit_power: 100,
+      spirit_free_wash: 3,
+      bone_level: 1,
+      soul_pieces: 0,
+      manor_plots: 2,
+    },
   })
   vi.mocked(rollDungeonDice).mockResolvedValue({
     player_id: 3003,
@@ -41,6 +53,18 @@ test("enters dungeon when status is missing and rolls forward", async () => {
     current_floor: 2,
     status: "ongoing",
     started_at: "2026-04-04T00:00:00Z",
+    last_reward: {
+      spirit_power: 5,
+      soul_pieces: 0,
+    },
+    wallet_snapshot: {
+      player_id: 3003,
+      spirit_power: 105,
+      spirit_free_wash: 3,
+      bone_level: 1,
+      soul_pieces: 0,
+      manor_plots: 2,
+    },
   })
 
   const wrapper = mount(DungeonRunPage, {
@@ -58,4 +82,7 @@ test("enters dungeon when status is missing and rolls forward", async () => {
 
   expect(rollDungeonDice).toHaveBeenCalledWith(3003)
   expect(wrapper.text()).toContain("2")
+  expect(wrapper.text()).toContain("本次掉落")
+  expect(wrapper.text()).toContain("灵力 +5")
+  expect(wrapper.text()).toContain("当前灵力 105")
 })

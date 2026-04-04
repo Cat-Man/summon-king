@@ -18,6 +18,18 @@ export type DungeonRun = {
   current_floor: number
   status: string
   started_at: string
+  last_reward: {
+    spirit_power: number
+    soul_pieces: number
+  }
+  wallet_snapshot: {
+    player_id: number
+    spirit_power: number
+    spirit_free_wash: number
+    bone_level: number
+    soul_pieces: number
+    manor_plots: number
+  }
 }
 
 export type CultivationStatus = {

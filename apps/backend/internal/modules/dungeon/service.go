@@ -2,16 +2,23 @@ package dungeon
 
 import (
 	"context"
+
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 )
 
 type spiritWalletUpdater interface {
 	UpdateSpiritPower(ctx context.Context, playerID int64, delta int64) error
+	UpgradeSoulPower(ctx context.Context, playerID int64, delta int) (growth.Wallet, error)
+	GetWallet(ctx context.Context, playerID int64) (growth.Wallet, error)
 }
 
 type Service struct {
 	repo    Repository
 	wallets spiritWalletUpdater
 }
+
+const rollSpiritReward int64 = 5
+const bossSoulReward = 1
 
 func NewService(repo Repository, wallets ...spiritWalletUpdater) *Service {
 	service := &Service{repo: repo}
@@ -30,15 +37,39 @@ func (s *Service) Teleport(ctx context.Context, cityID int64) (MapCity, error) {
 }
 
 func (s *Service) EnterDungeon(ctx context.Context, playerID, dungeonID int64) (DungeonRun, error) {
-	return s.repo.EnterDungeon(ctx, playerID, dungeonID)
+	run, err := s.repo.EnterDungeon(ctx, playerID, dungeonID)
+	if err != nil {
+		return DungeonRun{}, err
+	}
+	return s.attachWalletSnapshot(ctx, playerID, run)
 }
 
 func (s *Service) RollDice(ctx context.Context, playerID int64) (DungeonRun, error) {
-	return s.repo.RollDungeonDice(ctx, playerID)
+	run, err := s.repo.RollDungeonDice(ctx, playerID)
+	if err != nil {
+		return DungeonRun{}, err
+	}
+	if s.wallets != nil {
+		if err := s.wallets.UpdateSpiritPower(ctx, playerID, rollSpiritReward); err != nil {
+			return DungeonRun{}, err
+		}
+		run.LastReward.SpiritPower = rollSpiritReward
+		if run.Status == "boss" {
+			if _, err := s.wallets.UpgradeSoulPower(ctx, playerID, bossSoulReward); err != nil {
+				return DungeonRun{}, err
+			}
+			run.LastReward.SoulPieces = bossSoulReward
+		}
+	}
+	return s.attachWalletSnapshot(ctx, playerID, run)
 }
 
 func (s *Service) GetRun(ctx context.Context, playerID int64) (DungeonRun, error) {
-	return s.repo.GetDungeonRun(ctx, playerID)
+	run, err := s.repo.GetDungeonRun(ctx, playerID)
+	if err != nil {
+		return DungeonRun{}, err
+	}
+	return s.attachWalletSnapshot(ctx, playerID, run)
 }
 
 func (s *Service) StartCultivation(ctx context.Context, playerID int64) (CultivationStatus, error) {
@@ -60,4 +91,16 @@ func (s *Service) ClaimCultivation(ctx context.Context, playerID int64) (Cultiva
 
 func (s *Service) GetCultivationStatus(ctx context.Context, playerID int64) (CultivationStatus, error) {
 	return s.repo.GetCultivation(ctx, playerID)
+}
+
+func (s *Service) attachWalletSnapshot(ctx context.Context, playerID int64, run DungeonRun) (DungeonRun, error) {
+	if s.wallets == nil {
+		return run, nil
+	}
+	wallet, err := s.wallets.GetWallet(ctx, playerID)
+	if err != nil {
+		return DungeonRun{}, err
+	}
+	run.WalletSnapshot = wallet
+	return run, nil
 }

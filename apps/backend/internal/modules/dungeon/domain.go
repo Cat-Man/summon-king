@@ -1,14 +1,25 @@
 package dungeon
 
-import "time"
+import (
+	"time"
+
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+)
 
 type DungeonRun struct {
-	PlayerID     int64     `json:"player_id"`
-	DungeonID    int64     `json:"dungeon_id"`
-	RemainDice   int       `json:"remain_dice"`
-	CurrentFloor int       `json:"current_floor"`
-	Status       string    `json:"status"`
-	StartedAt    time.Time `json:"started_at"`
+	PlayerID       int64         `json:"player_id"`
+	DungeonID      int64         `json:"dungeon_id"`
+	RemainDice     int           `json:"remain_dice"`
+	CurrentFloor   int           `json:"current_floor"`
+	Status         string        `json:"status"`
+	StartedAt      time.Time     `json:"started_at"`
+	LastReward     RollReward    `json:"last_reward"`
+	WalletSnapshot growth.Wallet `json:"wallet_snapshot"`
+}
+
+type RollReward struct {
+	SpiritPower int64 `json:"spirit_power"`
+	SoulPieces  int   `json:"soul_pieces"`
 }
 
 type WorldMap struct {
