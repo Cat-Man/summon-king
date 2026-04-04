@@ -13,7 +13,8 @@
           <span>{{ city.region }}</span>
         </header>
         <p>坐标 {{ city.loc_x }} / {{ city.loc_y }}</p>
-        <button class="ghost-btn" type="button">传送到 {{ city.name }}</button>
+        <p>主副本 {{ city.dungeon_name }}</p>
+        <button class="ghost-btn" type="button" @click="goToDungeon(city)">传送到 {{ city.name }}</button>
       </article>
     </div>
   </section>
@@ -21,15 +22,26 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue"
+import { useRouter } from "vue-router"
 
 import { APIError } from "@/api/http"
 import { getWorldMap, type WorldMap } from "@/api/modules/dungeon"
 
 const world = ref<WorldMap | null>(null)
 const errorMessage = ref("")
+const router = useRouter()
 
 const title = computed(() => (world.value ? `${world.value.name}世界地图` : "环天世界地图"))
 const cities = computed(() => world.value?.cities ?? [])
+
+function goToDungeon(city: WorldMap["cities"][number]) {
+  void router.push({
+    name: "dungeon",
+    query: {
+      dungeon_id: String(city.dungeon_id),
+    },
+  })
+}
 
 onMounted(async () => {
   try {

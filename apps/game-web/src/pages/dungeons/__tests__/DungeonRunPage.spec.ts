@@ -8,14 +8,23 @@ import { useSessionStore } from "@/stores/session"
 
 import DungeonRunPage from "../DungeonRunPage.vue"
 
+let mockedRouteQuery: Record<string, string> = {}
+
 vi.mock("@/api/modules/dungeon", () => ({
   getDungeonStatus: vi.fn(),
   enterDungeon: vi.fn(),
   rollDungeonDice: vi.fn(),
 }))
 
+vi.mock("vue-router", () => ({
+  useRoute: () => ({
+    query: mockedRouteQuery,
+  }),
+}))
+
 beforeEach(() => {
   vi.clearAllMocks()
+  mockedRouteQuery = {}
 })
 
 test("enters dungeon when status is missing and rolls forward", async () => {
@@ -194,4 +203,51 @@ test("switches dungeon and restarts with selected dungeon", async () => {
   expect(wrapper.text()).toContain("寒渊裂隙")
   expect(wrapper.text()).toContain("灵力 +7")
   expect(wrapper.text()).toContain("当前灵力 107")
+})
+
+test("reads dungeon id from route query when entering missing run", async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const sessionStore = useSessionStore()
+  sessionStore.setSession({
+    token: "guest-token",
+    playerId: 3005,
+    nickname: "地图旅人",
+  })
+  mockedRouteQuery = { dungeon_id: "2" }
+
+  vi.mocked(getDungeonStatus).mockRejectedValue(
+    new APIError("dungeon run not found", { status: 404, code: 4041 }),
+  )
+  vi.mocked(enterDungeon).mockResolvedValue({
+    player_id: 3005,
+    dungeon_id: 2,
+    remain_dice: 15,
+    current_floor: 1,
+    status: "ongoing",
+    started_at: "2026-04-04T00:00:00Z",
+    last_reward: {
+      label: "无掉落",
+      spirit_power: 0,
+      soul_pieces: 0,
+    },
+    wallet_snapshot: {
+      player_id: 3005,
+      spirit_power: 100,
+      spirit_free_wash: 3,
+      bone_level: 1,
+      soul_pieces: 0,
+      manor_plots: 2,
+    },
+  })
+
+  const wrapper = mount(DungeonRunPage, {
+    global: {
+      plugins: [pinia],
+    },
+  })
+  await flushPromises()
+
+  expect(enterDungeon).toHaveBeenCalledWith(3005, 2)
+  expect(wrapper.text()).toContain("寒渊裂隙")
 })

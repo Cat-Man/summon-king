@@ -35,8 +35,8 @@ func NewMemoryRepository() *MemoryRepository {
 		worldMap: WorldMap{
 			Name: "玄境",
 			Cities: []MapCity{
-				{CityID: 1, Name: "晨曦城", Region: "东境", LocX: 110.5, LocY: 220.4},
-				{CityID: 2, Name: "霞光堡", Region: "南境", LocX: 190.8, LocY: 180.1},
+				{CityID: 1, Name: "晨曦城", Region: "东境", LocX: 110.5, LocY: 220.4, DungeonID: 1, DungeonName: "妖窟试炼"},
+				{CityID: 2, Name: "霞光堡", Region: "南境", LocX: 190.8, LocY: 180.1, DungeonID: 2, DungeonName: "寒渊裂隙"},
 			},
 		},
 		runs:        make(map[int64]DungeonRun),

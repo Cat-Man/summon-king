@@ -40,6 +40,30 @@ func TestEnterDungeon_ReturnsWalletSnapshot(t *testing.T) {
 	}
 }
 
+func TestGetWorldMap_IncludesPrimaryDungeonBinding(t *testing.T) {
+	svc := newTestDungeonService(t)
+
+	world, err := svc.GetWorldMap(context.Background())
+	if err != nil {
+		t.Fatalf("expected get world map success, got %v", err)
+	}
+	if len(world.Cities) != 2 {
+		t.Fatalf("expected 2 cities, got %d", len(world.Cities))
+	}
+	if world.Cities[0].DungeonID != 1 {
+		t.Fatalf("expected first city dungeon id 1, got %d", world.Cities[0].DungeonID)
+	}
+	if world.Cities[0].DungeonName != "妖窟试炼" {
+		t.Fatalf("expected first city dungeon name 妖窟试炼, got %s", world.Cities[0].DungeonName)
+	}
+	if world.Cities[1].DungeonID != 2 {
+		t.Fatalf("expected second city dungeon id 2, got %d", world.Cities[1].DungeonID)
+	}
+	if world.Cities[1].DungeonName != "寒渊裂隙" {
+		t.Fatalf("expected second city dungeon name 寒渊裂隙, got %s", world.Cities[1].DungeonName)
+	}
+}
+
 func TestClaimCultivation_UpdatesSpiritWallet(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()

@@ -29,11 +29,13 @@ type WorldMap struct {
 }
 
 type MapCity struct {
-	CityID int64   `json:"city_id"`
-	Name   string  `json:"name"`
-	Region string  `json:"region"`
-	LocX   float64 `json:"loc_x"`
-	LocY   float64 `json:"loc_y"`
+	CityID      int64   `json:"city_id"`
+	Name        string  `json:"name"`
+	Region      string  `json:"region"`
+	LocX        float64 `json:"loc_x"`
+	LocY        float64 `json:"loc_y"`
+	DungeonID   int64   `json:"dungeon_id"`
+	DungeonName string  `json:"dungeon_name"`
 }
 
 type CultivationStatus struct {

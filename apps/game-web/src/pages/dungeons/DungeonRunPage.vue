@@ -62,7 +62,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
+import { useRoute } from "vue-router"
 
 import { APIError } from "@/api/http"
 import { enterDungeon, getDungeonStatus, rollDungeonDice, type DungeonRun } from "@/api/modules/dungeon"
@@ -98,6 +99,7 @@ const defaultRun: DungeonRun = {
 
 const sessionStore = useSessionStore()
 const resourceSyncStore = useResourceSyncStore()
+const route = useRoute()
 const run = ref<DungeonRun>(defaultRun)
 const errorMessage = ref("")
 const selectedDungeonId = ref(1)
@@ -106,6 +108,24 @@ const floors = computed(() => Math.max(6, run.value.current_floor + 2))
 const currentDungeonName = computed(() => {
   return dungeonOptions.find((option) => option.id === selectedDungeonId.value)?.name ?? "妖窟试炼"
 })
+
+function parseDungeonId(value: unknown) {
+  const rawValue = Array.isArray(value) ? value[0] : value
+  const dungeonId = Number(rawValue)
+
+  if (dungeonOptions.some((option) => option.id === dungeonId)) {
+    return dungeonId
+  }
+
+  return null
+}
+
+function syncSelectedDungeonId(value: unknown) {
+  const dungeonId = parseDungeonId(value)
+  if (dungeonId !== null) {
+    selectedDungeonId.value = dungeonId
+  }
+}
 
 async function refreshRun() {
   const playerId = sessionStore.playerId
@@ -161,8 +181,16 @@ async function restartRun() {
 }
 
 onMounted(async () => {
+  syncSelectedDungeonId(route.query.dungeon_id)
   await refreshRun()
 })
+
+watch(
+  () => route.query.dungeon_id,
+  (value) => {
+    syncSelectedDungeonId(value)
+  },
+)
 </script>
 
 <style scoped>

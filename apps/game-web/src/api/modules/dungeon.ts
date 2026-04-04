@@ -8,6 +8,8 @@ export type WorldMap = {
     region: string
     loc_x: number
     loc_y: number
+    dungeon_id: number
+    dungeon_name: string
   }>
 }
 
