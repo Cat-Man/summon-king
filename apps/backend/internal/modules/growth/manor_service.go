@@ -25,3 +25,14 @@ func (s *ManorService) Harvest(ctx context.Context, playerID int64) (ManorHarves
 		Plots:   plots,
 	}, nil
 }
+
+func (s *ManorService) Plant(ctx context.Context, playerID int64) (ManorHarvestResult, error) {
+	plots, err := s.repo.PlantManor(ctx, playerID)
+	if err != nil {
+		return ManorHarvestResult{}, err
+	}
+	return ManorHarvestResult{
+		Message: "庄园种植完成",
+		Plots:   plots,
+	}, nil
+}

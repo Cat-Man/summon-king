@@ -19,3 +19,14 @@ func (s *SoulService) GetSoulState(ctx context.Context, playerID int64) Soul {
 		Power: wallet.SoulPieces,
 	}
 }
+
+func (s *SoulService) Upgrade(ctx context.Context, playerID int64) (Soul, error) {
+	wallet, err := s.repo.UpgradeSoulPower(ctx, playerID, 1)
+	if err != nil {
+		return Soul{}, err
+	}
+	return Soul{
+		Name:  "魔魂",
+		Power: wallet.SoulPieces,
+	}, nil
+}

@@ -34,9 +34,11 @@ func (h *Handler) RegisterRoutes(group *gin.RouterGroup) {
 	group.GET("/bone", h.boneState)
 	group.POST("/bone/upgrade", h.boneUpgrade)
 	group.GET("/soul", h.soulState)
+	group.POST("/soul/upgrade", h.soulUpgrade)
 	group.POST("/cauldron/stir", h.cauldronStir)
 	group.GET("/manor", h.manorState)
 	group.POST("/manor/harvest", h.manorHarvest)
+	group.POST("/manor/plant", h.manorPlant)
 }
 
 func (h *Handler) wallet(c *gin.Context) {
@@ -97,6 +99,19 @@ func (h *Handler) soulState(c *gin.Context) {
 	c.JSON(stdhttp.StatusOK, httpx.Success(data, middleware.GetTraceID(c)))
 }
 
+func (h *Handler) soulUpgrade(c *gin.Context) {
+	playerID, ok := parsePlayerID(c)
+	if !ok {
+		return
+	}
+	data, err := h.soul.Upgrade(c.Request.Context(), playerID)
+	if err != nil {
+		c.JSON(stdhttp.StatusInternalServerError, httpx.Error(5005, "soul upgrade failed", middleware.GetTraceID(c)))
+		return
+	}
+	c.JSON(stdhttp.StatusOK, httpx.Success(data, middleware.GetTraceID(c)))
+}
+
 func (h *Handler) cauldronStir(c *gin.Context) {
 	playerID, ok := parsePlayerID(c)
 	if !ok {
@@ -127,6 +142,19 @@ func (h *Handler) manorHarvest(c *gin.Context) {
 	data, err := h.manor.Harvest(c.Request.Context(), playerID)
 	if err != nil {
 		c.JSON(stdhttp.StatusInternalServerError, httpx.Error(5004, "manor harvest failed", middleware.GetTraceID(c)))
+		return
+	}
+	c.JSON(stdhttp.StatusOK, httpx.Success(data, middleware.GetTraceID(c)))
+}
+
+func (h *Handler) manorPlant(c *gin.Context) {
+	playerID, ok := parsePlayerID(c)
+	if !ok {
+		return
+	}
+	data, err := h.manor.Plant(c.Request.Context(), playerID)
+	if err != nil {
+		c.JSON(stdhttp.StatusInternalServerError, httpx.Error(5006, "manor plant failed", middleware.GetTraceID(c)))
 		return
 	}
 	c.JSON(stdhttp.StatusOK, httpx.Success(data, middleware.GetTraceID(c)))

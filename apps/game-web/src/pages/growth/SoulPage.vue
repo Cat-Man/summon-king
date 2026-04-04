@@ -16,7 +16,10 @@
         <span>{{ soul.power > 0 ? "已凝聚" : "待收集" }}</span>
       </article>
     </div>
-    <p class="note">魔魂线当前先接真实数值，后续再扩猎魂与掉落玩法。</p>
+    <button class="primary" type="button" @click="upgradeNow">升级魔魂</button>
+    <div class="panel">
+      <p class="note">魔魂线当前先接真实数值，后续再扩猎魂与掉落玩法。</p>
+    </div>
   </section>
 </template>
 
@@ -24,7 +27,7 @@
 import { onMounted, ref } from "vue"
 
 import { APIError } from "@/api/http"
-import { getSoulState, type SoulState } from "@/api/modules/growth"
+import { getSoulState, type SoulState, upgradeSoul } from "@/api/modules/growth"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
@@ -34,7 +37,7 @@ const soul = ref<SoulState>({
 })
 const errorMessage = ref("")
 
-onMounted(async () => {
+async function loadSoul() {
   const playerId = sessionStore.playerId
   if (!playerId) {
     errorMessage.value = "当前未登录，无法加载魔魂。"
@@ -47,6 +50,25 @@ onMounted(async () => {
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "魔魂状态加载失败。"
   }
+}
+
+async function upgradeNow() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法升级魔魂。"
+    return
+  }
+
+  try {
+    soul.value = await upgradeSoul(playerId)
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "魔魂升级失败。"
+  }
+}
+
+onMounted(async () => {
+  await loadSoul()
 })
 </script>
 
@@ -71,6 +93,21 @@ onMounted(async () => {
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.08);
 }
+.primary {
+  align-self: flex-start;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7ec9ff, #93a8ff);
+  color: #05253c;
+  font-weight: 700;
+  cursor: pointer;
+}
+.panel {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+}
 .tag {
   font-size: 12px;
   letter-spacing: 0.3em;
@@ -81,6 +118,7 @@ onMounted(async () => {
   color: #ffdce8;
 }
 .note {
+  margin: 0;
   max-width: 420px;
   line-height: 1.6;
 }

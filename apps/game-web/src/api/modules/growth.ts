@@ -59,12 +59,26 @@ export function getSoulState(playerId: number) {
   return apiRequest<SoulState>(`growth/soul?player_id=${playerId}`)
 }
 
+export function upgradeSoul(playerId: number) {
+  return apiRequest<SoulState>(`growth/soul/upgrade?player_id=${playerId}`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  })
+}
+
 export function getManorPlots(playerId: number) {
   return apiRequest<ManorPlot[]>(`growth/manor?player_id=${playerId}`)
 }
 
 export function harvestManor(playerId: number) {
   return apiRequest<ManorHarvestResult>(`growth/manor/harvest?player_id=${playerId}`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  })
+}
+
+export function plantManor(playerId: number) {
+  return apiRequest<ManorHarvestResult>(`growth/manor/plant?player_id=${playerId}`, {
     method: "POST",
     body: JSON.stringify({}),
   })

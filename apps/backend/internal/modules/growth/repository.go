@@ -12,8 +12,10 @@ type Repository interface {
 	CommitWash(ctx context.Context, playerID int64, delta int64) error
 	UpdateSpiritPower(ctx context.Context, playerID int64, delta int64) error
 	UpgradeBoneLevel(ctx context.Context, playerID int64, delta int) (Wallet, error)
+	UpgradeSoulPower(ctx context.Context, playerID int64, delta int) (Wallet, error)
 	GetManorPlots(ctx context.Context, playerID int64) ([]ManorPlot, error)
 	HarvestManor(ctx context.Context, playerID int64) ([]ManorPlot, error)
+	PlantManor(ctx context.Context, playerID int64) ([]ManorPlot, error)
 }
 
 type MemoryRepository struct {
@@ -96,6 +98,20 @@ func (r *MemoryRepository) UpgradeBoneLevel(_ context.Context, playerID int64, d
 	return wallet, nil
 }
 
+func (r *MemoryRepository) UpgradeSoulPower(_ context.Context, playerID int64, delta int) (Wallet, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	wallet := r.ensureWallet(playerID)
+	wallet.SoulPieces += delta
+	if wallet.SoulPieces < 0 {
+		wallet.SoulPieces = 0
+	}
+	r.wallets[playerID] = wallet
+	r.updated[playerID] = time.Now()
+	return wallet, nil
+}
+
 func (r *MemoryRepository) GetManorPlots(_ context.Context, playerID int64) ([]ManorPlot, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -111,6 +127,20 @@ func (r *MemoryRepository) HarvestManor(_ context.Context, playerID int64) ([]Ma
 	next := make([]ManorPlot, len(plots))
 	for i, plot := range plots {
 		plot.State = "冷却中"
+		next[i] = plot
+	}
+	r.plots[playerID] = next
+	return append([]ManorPlot(nil), next...), nil
+}
+
+func (r *MemoryRepository) PlantManor(_ context.Context, playerID int64) ([]ManorPlot, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	plots := r.ensurePlots(playerID)
+	next := make([]ManorPlot, len(plots))
+	for i, plot := range plots {
+		plot.State = "成长中"
 		next[i] = plot
 	}
 	r.plots[playerID] = next

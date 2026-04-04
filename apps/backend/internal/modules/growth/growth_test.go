@@ -60,3 +60,44 @@ func TestManorHarvest_UpdatesPlotState(t *testing.T) {
 		t.Fatalf("expected first plot cooling down, got %s", result.Plots[0].State)
 	}
 }
+
+func TestSoulUpgrade_IncreasesSoulPower(t *testing.T) {
+	repo := NewMemoryRepository()
+	svc := NewSoulService(repo)
+	ctx := context.Background()
+	playerID := int64(1004)
+
+	before := svc.GetSoulState(ctx, playerID)
+	after, err := svc.Upgrade(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected soul upgrade success, got %v", err)
+	}
+	if after.Power != before.Power+1 {
+		t.Fatalf("expected soul power %d, got %d", before.Power+1, after.Power)
+	}
+}
+
+func TestManorPlant_ChangesPlotStateToGrowing(t *testing.T) {
+	repo := NewMemoryRepository()
+	svc := NewManorService(repo)
+	ctx := context.Background()
+	playerID := int64(1005)
+
+	if _, err := svc.Harvest(ctx, playerID); err != nil {
+		t.Fatalf("expected harvest success, got %v", err)
+	}
+
+	result, err := svc.Plant(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected manor plant success, got %v", err)
+	}
+	if result.Message == "" {
+		t.Fatal("expected plant message")
+	}
+	if len(result.Plots) == 0 {
+		t.Fatal("expected manor plots in result")
+	}
+	if result.Plots[0].State != "成长中" {
+		t.Fatalf("expected first plot growing, got %s", result.Plots[0].State)
+	}
+}

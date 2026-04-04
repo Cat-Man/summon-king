@@ -12,9 +12,12 @@
         <span>{{ plot.state }}</span>
       </article>
     </div>
-    <button class="primary" type="button" @click="harvestNow">收获庄园</button>
+    <div class="actions">
+      <button class="primary" type="button" @click="harvestNow">收获庄园</button>
+      <button class="ghost" type="button" @click="plantNow">开始种植</button>
+    </div>
     <div class="panel">
-      <p>庄园扩建和收获动作后续再补，这轮先打通状态读取。</p>
+      <p>当前已打通庄园读取、收获与回种闭环，后续再补扩建和产物配置。</p>
     </div>
   </section>
 </template>
@@ -23,7 +26,7 @@
 import { onMounted, ref } from "vue"
 
 import { APIError } from "@/api/http"
-import { getManorPlots, harvestManor, type ManorPlot } from "@/api/modules/growth"
+import { getManorPlots, harvestManor, plantManor, type ManorPlot } from "@/api/modules/growth"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
@@ -61,6 +64,22 @@ async function harvestNow() {
   }
 }
 
+async function plantNow() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法种植庄园。"
+    return
+  }
+
+  try {
+    const result = await plantManor(playerId)
+    plots.value = result.plots
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "庄园种植失败。"
+  }
+}
+
 onMounted(async () => {
   await loadPlots()
 })
@@ -87,6 +106,11 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
 }
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
 .status-text {
   margin-top: 1rem;
   color: #ffddb8;
@@ -98,6 +122,15 @@ onMounted(async () => {
   background: linear-gradient(135deg, #95d36a, #d4f48d);
   color: #12320f;
   font-weight: 700;
+  cursor: pointer;
+}
+.ghost {
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f0ffec;
+  font-weight: 600;
   cursor: pointer;
 }
 .panel {
