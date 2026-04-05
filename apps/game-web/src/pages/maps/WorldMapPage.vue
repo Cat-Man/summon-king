@@ -14,8 +14,11 @@
         </header>
         <p>坐标 {{ city.loc_x }} / {{ city.loc_y }}</p>
         <div class="dungeon-list">
-          <p>可进入副本</p>
-          <span class="spirit-text">当前灵力 {{ currentSpiritPower }}</span>
+        <p>可进入副本</p>
+        <span class="spirit-text">当前灵力 {{ currentSpiritPower }}</span>
+          <span class="growth-text">
+            当前成长总加成 +{{ totalGrowthBonus }} · 战骨 +{{ currentBoneBonus }} · 战灵 +{{ currentSpiritBonus }} · 魔魂 +{{ currentSoulBonus }}
+          </span>
           <div
             v-for="dungeon in city.dungeons"
             :key="`${city.city_id}-${dungeon.dungeon_id}`"
@@ -56,24 +59,40 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 import { RouterLink, useRouter } from "vue-router"
 
 import { APIError } from "@/api/http"
 import { getWorldMap, type WorldMap } from "@/api/modules/dungeon"
 import { getGrowthWallet } from "@/api/modules/growth"
+import { getPetCollection, type PetCollection } from "@/api/modules/pet"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const world = ref<WorldMap | null>(null)
 const errorMessage = ref("")
 const router = useRouter()
 const sessionStore = useSessionStore()
+const resourceSyncStore = useResourceSyncStore()
 const currentSpiritPower = ref(0)
 const currentBoneLevel = ref(0)
 const currentSoulPieces = ref(0)
+const petCollection = ref<PetCollection | null>(null)
 
 const title = computed(() => (world.value ? `${world.value.name}世界地图` : "环天世界地图"))
 const cities = computed(() => world.value?.cities ?? [])
+const currentBoneBonus = computed(() =>
+  (petCollection.value?.active_team ?? []).reduce((total, pet) => total + (pet.power_breakdown?.bone ?? 0), 0),
+)
+const currentSpiritBonus = computed(() =>
+  (petCollection.value?.active_team ?? []).reduce((total, pet) => total + (pet.power_breakdown?.spirit ?? 0), 0),
+)
+const currentSoulBonus = computed(() =>
+  (petCollection.value?.active_team ?? []).reduce((total, pet) => total + (pet.power_breakdown?.soul ?? 0), 0),
+)
+const totalGrowthBonus = computed(
+  () => currentBoneBonus.value + currentSpiritBonus.value + currentSoulBonus.value,
+)
 
 function canEnterDungeon(dungeon: WorldMap["cities"][number]["dungeons"][number]) {
   const boneReq = dungeon.unlock_bone_level ?? 0
@@ -115,11 +134,11 @@ function missingRequirements(dungeon: WorldMap["cities"][number]["dungeons"][num
   }
   const boneGap = Math.max(0, (dungeon.unlock_bone_level ?? 0) - currentBoneLevel.value)
   if (boneGap > 0) {
-    requirements.push({ label: `还差战骨 ${boneGap}`, route: "/growth/bone", ctaLabel: "去战骨" })
+    requirements.push({ label: `还差战骨 ${boneGap}（约 +${boneGap * 24} 战力）`, route: "/growth/bone", ctaLabel: "去战骨" })
   }
   const soulGap = Math.max(0, (dungeon.unlock_soul_pieces ?? 0) - currentSoulPieces.value)
   if (soulGap > 0) {
-    requirements.push({ label: `还差魔魂 ${soulGap}`, route: "/growth/soul", ctaLabel: "去魔魂" })
+    requirements.push({ label: `还差魔魂 ${soulGap}（约 +${soulGap * 8} 战力）`, route: "/growth/soul", ctaLabel: "去魔魂" })
   }
   return requirements
 }
@@ -135,9 +154,21 @@ async function loadWallet() {
   currentSoulPieces.value = wallet.soul_pieces
 }
 
+async function loadPetSummary() {
+  if (!sessionStore.playerId) {
+    return
+  }
+
+  petCollection.value = await getPetCollection(sessionStore.playerId)
+}
+
+async function loadGrowthState() {
+  await Promise.all([loadWallet(), loadPetSummary()])
+}
+
 onMounted(async () => {
   try {
-    const [nextWorld] = await Promise.all([getWorldMap(), loadWallet()])
+    const [nextWorld] = await Promise.all([getWorldMap(), loadGrowthState()])
     world.value = nextWorld
   } catch (error) {
     if (error instanceof APIError) {
@@ -147,6 +178,17 @@ onMounted(async () => {
     errorMessage.value = "世界地图加载失败，请稍后重试。"
   }
 })
+
+watch(
+  () => resourceSyncStore.version,
+  async (next, prev) => {
+    if (next === prev) {
+      return
+    }
+    await loadGrowthState()
+  },
+  { flush: "sync" },
+)
 </script>
 
 <style scoped>
@@ -224,6 +266,7 @@ onMounted(async () => {
   text-transform: uppercase;
 }
 .spirit-text,
+.growth-text,
 .dungeon-hint {
   color: rgba(255, 255, 255, 0.68);
   font-size: 13px;
