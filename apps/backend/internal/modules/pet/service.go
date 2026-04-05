@@ -17,6 +17,12 @@ type Service struct {
 	growth growthReader
 }
 
+type growthBonusBreakdown struct {
+	Bone   int64
+	Spirit int64
+	Soul   int64
+}
+
 func WithGrowthReader(reader growthReader) Option {
 	return func(s *Service) {
 		s.growth = reader
@@ -39,6 +45,7 @@ func (s *Service) GetBattleTeam(ctx context.Context, playerID int64) (TeamSnapsh
 		return TeamSnapshot{}, err
 	}
 
+	team.Pets = withBasePowerBreakdowns(team.Pets)
 	team = s.applyGrowthBonuses(ctx, playerID, team)
 	team.TotalPower = totalPower(team.Pets)
 
@@ -55,6 +62,7 @@ func (s *Service) GetCollection(ctx context.Context, playerID int64) (Collection
 	if err != nil {
 		return CollectionView{}, err
 	}
+	roster = withBasePowerBreakdowns(roster)
 
 	return CollectionView{
 		PlayerID:   playerID,
@@ -112,20 +120,21 @@ func (s *Service) applyGrowthBonuses(ctx context.Context, playerID int64, team T
 		return team
 	}
 
-	teamBonus := growthTeamBonus(wallet)
-	if teamBonus == 0 {
+	bonuses := growthBonusParts(wallet)
+	if bonuses.total() == 0 {
 		return team
 	}
 
 	pets := clonePets(team.Pets)
-	share := teamBonus / int64(len(pets))
-	remainder := teamBonus % int64(len(pets))
-	for idx := range pets {
-		pets[idx].Power += share
-		if int64(idx) < remainder {
-			pets[idx].Power++
-		}
-	}
+	applyDistributedBonus(pets, bonuses.Bone, func(breakdown *PowerBreakdown, bonus int64) {
+		breakdown.Bone += bonus
+	})
+	applyDistributedBonus(pets, bonuses.Spirit, func(breakdown *PowerBreakdown, bonus int64) {
+		breakdown.Spirit += bonus
+	})
+	applyDistributedBonus(pets, bonuses.Soul, func(breakdown *PowerBreakdown, bonus int64) {
+		breakdown.Soul += bonus
+	})
 	team.Pets = pets
 	return team
 }
@@ -135,6 +144,7 @@ func applyPowerOverrides(pets []BattlePet, overrides map[int64]BattlePet) []Batt
 	for idx := range next {
 		if override, ok := overrides[next[idx].PetID]; ok {
 			next[idx].Power = override.Power
+			next[idx].PowerBreakdown = override.PowerBreakdown
 		}
 	}
 	return next
@@ -149,6 +159,10 @@ func (s *Service) applyRosterPowerOverrides(roster []BattlePet, active []BattleP
 }
 
 func growthTeamBonus(wallet growth.Wallet) int64 {
+	return growthBonusParts(wallet).total()
+}
+
+func growthBonusParts(wallet growth.Wallet) growthBonusBreakdown {
 	boneLevels := max(wallet.BoneLevel-1, 0)
 	spiritPower := wallet.SpiritBonusPower
 	if spiritPower == 0 {
@@ -156,7 +170,59 @@ func growthTeamBonus(wallet growth.Wallet) int64 {
 	}
 	spiritPower = max(spiritPower-spiritBonusBaseline, 0)
 	soulPieces := max(wallet.SoulPieces, 0)
-	return int64(boneLevels)*boneBonusPerLevel +
-		spiritPower*spiritBonusPerPoint +
-		int64(soulPieces)*soulBonusPerPiece
+	return growthBonusBreakdown{
+		Bone:   int64(boneLevels) * boneBonusPerLevel,
+		Spirit: spiritPower * spiritBonusPerPoint,
+		Soul:   int64(soulPieces) * soulBonusPerPiece,
+	}
+}
+
+func (b growthBonusBreakdown) total() int64 {
+	return b.Bone + b.Spirit + b.Soul
+}
+
+func withBasePowerBreakdowns(pets []BattlePet) []BattlePet {
+	next := clonePets(pets)
+	for idx := range next {
+		next[idx].PowerBreakdown = basePowerBreakdown(next[idx])
+		next[idx].Power = next[idx].PowerBreakdown.Total
+	}
+	return next
+}
+
+func basePowerBreakdown(pet BattlePet) PowerBreakdown {
+	base := pet.BasePower
+	if base <= 0 {
+		base = pet.Power
+	}
+	level := pet.Power - base
+	if level < 0 {
+		level = 0
+	}
+	return PowerBreakdown{
+		Base:  base,
+		Level: level,
+		Total: base + level,
+	}
+}
+
+func applyDistributedBonus(pets []BattlePet, total int64, assign func(*PowerBreakdown, int64)) {
+	if total == 0 || len(pets) == 0 {
+		return
+	}
+
+	share := total / int64(len(pets))
+	remainder := total % int64(len(pets))
+	for idx := range pets {
+		bonus := share
+		if int64(idx) < remainder {
+			bonus++
+		}
+		if bonus == 0 {
+			continue
+		}
+		assign(&pets[idx].PowerBreakdown, bonus)
+		pets[idx].PowerBreakdown.Total += bonus
+		pets[idx].Power += bonus
+	}
 }

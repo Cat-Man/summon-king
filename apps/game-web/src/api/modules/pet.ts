@@ -1,5 +1,14 @@
 import { apiRequest } from "@/api/http"
 
+export type PowerBreakdown = {
+  base: number
+  level: number
+  bone: number
+  spirit: number
+  soul: number
+  total: number
+}
+
 export type BattlePet = {
   pet_id: number
   slot: number
@@ -8,6 +17,7 @@ export type BattlePet = {
   exp?: number
   next_level_exp?: number
   power: number
+  power_breakdown?: PowerBreakdown
   is_active: boolean
 }
 

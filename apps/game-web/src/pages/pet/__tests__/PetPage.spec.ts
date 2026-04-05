@@ -40,6 +40,14 @@ test("renders active team and roster from api", async () => {
         exp: 0,
         next_level_exp: 100,
         power: 120,
+        power_breakdown: {
+          base: 120,
+          level: 0,
+          bone: 0,
+          spirit: 0,
+          soul: 0,
+          total: 120,
+        },
         is_active: true,
       },
     ],
@@ -52,6 +60,14 @@ test("renders active team and roster from api", async () => {
         exp: 0,
         next_level_exp: 100,
         power: 120,
+        power_breakdown: {
+          base: 120,
+          level: 0,
+          bone: 0,
+          spirit: 0,
+          soul: 0,
+          total: 120,
+        },
         is_active: true,
       },
     ],
@@ -73,6 +89,11 @@ test("renders active team and roster from api", async () => {
   expect(wrapper.text()).toContain("初始灵狐")
   expect(wrapper.text()).toContain("120")
   expect(wrapper.text()).toContain("EXP 0/100")
+  expect(wrapper.text()).toContain("基础 120")
+  expect(wrapper.text()).toContain("成长 0")
+  expect(wrapper.text()).toContain("战骨 0")
+  expect(wrapper.text()).toContain("战灵 0")
+  expect(wrapper.text()).toContain("魔魂 0")
   expect(wrapper.findAllComponents(RouterLinkStub).length).toBeGreaterThanOrEqual(3)
 })
 
@@ -100,6 +121,14 @@ test("refreshes pet collection when resource sync changes", async () => {
         exp: 40,
         next_level_exp: 100,
         power: 120,
+        power_breakdown: {
+          base: 120,
+          level: 0,
+          bone: 0,
+          spirit: 0,
+          soul: 0,
+          total: 120,
+        },
         is_active: true,
       },
     ],
@@ -112,6 +141,14 @@ test("refreshes pet collection when resource sync changes", async () => {
         exp: 40,
         next_level_exp: 100,
         power: 120,
+        power_breakdown: {
+          base: 120,
+          level: 0,
+          bone: 0,
+          spirit: 0,
+          soul: 0,
+          total: 120,
+        },
         is_active: true,
       },
     ],
@@ -127,6 +164,14 @@ test("refreshes pet collection when resource sync changes", async () => {
         exp: 25,
         next_level_exp: 200,
         power: 144,
+        power_breakdown: {
+          base: 120,
+          level: 24,
+          bone: 0,
+          spirit: 0,
+          soul: 0,
+          total: 144,
+        },
       },
     ],
     roster: [
@@ -136,6 +181,14 @@ test("refreshes pet collection when resource sync changes", async () => {
         exp: 25,
         next_level_exp: 200,
         power: 144,
+        power_breakdown: {
+          base: 120,
+          level: 24,
+          bone: 0,
+          spirit: 0,
+          soul: 0,
+          total: 144,
+        },
       },
     ],
   }
@@ -159,6 +212,7 @@ test("refreshes pet collection when resource sync changes", async () => {
   expect(wrapper.text()).toContain("144")
   expect(wrapper.text()).toContain("Lv.2")
   expect(wrapper.text()).toContain("EXP 25/200")
+  expect(wrapper.text()).toContain("成长 24")
 })
 
 test("adds pet to active team when slot available", async () => {

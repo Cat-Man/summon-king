@@ -414,3 +414,126 @@ func TestService_GetBattleTeamKeepsSpiritBonusAfterSpiritWashConsumesWalletPower
 		t.Fatalf("expected pet power 128 after spending spirit resource, got %d", team.Pets[0].Power)
 	}
 }
+
+func TestService_GetCollectionReturnsPowerBreakdownForGrowthBoostedPet(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	if _, err := growthRepo.UpgradeBoneLevel(ctx, 1001, 1); err != nil {
+		t.Fatalf("expected bone upgrade success, got %v", err)
+	}
+	if err := growthRepo.UpdateSpiritPower(ctx, 1001, 8); err != nil {
+		t.Fatalf("expected spirit update success, got %v", err)
+	}
+	if _, err := growthRepo.UpgradeSoulPower(ctx, 1001, 2); err != nil {
+		t.Fatalf("expected soul upgrade success, got %v", err)
+	}
+	svc := NewService(NewMemoryRepository(), WithGrowthReader(growthRepo))
+	if _, err := svc.GrantActiveTeamExperience(ctx, 1001, 100); err != nil {
+		t.Fatalf("expected grant pet exp success, got %v", err)
+	}
+
+	data, err := svc.GetCollection(ctx, 1001)
+
+	if err != nil {
+		t.Fatalf("expected collection success, got %v", err)
+	}
+	breakdown := data.ActiveTeam[0].PowerBreakdown
+	if breakdown.Base != 120 {
+		t.Fatalf("expected breakdown base 120, got %d", breakdown.Base)
+	}
+	if breakdown.Level != 24 {
+		t.Fatalf("expected breakdown level 24, got %d", breakdown.Level)
+	}
+	if breakdown.Bone != 24 {
+		t.Fatalf("expected breakdown bone 24, got %d", breakdown.Bone)
+	}
+	if breakdown.Spirit != 8 {
+		t.Fatalf("expected breakdown spirit 8, got %d", breakdown.Spirit)
+	}
+	if breakdown.Soul != 16 {
+		t.Fatalf("expected breakdown soul 16, got %d", breakdown.Soul)
+	}
+	if breakdown.Total != 192 {
+		t.Fatalf("expected breakdown total 192, got %d", breakdown.Total)
+	}
+	if data.ActiveTeam[0].Power != breakdown.Total {
+		t.Fatalf("expected pet power %d to match breakdown total, got %d", breakdown.Total, data.ActiveTeam[0].Power)
+	}
+}
+
+func TestService_GetCollectionReturnsPowerBreakdownForActiveTeam(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	if _, err := growthRepo.UpgradeBoneLevel(ctx, 1001, 1); err != nil {
+		t.Fatalf("expected bone upgrade success, got %v", err)
+	}
+	if err := growthRepo.UpdateSpiritPower(ctx, 1001, 8); err != nil {
+		t.Fatalf("expected spirit update success, got %v", err)
+	}
+	if _, err := growthRepo.UpgradeSoulPower(ctx, 1001, 2); err != nil {
+		t.Fatalf("expected soul upgrade success, got %v", err)
+	}
+	svc := NewService(NewMemoryRepository(), WithGrowthReader(growthRepo))
+
+	data, err := svc.GetCollection(ctx, 1001)
+
+	if err != nil {
+		t.Fatalf("expected collection success, got %v", err)
+	}
+	if data.ActiveTeam[0].PowerBreakdown.Base != 120 {
+		t.Fatalf("expected slot 1 base power 120, got %d", data.ActiveTeam[0].PowerBreakdown.Base)
+	}
+	if data.ActiveTeam[0].PowerBreakdown.Bone != 24 {
+		t.Fatalf("expected slot 1 bone bonus 24, got %d", data.ActiveTeam[0].PowerBreakdown.Bone)
+	}
+	if data.ActiveTeam[0].PowerBreakdown.Spirit != 8 {
+		t.Fatalf("expected slot 1 spirit bonus 8, got %d", data.ActiveTeam[0].PowerBreakdown.Spirit)
+	}
+	if data.ActiveTeam[0].PowerBreakdown.Soul != 16 {
+		t.Fatalf("expected slot 1 soul bonus 16, got %d", data.ActiveTeam[0].PowerBreakdown.Soul)
+	}
+	if data.ActiveTeam[0].PowerBreakdown.Total != 168 {
+		t.Fatalf("expected slot 1 total 168, got %d", data.ActiveTeam[0].PowerBreakdown.Total)
+	}
+}
+
+func TestService_GetCollectionBuildsPowerBreakdownForActiveTeam(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	if _, err := growthRepo.UpgradeBoneLevel(ctx, 1001, 1); err != nil {
+		t.Fatalf("expected bone upgrade success, got %v", err)
+	}
+	if err := growthRepo.UpdateSpiritPower(ctx, 1001, 8); err != nil {
+		t.Fatalf("expected spirit update success, got %v", err)
+	}
+	if _, err := growthRepo.UpgradeSoulPower(ctx, 1001, 2); err != nil {
+		t.Fatalf("expected soul upgrade success, got %v", err)
+	}
+	svc := NewService(NewMemoryRepository(), WithGrowthReader(growthRepo))
+	if _, err := svc.SaveTeam(ctx, 1001, []int64{10011, 10012}); err != nil {
+		t.Fatalf("expected save team success, got %v", err)
+	}
+
+	data, err := svc.GetCollection(ctx, 1001)
+
+	if err != nil {
+		t.Fatalf("expected collection success, got %v", err)
+	}
+	if data.TotalPower != 324 {
+		t.Fatalf("expected total power 324, got %d", data.TotalPower)
+	}
+	first := data.ActiveTeam[0].PowerBreakdown
+	if first.Base != 120 || first.Bone != 12 || first.Spirit != 4 || first.Soul != 8 || first.Total != 144 {
+		t.Fatalf("expected first pet breakdown 120/12/4/8/144, got %+v", first)
+	}
+	second := data.ActiveTeam[1].PowerBreakdown
+	if second.Base != 156 || second.Bone != 12 || second.Spirit != 4 || second.Soul != 8 || second.Total != 180 {
+		t.Fatalf("expected second pet breakdown 156/12/4/8/180, got %+v", second)
+	}
+	if data.Roster[0].PowerBreakdown.Total != 144 {
+		t.Fatalf("expected roster slot 1 total 144, got %d", data.Roster[0].PowerBreakdown.Total)
+	}
+	if data.Roster[1].PowerBreakdown.Total != 180 {
+		t.Fatalf("expected roster slot 2 total 180, got %d", data.Roster[1].PowerBreakdown.Total)
+	}
+}

@@ -17,9 +17,14 @@
       </header>
       <ul class="pet-list">
         <li v-for="pet in collection.active_team" :key="`active-${pet.pet_id}`" class="pet-item">
-          <div>
+          <div class="pet-summary">
             <p>{{ pet.name }}</p>
             <span>槽位 {{ pet.slot }} · Lv.{{ pet.level }} · EXP {{ pet.exp ?? 0 }}/{{ pet.next_level_exp ?? 100 }}</span>
+            <small class="breakdown-text">
+              基础 {{ pet.power_breakdown?.base ?? pet.power }} · 成长 {{ pet.power_breakdown?.level ?? 0 }} ·
+              战骨 {{ pet.power_breakdown?.bone ?? 0 }} · 战灵 {{ pet.power_breakdown?.spirit ?? 0 }} ·
+              魔魂 {{ pet.power_breakdown?.soul ?? 0 }}
+            </small>
           </div>
           <strong>{{ pet.power }}</strong>
         </li>
@@ -298,9 +303,20 @@ onMounted(async () => {
   font-size: 16px;
 }
 
-.pet-item span {
+.pet-item span,
+.breakdown-text {
   font-size: 13px;
   color: rgba(247, 239, 225, 0.68);
+}
+
+.pet-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.breakdown-text {
+  display: block;
 }
 
 .pet-item strong {
