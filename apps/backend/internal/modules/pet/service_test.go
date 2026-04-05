@@ -94,6 +94,55 @@ func TestService_SetMainPetSwitchesActiveTeam(t *testing.T) {
 	}
 }
 
+func TestService_SaveTeamAddsSecondActivePet(t *testing.T) {
+	ctx := context.Background()
+	svc := NewService(NewMemoryRepository())
+
+	data, err := svc.SaveTeam(ctx, 1001, []int64{10011, 10012})
+
+	if err != nil {
+		t.Fatalf("expected save team success, got %v", err)
+	}
+	if len(data.ActiveTeam) != 2 {
+		t.Fatalf("expected active team 2, got %d", len(data.ActiveTeam))
+	}
+	if data.ActiveTeam[0].PetID != 10011 {
+		t.Fatalf("expected slot 1 pet 10011, got %d", data.ActiveTeam[0].PetID)
+	}
+	if data.ActiveTeam[1].PetID != 10012 {
+		t.Fatalf("expected slot 2 pet 10012, got %d", data.ActiveTeam[1].PetID)
+	}
+	if data.TotalPower != 276 {
+		t.Fatalf("expected total power 276, got %d", data.TotalPower)
+	}
+}
+
+func TestService_SetMainPetReordersExistingActiveTeam(t *testing.T) {
+	ctx := context.Background()
+	svc := NewService(NewMemoryRepository())
+	if _, err := svc.SaveTeam(ctx, 1001, []int64{10011, 10012}); err != nil {
+		t.Fatalf("expected save team success, got %v", err)
+	}
+
+	data, err := svc.SetMainPet(ctx, 1001, 10012)
+
+	if err != nil {
+		t.Fatalf("expected set main pet success, got %v", err)
+	}
+	if len(data.ActiveTeam) != 2 {
+		t.Fatalf("expected active team 2, got %d", len(data.ActiveTeam))
+	}
+	if data.ActiveTeam[0].PetID != 10012 {
+		t.Fatalf("expected slot 1 pet 10012, got %d", data.ActiveTeam[0].PetID)
+	}
+	if data.ActiveTeam[1].PetID != 10011 {
+		t.Fatalf("expected slot 2 pet 10011, got %d", data.ActiveTeam[1].PetID)
+	}
+	if data.TotalPower != 276 {
+		t.Fatalf("expected total power 276, got %d", data.TotalPower)
+	}
+}
+
 func TestService_SetMainPetDoesNotClearActiveTeamWhenPetMissing(t *testing.T) {
 	ctx := context.Background()
 	svc := NewService(NewMemoryRepository())
@@ -109,6 +158,33 @@ func TestService_SetMainPetDoesNotClearActiveTeamWhenPetMissing(t *testing.T) {
 	data, err := svc.GetCollection(ctx, 1001)
 	if err != nil {
 		t.Fatalf("expected collection success after failed switch, got %v", err)
+	}
+	if len(data.ActiveTeam) != 1 {
+		t.Fatalf("expected active team to remain 1, got %d", len(data.ActiveTeam))
+	}
+	if data.ActiveTeam[0].PetID != 10011 {
+		t.Fatalf("expected original main pet 10011, got %d", data.ActiveTeam[0].PetID)
+	}
+	if data.TotalPower != 120 {
+		t.Fatalf("expected total power 120, got %d", data.TotalPower)
+	}
+}
+
+func TestService_SaveTeamDoesNotClearActiveTeamWhenPetMissing(t *testing.T) {
+	ctx := context.Background()
+	svc := NewService(NewMemoryRepository())
+
+	_, err := svc.SaveTeam(ctx, 1001, []int64{10011, 99999})
+	if err == nil {
+		t.Fatal("expected missing pet error")
+	}
+	if err != ErrPetNotFound {
+		t.Fatalf("expected ErrPetNotFound, got %v", err)
+	}
+
+	data, err := svc.GetCollection(ctx, 1001)
+	if err != nil {
+		t.Fatalf("expected collection success after failed save, got %v", err)
 	}
 	if len(data.ActiveTeam) != 1 {
 		t.Fatalf("expected active team to remain 1, got %d", len(data.ActiveTeam))

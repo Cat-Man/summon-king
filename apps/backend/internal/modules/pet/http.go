@@ -21,6 +21,7 @@ func NewHandler(service *Service) *Handler {
 
 func (h *Handler) RegisterRoutes(group *gin.RouterGroup) {
 	group.GET("/team", h.team)
+	group.POST("/team/save", h.saveTeam)
 	group.POST("/team/main", h.setMainPet)
 }
 
@@ -42,6 +43,38 @@ func (h *Handler) team(c *gin.Context) {
 type setMainPetRequest struct {
 	PlayerID int64 `json:"player_id"`
 	PetID    int64 `json:"pet_id"`
+}
+
+type saveTeamRequest struct {
+	PlayerID int64   `json:"player_id"`
+	PetIDs   []int64 `json:"pet_ids"`
+}
+
+func (h *Handler) saveTeam(c *gin.Context) {
+	var req saveTeamRequest
+	if err := c.ShouldBindJSON(&req); err != nil && !errors.Is(err, io.EOF) {
+		c.JSON(stdhttp.StatusBadRequest, httpx.Error(4002, "invalid request", middleware.GetTraceID(c)))
+		return
+	}
+	if req.PlayerID == 0 || len(req.PetIDs) == 0 {
+		c.JSON(stdhttp.StatusBadRequest, httpx.Error(4004, "player_id and pet_ids are required", middleware.GetTraceID(c)))
+		return
+	}
+
+	data, err := h.service.SaveTeam(c.Request.Context(), req.PlayerID, req.PetIDs)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrPetNotFound):
+			c.JSON(stdhttp.StatusNotFound, httpx.Error(4041, "pet not found", middleware.GetTraceID(c)))
+		case errors.Is(err, ErrInvalidTeam):
+			c.JSON(stdhttp.StatusBadRequest, httpx.Error(4005, "invalid pet team", middleware.GetTraceID(c)))
+		default:
+			c.JSON(stdhttp.StatusInternalServerError, httpx.Error(5003, "failed to save pet team", middleware.GetTraceID(c)))
+		}
+		return
+	}
+
+	c.JSON(stdhttp.StatusOK, httpx.Success(data, middleware.GetTraceID(c)))
 }
 
 func (h *Handler) setMainPet(c *gin.Context) {

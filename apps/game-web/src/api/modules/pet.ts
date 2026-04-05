@@ -30,3 +30,13 @@ export function setMainPet(playerId: number, petId: number) {
     }),
   })
 }
+
+export function savePetTeam(playerId: number, petIds: number[]) {
+  return apiRequest<PetCollection>("pet/team/save", {
+    method: "POST",
+    body: JSON.stringify({
+      player_id: playerId,
+      pet_ids: petIds,
+    }),
+  })
+}

@@ -83,3 +83,38 @@ func TestHandler_SetMainPetReturnsUpdatedCollection(t *testing.T) {
 		t.Fatalf("expected main pet 玄甲龟, got %s", payload.Data.ActiveTeam[0].Name)
 	}
 }
+
+func TestHandler_SaveTeamReturnsUpdatedCollection(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	r := gin.New()
+	r.Use(middleware.InjectTraceID())
+	h := NewHandler(NewService(NewMemoryRepository()))
+	g := r.Group("/pet")
+	h.RegisterRoutes(g)
+
+	req := httptest.NewRequest(http.MethodPost, "/pet/team/save", bytes.NewBufferString(`{"player_id":1001,"pet_ids":[10011,10012]}`))
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	var payload struct {
+		Code int            `json:"code"`
+		Data CollectionView `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		t.Fatalf("expected JSON payload, got %v", err)
+	}
+	if resp.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.Code)
+	}
+	if payload.Code != 0 {
+		t.Fatalf("expected business code 0, got %d", payload.Code)
+	}
+	if len(payload.Data.ActiveTeam) != 2 {
+		t.Fatalf("expected active team 2, got %d", len(payload.Data.ActiveTeam))
+	}
+	if payload.Data.TotalPower != 276 {
+		t.Fatalf("expected total power 276, got %d", payload.Data.TotalPower)
+	}
+}

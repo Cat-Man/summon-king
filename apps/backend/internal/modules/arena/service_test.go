@@ -138,3 +138,26 @@ func TestArena_UsesInjectedBattleTeamReader(t *testing.T) {
 		t.Fatalf("expected attacker power 156, got %d", result.BattleResult.AttackerPower)
 	}
 }
+
+func TestArena_UsesSavedTeamPower(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	if _, err := petSvc.SaveTeam(ctx, 3201, []int64{32011, 32012}); err != nil {
+		t.Fatalf("expected save team success, got %v", err)
+	}
+
+	svc := NewService(
+		NewMemoryRepository(),
+		asset.NewService(growthRepo),
+		WithBattleTeamReader(petSvc),
+	)
+
+	result, err := svc.RecordBattleResult(ctx, 3201, true)
+	if err != nil {
+		t.Fatalf("expected record battle success, got %v", err)
+	}
+	if result.BattleResult.AttackerPower != 276 {
+		t.Fatalf("expected attacker power 276, got %d", result.BattleResult.AttackerPower)
+	}
+}

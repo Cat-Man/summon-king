@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from "pinia"
 import { flushPromises, mount, RouterLinkStub } from "@vue/test-utils"
 
-import { getPetCollection, setMainPet } from "@/api/modules/pet"
+import { getPetCollection, savePetTeam, setMainPet } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
@@ -9,6 +9,7 @@ import PetPage from "../PetPage.vue"
 
 vi.mock("@/api/modules/pet", () => ({
   getPetCollection: vi.fn(),
+  savePetTeam: vi.fn(),
   setMainPet: vi.fn(),
 }))
 
@@ -146,7 +147,7 @@ test("refreshes pet collection when resource sync changes", async () => {
   expect(wrapper.text()).toContain("Lv.2")
 })
 
-test("switches main pet and updates collection", async () => {
+test("adds pet to active team when slot available", async () => {
   const pinia = createPinia()
   setActivePinia(pinia)
   const sessionStore = useSessionStore()
@@ -159,7 +160,7 @@ test("switches main pet and updates collection", async () => {
 
   const first = {
     player_id: 3001,
-    total_power: 276,
+    total_power: 120,
     team_size: 1,
     active_team: [
       {
@@ -192,7 +193,135 @@ test("switches main pet and updates collection", async () => {
   }
 
   const second = {
-    ...first,
+    player_id: 3001,
+    total_power: 276,
+    team_size: 2,
+    active_team: [
+      {
+        pet_id: 30011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        power: 120,
+        is_active: true,
+      },
+      {
+        pet_id: 30012,
+        slot: 2,
+        name: "玄甲龟",
+        level: 1,
+        power: 156,
+        is_active: true,
+      },
+    ],
+    roster: [
+      {
+        pet_id: 30011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        power: 120,
+        is_active: true,
+      },
+      {
+        pet_id: 30012,
+        slot: 2,
+        name: "玄甲龟",
+        level: 1,
+        power: 156,
+        is_active: true,
+      },
+      {
+        pet_id: 30011,
+        slot: 2,
+        name: "初始灵狐",
+        level: 1,
+        power: 120,
+        is_active: true,
+      },
+    ],
+  }
+
+  vi.mocked(getPetCollection).mockResolvedValueOnce(first).mockResolvedValueOnce(second)
+  vi.mocked(savePetTeam).mockResolvedValueOnce(second)
+
+  const wrapper = mount(PetPage, {
+    global: {
+      plugins: [pinia],
+      stubs: {
+        RouterLink: RouterLinkStub,
+      },
+    },
+  })
+  await flushPromises()
+
+  await wrapper.get('[data-testid="join-team-30012"]').trigger("click")
+  await flushPromises()
+
+  expect(savePetTeam).toHaveBeenCalledWith(3001, [30011, 30012])
+  expect(syncStore.version).toBe(1)
+  expect(wrapper.text()).toContain("玄甲龟")
+  expect(wrapper.text()).toContain("当前主战")
+  expect(wrapper.text()).toContain("槽位 2")
+})
+
+test("switches main pet without losing secondary slot", async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const sessionStore = useSessionStore()
+  const syncStore = useResourceSyncStore()
+  sessionStore.setSession({
+    token: "guest-token",
+    playerId: 3001,
+    nickname: "双槽切换",
+  })
+
+  const first = {
+    player_id: 3001,
+    total_power: 276,
+    team_size: 2,
+    active_team: [
+      {
+        pet_id: 30011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        power: 120,
+        is_active: true,
+      },
+      {
+        pet_id: 30012,
+        slot: 2,
+        name: "玄甲龟",
+        level: 1,
+        power: 156,
+        is_active: true,
+      },
+    ],
+    roster: [
+      {
+        pet_id: 30011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        power: 120,
+        is_active: true,
+      },
+      {
+        pet_id: 30012,
+        slot: 2,
+        name: "玄甲龟",
+        level: 1,
+        power: 156,
+        is_active: true,
+      },
+    ],
+  }
+
+  const second = {
+    player_id: 3001,
+    total_power: 276,
+    team_size: 2,
     active_team: [
       {
         pet_id: 30012,
@@ -202,19 +331,16 @@ test("switches main pet and updates collection", async () => {
         power: 156,
         is_active: true,
       },
-    ],
-    roster: [
       {
-        ...first.roster[0],
+        pet_id: 30011,
         slot: 2,
-        is_active: false,
-      },
-      {
-        ...first.roster[1],
-        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        power: 120,
         is_active: true,
       },
     ],
+    roster: first.roster,
   }
 
   vi.mocked(getPetCollection).mockResolvedValueOnce(first).mockResolvedValueOnce(second)
@@ -236,5 +362,114 @@ test("switches main pet and updates collection", async () => {
   expect(setMainPet).toHaveBeenCalledWith(3001, 30012)
   expect(syncStore.version).toBe(1)
   expect(wrapper.text()).toContain("玄甲龟")
-  expect(wrapper.text()).toContain("当前主战")
+  expect(wrapper.text()).toContain("槽位 2")
+})
+
+test("removes secondary pet from active team", async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const sessionStore = useSessionStore()
+  const syncStore = useResourceSyncStore()
+  sessionStore.setSession({
+    token: "guest-token",
+    playerId: 3001,
+    nickname: "移出副位",
+  })
+
+  const first = {
+    player_id: 3001,
+    total_power: 276,
+    team_size: 2,
+    active_team: [
+      {
+        pet_id: 30011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        power: 120,
+        is_active: true,
+      },
+      {
+        pet_id: 30012,
+        slot: 2,
+        name: "玄甲龟",
+        level: 1,
+        power: 156,
+        is_active: true,
+      },
+    ],
+    roster: [
+      {
+        pet_id: 30011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        power: 120,
+        is_active: true,
+      },
+      {
+        pet_id: 30012,
+        slot: 2,
+        name: "玄甲龟",
+        level: 1,
+        power: 156,
+        is_active: true,
+      },
+    ],
+  }
+
+  const second = {
+    player_id: 3001,
+    total_power: 120,
+    team_size: 1,
+    active_team: [
+      {
+        pet_id: 30011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        power: 120,
+        is_active: true,
+      },
+    ],
+    roster: [
+      {
+        pet_id: 30011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        power: 120,
+        is_active: true,
+      },
+      {
+        pet_id: 30012,
+        slot: 0,
+        name: "玄甲龟",
+        level: 1,
+        power: 156,
+        is_active: false,
+      },
+    ],
+  }
+
+  vi.mocked(getPetCollection).mockResolvedValueOnce(first).mockResolvedValueOnce(second)
+  vi.mocked(savePetTeam).mockResolvedValueOnce(second)
+
+  const wrapper = mount(PetPage, {
+    global: {
+      plugins: [pinia],
+      stubs: {
+        RouterLink: RouterLinkStub,
+      },
+    },
+  })
+  await flushPromises()
+
+  await wrapper.get('[data-testid="remove-team-30012"]').trigger("click")
+  await flushPromises()
+
+  expect(savePetTeam).toHaveBeenCalledWith(3001, [30011])
+  expect(syncStore.version).toBe(1)
+  expect(wrapper.text()).toContain("120")
+  expect(wrapper.find('[data-testid="join-team-30012"]').exists()).toBe(true)
 })

@@ -13,7 +13,7 @@
     <article class="card">
       <header class="card-header">
         <h2>战斗队</h2>
-        <span>{{ collection.active_team.length }} / {{ collection.team_size }}</span>
+        <span>{{ collection.active_team.length }} / 2</span>
       </header>
       <ul class="pet-list">
         <li v-for="pet in collection.active_team" :key="`active-${pet.pet_id}`" class="pet-item">
@@ -39,17 +39,50 @@
           </div>
           <div class="pet-actions">
             <strong>{{ pet.power }}</strong>
-            <span v-if="pet.is_active" class="status-chip">当前主战</span>
-            <button
-              v-else
-              :data-testid="`set-main-${pet.pet_id}`"
-              type="button"
-              class="set-main-button"
-              :disabled="switchingPetId !== null"
-              @click="handleSetMainPet(pet.pet_id)"
-            >
-              设为主战
-            </button>
+            <template v-if="pet.is_active">
+              <span v-if="pet.slot === 1" class="status-chip">当前主战</span>
+              <div v-else class="action-stack">
+                <button
+                  :data-testid="`set-main-${pet.pet_id}`"
+                  type="button"
+                  class="set-main-button"
+                  :disabled="isEditing"
+                  @click="handleSetMainPet(pet.pet_id)"
+                >
+                  设为主战
+                </button>
+                <button
+                  :data-testid="`remove-team-${pet.pet_id}`"
+                  type="button"
+                  class="remove-button"
+                  :disabled="isEditing"
+                  @click="handleRemoveFromTeam(pet.pet_id)"
+                >
+                  移出队伍
+                </button>
+              </div>
+            </template>
+            <div v-else class="action-stack">
+              <button
+                v-if="!isTeamFull"
+                :data-testid="`join-team-${pet.pet_id}`"
+                type="button"
+                class="add-button"
+                :disabled="isEditing"
+                @click="handleAddToTeam(pet.pet_id)"
+              >
+                加入队伍
+              </button>
+              <button
+                :data-testid="`set-main-${pet.pet_id}`"
+                type="button"
+                class="set-main-button"
+                :disabled="isEditing"
+                @click="handleSetMainPet(pet.pet_id)"
+              >
+                设为主战
+              </button>
+            </div>
           </div>
         </li>
       </ul>
@@ -70,18 +103,19 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 import { RouterLink } from "vue-router"
 
 import { APIError } from "@/api/http"
-import { getPetCollection, setMainPet, type PetCollection } from "@/api/modules/pet"
+import { getPetCollection, savePetTeam, setMainPet, type PetCollection } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
 const resourceSyncStore = useResourceSyncStore()
 const errorMessage = ref("")
-const switchingPetId = ref<number | null>(null)
+const isEditing = ref(false)
+const teamCapacity = 2
 const collection = ref<PetCollection>({
   player_id: 0,
   total_power: 0,
@@ -89,6 +123,9 @@ const collection = ref<PetCollection>({
   active_team: [],
   roster: [],
 })
+
+const isTeamFull = computed(() => collection.value.active_team.length >= teamCapacity)
+const activePetIds = computed(() => collection.value.active_team.map((pet) => pet.pet_id))
 
 async function loadCollection() {
   const playerId = sessionStore.playerId
@@ -112,15 +149,46 @@ async function handleSetMainPet(petId: number) {
     return
   }
 
+  await runMutation(setMainPet(playerId, petId), "主战幻兽切换失败。")
+}
+
+async function handleAddToTeam(petId: number) {
+  if (isTeamFull.value) {
+    return
+  }
+
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法保存幻兽阵容。"
+    return
+  }
+
+  await runMutation(savePetTeam(playerId, [...activePetIds.value, petId]), "幻兽阵容保存失败。")
+}
+
+async function handleRemoveFromTeam(petId: number) {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法保存幻兽阵容。"
+    return
+  }
+
+  await runMutation(
+    savePetTeam(playerId, activePetIds.value.filter((id) => id !== petId)),
+    "幻兽阵容保存失败。",
+  )
+}
+
+async function runMutation(promise: Promise<PetCollection>, fallbackMessage: string) {
+  isEditing.value = true
   try {
-    switchingPetId.value = petId
-    collection.value = await setMainPet(playerId, petId)
+    collection.value = await promise
     errorMessage.value = ""
     resourceSyncStore.touch()
   } catch (error) {
-    errorMessage.value = error instanceof APIError ? error.message : "主战幻兽切换失败。"
+    errorMessage.value = error instanceof APIError ? error.message : fallbackMessage
   } finally {
-    switchingPetId.value = null
+    isEditing.value = false
   }
 }
 
@@ -242,6 +310,11 @@ onMounted(async () => {
   gap: 10px;
 }
 
+.action-stack {
+  display: flex;
+  gap: 6px;
+}
+
 .status-chip {
   font-size: 12px;
   color: #bbf7d0;
@@ -260,6 +333,23 @@ onMounted(async () => {
 .set-main-button:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+.add-button,
+.remove-button {
+  border: 1px solid rgba(186, 230, 253, 0.45);
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: rgba(125, 211, 252, 0.12);
+  color: #dbeafe;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.remove-button {
+  border-color: rgba(249, 115, 22, 0.65);
+  background: rgba(249, 115, 22, 0.12);
+  color: #fb923c;
 }
 
 .growth-actions .actions-grid {

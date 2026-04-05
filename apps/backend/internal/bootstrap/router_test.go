@@ -109,3 +109,43 @@ func TestRouter_PetMainSwitchAffectsArenaBattlePower(t *testing.T) {
 		t.Fatalf("expected attacker power 156 after switching main pet, got %d", payload.Data.Battle.AttackerPower)
 	}
 }
+
+func TestRouter_SavedPetTeamAffectsArenaBattlePower(t *testing.T) {
+	r := NewRouter()
+
+	saveReq := httptest.NewRequest(http.MethodPost, "/api/v1/pet/team/save", bytes.NewBufferString(`{"player_id":1001,"pet_ids":[10011,10012]}`))
+	saveReq.Header.Set("Content-Type", "application/json")
+	saveResp := httptest.NewRecorder()
+	r.ServeHTTP(saveResp, saveReq)
+
+	if saveResp.Code != http.StatusOK {
+		t.Fatalf("expected team save 200, got %d", saveResp.Code)
+	}
+
+	arenaReq := httptest.NewRequest(http.MethodPost, "/api/v1/arena/challenge", bytes.NewBufferString(`{"player_id":1001,"won":true}`))
+	arenaReq.Header.Set("Content-Type", "application/json")
+	arenaResp := httptest.NewRecorder()
+	r.ServeHTTP(arenaResp, arenaReq)
+
+	if arenaResp.Code != http.StatusOK {
+		t.Fatalf("expected arena challenge 200, got %d", arenaResp.Code)
+	}
+
+	var payload struct {
+		Code int `json:"code"`
+		Data struct {
+			Battle struct {
+				AttackerPower int64 `json:"attacker_power"`
+			} `json:"battle"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(arenaResp.Body).Decode(&payload); err != nil {
+		t.Fatalf("expected JSON payload, got %v", err)
+	}
+	if payload.Code != 0 {
+		t.Fatalf("expected business code 0, got %d", payload.Code)
+	}
+	if payload.Data.Battle.AttackerPower != 276 {
+		t.Fatalf("expected attacker power 276 after saving team, got %d", payload.Data.Battle.AttackerPower)
+	}
+}
