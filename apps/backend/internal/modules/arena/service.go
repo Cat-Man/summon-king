@@ -74,12 +74,12 @@ func (s *Service) RecordBattleResult(ctx context.Context, playerID int64, won bo
 		delta.SpiritPower = 6
 	}
 
-	wallet, err := s.walletSnapshot(ctx, playerID, delta)
+	summary, err := s.battleSummary(ctx, playerID, won)
 	if err != nil {
 		return BattleResult{}, err
 	}
 
-	summary, err := s.battleSummary(ctx, playerID, won)
+	wallet, err := s.walletSnapshot(ctx, playerID, delta)
 	if err != nil {
 		return BattleResult{}, err
 	}

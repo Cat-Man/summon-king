@@ -123,3 +123,30 @@ func TestService_UsesInjectedBattleTeamReader(t *testing.T) {
 		t.Fatalf("expected attacker power 156, got %d", result.BattleResult.AttackerPower)
 	}
 }
+
+func TestService_PagodaRewardRaisesNextChallengeBattlePower(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	petSvc := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
+
+	svc := NewService(
+		NewMemoryRepository(),
+		asset.NewService(growthRepo),
+		WithBattleTeamReader(petSvc),
+	)
+
+	first, err := svc.StartChallenge(ctx, 4102, "pagoda")
+	if err != nil {
+		t.Fatalf("expected first challenge success, got %v", err)
+	}
+	second, err := svc.StartChallenge(ctx, 4102, "pagoda")
+	if err != nil {
+		t.Fatalf("expected second challenge success, got %v", err)
+	}
+	if first.BattleResult.AttackerPower != 120 {
+		t.Fatalf("expected first challenge attacker power 120, got %d", first.BattleResult.AttackerPower)
+	}
+	if second.BattleResult.AttackerPower != 144 {
+		t.Fatalf("expected second challenge attacker power 144 after pagoda reward, got %d", second.BattleResult.AttackerPower)
+	}
+}

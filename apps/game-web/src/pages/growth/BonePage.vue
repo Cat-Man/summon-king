@@ -16,6 +16,10 @@
         <span>{{ bone.level >= 3 ? "稳固" : "初成" }}</span>
       </article>
     </div>
+    <div class="panel panel--power">
+      <p>阵容战力 {{ teamPower }}</p>
+      <span>战骨提升已实时计入共享战斗队。</span>
+    </div>
     <button class="primary" type="button" @click="upgradeNow">升级战骨</button>
     <div class="panel">
       <p>当前战骨正在吸收雷火精华，后续再补升级资源与强化动作。</p>
@@ -24,10 +28,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { onMounted, ref, watch } from "vue"
 
 import { APIError } from "@/api/http"
 import { getBoneState, type BoneState, upgradeBone } from "@/api/modules/growth"
+import { getPetCollection } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
@@ -37,6 +42,7 @@ const bone = ref<BoneState>({
   name: "",
   level: 0,
 })
+const teamPower = ref(0)
 const errorMessage = ref("")
 
 async function loadBone() {
@@ -54,6 +60,18 @@ async function loadBone() {
   }
 }
 
+async function loadTeamPower() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    return
+  }
+
+  try {
+    const collection = await getPetCollection(playerId)
+    teamPower.value = collection.total_power
+  } catch {}
+}
+
 async function upgradeNow() {
   const playerId = sessionStore.playerId
   if (!playerId) {
@@ -64,14 +82,25 @@ async function upgradeNow() {
   try {
     bone.value = await upgradeBone(playerId)
     errorMessage.value = ""
+    await loadTeamPower()
     resourceSyncStore.touch()
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "战骨升级失败。"
   }
 }
 
+watch(
+  () => resourceSyncStore.version,
+  async (next, prev) => {
+    if (next === prev) {
+      return
+    }
+    await Promise.all([loadBone(), loadTeamPower()])
+  },
+)
+
 onMounted(async () => {
-  await loadBone()
+  await Promise.all([loadBone(), loadTeamPower()])
 })
 </script>
 
@@ -133,5 +162,15 @@ onMounted(async () => {
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.06);
   line-height: 1.6;
+}
+.panel--power p,
+.panel--power span {
+  margin: 0;
+}
+.panel--power span {
+  display: block;
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
 }
 </style>

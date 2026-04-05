@@ -161,3 +161,46 @@ func TestArena_UsesSavedTeamPower(t *testing.T) {
 		t.Fatalf("expected attacker power 276, got %d", result.BattleResult.AttackerPower)
 	}
 }
+
+func TestArena_UsesGrowthBoostedTeamPower(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	if _, err := growthRepo.UpgradeBoneLevel(ctx, 3301, 1); err != nil {
+		t.Fatalf("expected bone upgrade success, got %v", err)
+	}
+	petSvc := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
+
+	svc := NewService(
+		NewMemoryRepository(),
+		asset.NewService(growthRepo),
+		WithBattleTeamReader(petSvc),
+	)
+
+	result, err := svc.RecordBattleResult(ctx, 3301, true)
+	if err != nil {
+		t.Fatalf("expected record battle success, got %v", err)
+	}
+	if result.BattleResult.AttackerPower != 144 {
+		t.Fatalf("expected attacker power 144 with bone bonus, got %d", result.BattleResult.AttackerPower)
+	}
+}
+
+func TestArena_BattleSummaryUsesPreRewardTeamPower(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	petSvc := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
+
+	svc := NewService(
+		NewMemoryRepository(),
+		asset.NewService(growthRepo),
+		WithBattleTeamReader(petSvc),
+	)
+
+	result, err := svc.RecordBattleResult(ctx, 3401, true)
+	if err != nil {
+		t.Fatalf("expected record battle success, got %v", err)
+	}
+	if result.BattleResult.AttackerPower != 120 {
+		t.Fatalf("expected attacker power 120 before arena reward write-back, got %d", result.BattleResult.AttackerPower)
+	}
+}

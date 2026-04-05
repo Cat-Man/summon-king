@@ -503,6 +503,66 @@ func TestRollDice_UsesInjectedBattleTeamReader(t *testing.T) {
 	}
 }
 
+func TestRollDice_UsesGrowthBoostedBattleTeamReader(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	if _, err := growthRepo.UpgradeBoneLevel(ctx, 5102, 1); err != nil {
+		t.Fatalf("expected bone upgrade success, got %v", err)
+	}
+	petSvc := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
+
+	svc := NewService(
+		NewMemoryRepository(),
+		asset.NewService(growthRepo),
+		WithBattleTeamReader(petSvc),
+	)
+	if _, err := svc.EnterDungeon(ctx, 5102, 1); err != nil {
+		t.Fatalf("expected enter dungeon success, got %v", err)
+	}
+
+	run, err := svc.RollDice(ctx, 5102)
+	if err != nil {
+		t.Fatalf("expected roll dice success, got %v", err)
+	}
+	if run.BattleResult.AttackerPower != 144 {
+		t.Fatalf("expected attacker power 144 with bone bonus, got %d", run.BattleResult.AttackerPower)
+	}
+}
+
+func TestRollDice_BossBattleSummaryDoesNotUseCurrentRewardSoulBonus(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	petSvc := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
+
+	svc := NewService(
+		NewMemoryRepository(),
+		asset.NewService(growthRepo),
+		WithBattleTeamReader(petSvc),
+	)
+	if _, err := svc.EnterDungeon(ctx, 5103, 1); err != nil {
+		t.Fatalf("expected enter dungeon success, got %v", err)
+	}
+
+	var run DungeonRun
+	var err error
+	for i := 0; i < 4; i++ {
+		run, err = svc.RollDice(ctx, 5103)
+		if err != nil {
+			t.Fatalf("expected roll dice success, got %v", err)
+		}
+	}
+
+	if run.Status != "boss" {
+		t.Fatalf("expected boss status, got %s", run.Status)
+	}
+	if run.LastReward.SoulPieces != 1 {
+		t.Fatalf("expected soul reward 1, got %d", run.LastReward.SoulPieces)
+	}
+	if run.BattleResult.AttackerPower != 120 {
+		t.Fatalf("expected boss battle attacker power 120 before current reward settles, got %d", run.BattleResult.AttackerPower)
+	}
+}
+
 func newTestDungeonService(t *testing.T) *Service {
 	t.Helper()
 	repo := NewMemoryRepository()

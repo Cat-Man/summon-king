@@ -2,6 +2,7 @@ import { createPinia, setActivePinia } from "pinia"
 import { flushPromises, mount } from "@vue/test-utils"
 
 import { getSoulState, upgradeSoul } from "@/api/modules/growth"
+import { getPetCollection } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
@@ -17,6 +18,10 @@ vi.mock("@/api/modules/growth", () => ({
   getManorPlots: vi.fn(),
   harvestManor: vi.fn(),
   plantManor: vi.fn(),
+}))
+
+vi.mock("@/api/modules/pet", () => ({
+  getPetCollection: vi.fn(),
 }))
 
 beforeEach(() => {
@@ -47,6 +52,21 @@ test("loads soul state from api and upgrades soul", async () => {
     name: "魔魂",
     power: 10,
   })
+  vi.mocked(getPetCollection)
+    .mockResolvedValueOnce({
+      player_id: 8303,
+      total_power: 120,
+      team_size: 1,
+      active_team: [],
+      roster: [],
+    })
+    .mockResolvedValueOnce({
+      player_id: 8303,
+      total_power: 136,
+      team_size: 1,
+      active_team: [],
+      roster: [],
+    })
 
   const wrapper = mount(SoulPage, {
     global: {
@@ -58,6 +78,7 @@ test("loads soul state from api and upgrades soul", async () => {
   expect(getSoulState).toHaveBeenCalledWith(8303)
   expect(wrapper.text()).toContain("魔魂")
   expect(wrapper.text()).toContain("9")
+  expect(wrapper.text()).toContain("阵容战力 120")
 
   await wrapper.get("button.primary").trigger("click")
   await flushPromises()
@@ -65,6 +86,7 @@ test("loads soul state from api and upgrades soul", async () => {
   expect(upgradeSoul).toHaveBeenCalledWith(8303)
   expect(syncStore.version).toBe(1)
   expect(wrapper.text()).toContain("10")
+  expect(wrapper.text()).toContain("阵容战力 136")
 })
 
 test("refreshes soul when resource sync changes", async () => {

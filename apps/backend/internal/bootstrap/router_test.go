@@ -239,3 +239,58 @@ func TestRouter_CultivationClaimAffectsPetTeamAndArenaPower(t *testing.T) {
 		t.Fatalf("expected attacker power 144 after cultivation growth, got %d", arenaPayload.Data.Battle.AttackerPower)
 	}
 }
+
+func TestRouter_BoneUpgradeAffectsPetTeamAndArenaPower(t *testing.T) {
+	r := NewRouter()
+
+	upgradeReq := httptest.NewRequest(http.MethodPost, "/api/v1/growth/bone/upgrade?player_id=1002", nil)
+	upgradeResp := httptest.NewRecorder()
+	r.ServeHTTP(upgradeResp, upgradeReq)
+
+	if upgradeResp.Code != http.StatusOK {
+		t.Fatalf("expected bone upgrade 200, got %d", upgradeResp.Code)
+	}
+
+	petReq := httptest.NewRequest(http.MethodGet, "/api/v1/pet/team?player_id=1002", nil)
+	petResp := httptest.NewRecorder()
+	r.ServeHTTP(petResp, petReq)
+
+	var petPayload struct {
+		Code int `json:"code"`
+		Data struct {
+			TotalPower int64 `json:"total_power"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(petResp.Body).Decode(&petPayload); err != nil {
+		t.Fatalf("expected pet JSON payload, got %v", err)
+	}
+	if petPayload.Code != 0 {
+		t.Fatalf("expected pet business code 0, got %d", petPayload.Code)
+	}
+	if petPayload.Data.TotalPower != 144 {
+		t.Fatalf("expected pet total power 144 after bone upgrade, got %d", petPayload.Data.TotalPower)
+	}
+
+	arenaReq := httptest.NewRequest(http.MethodPost, "/api/v1/arena/challenge", bytes.NewBufferString(`{"player_id":1002,"won":true}`))
+	arenaReq.Header.Set("Content-Type", "application/json")
+	arenaResp := httptest.NewRecorder()
+	r.ServeHTTP(arenaResp, arenaReq)
+
+	var arenaPayload struct {
+		Code int `json:"code"`
+		Data struct {
+			Battle struct {
+				AttackerPower int64 `json:"attacker_power"`
+			} `json:"battle"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(arenaResp.Body).Decode(&arenaPayload); err != nil {
+		t.Fatalf("expected arena JSON payload, got %v", err)
+	}
+	if arenaPayload.Code != 0 {
+		t.Fatalf("expected arena business code 0, got %d", arenaPayload.Code)
+	}
+	if arenaPayload.Data.Battle.AttackerPower != 144 {
+		t.Fatalf("expected attacker power 144 after bone upgrade, got %d", arenaPayload.Data.Battle.AttackerPower)
+	}
+}

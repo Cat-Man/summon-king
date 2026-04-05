@@ -16,6 +16,10 @@
         <span>{{ soul.power > 0 ? "已凝聚" : "待收集" }}</span>
       </article>
     </div>
+    <div class="panel panel--power">
+      <p>阵容战力 {{ teamPower }}</p>
+      <span>魔魂提升已实时计入共享战斗队。</span>
+    </div>
     <button class="primary" type="button" @click="upgradeNow">升级魔魂</button>
     <div class="panel">
       <p class="note">魔魂线当前先接真实数值，后续再扩猎魂与掉落玩法。</p>
@@ -28,6 +32,7 @@ import { onMounted, ref, watch } from "vue"
 
 import { APIError } from "@/api/http"
 import { getSoulState, type SoulState, upgradeSoul } from "@/api/modules/growth"
+import { getPetCollection } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
@@ -37,6 +42,7 @@ const soul = ref<SoulState>({
   name: "",
   power: 0,
 })
+const teamPower = ref(0)
 const errorMessage = ref("")
 
 async function loadSoul() {
@@ -54,6 +60,18 @@ async function loadSoul() {
   }
 }
 
+async function loadTeamPower() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    return
+  }
+
+  try {
+    const collection = await getPetCollection(playerId)
+    teamPower.value = collection.total_power
+  } catch {}
+}
+
 async function upgradeNow() {
   const playerId = sessionStore.playerId
   if (!playerId) {
@@ -62,7 +80,8 @@ async function upgradeNow() {
   }
 
   try {
-    await upgradeSoul(playerId)
+    soul.value = await upgradeSoul(playerId)
+    await loadTeamPower()
     resourceSyncStore.touch()
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "魔魂升级失败。"
@@ -75,12 +94,12 @@ watch(
     if (next === prev) {
       return
     }
-    await loadSoul()
+    await Promise.all([loadSoul(), loadTeamPower()])
   },
 )
 
 onMounted(async () => {
-  await loadSoul()
+  await Promise.all([loadSoul(), loadTeamPower()])
 })
 </script>
 
@@ -119,6 +138,16 @@ onMounted(async () => {
   padding: 16px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.06);
+}
+.panel--power p,
+.panel--power span {
+  margin: 0;
+}
+.panel--power span {
+  display: block;
+  margin-top: 6px;
+  color: rgba(227, 242, 255, 0.72);
+  font-size: 14px;
 }
 .tag {
   font-size: 12px;

@@ -1,13 +1,36 @@
 package pet
 
-import "context"
+import (
+	"context"
 
-type Service struct {
-	repo Repository
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+)
+
+type growthReader interface {
+	GetWallet(ctx context.Context, playerID int64) (growth.Wallet, error)
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{repo: repo}
+type Option func(*Service)
+
+type Service struct {
+	repo   Repository
+	growth growthReader
+}
+
+func WithGrowthReader(reader growthReader) Option {
+	return func(s *Service) {
+		s.growth = reader
+	}
+}
+
+func NewService(repo Repository, options ...Option) *Service {
+	svc := &Service{repo: repo}
+	for _, option := range options {
+		if option != nil {
+			option(svc)
+		}
+	}
+	return svc
 }
 
 func (s *Service) GetBattleTeam(ctx context.Context, playerID int64) (TeamSnapshot, error) {
@@ -16,6 +39,7 @@ func (s *Service) GetBattleTeam(ctx context.Context, playerID int64) (TeamSnapsh
 		return TeamSnapshot{}, err
 	}
 
+	team = s.applyGrowthBonuses(ctx, playerID, team)
 	team.TotalPower = totalPower(team.Pets)
 
 	return team, nil
@@ -37,7 +61,7 @@ func (s *Service) GetCollection(ctx context.Context, playerID int64) (Collection
 		TotalPower: team.TotalPower,
 		TeamSize:   len(team.Pets),
 		ActiveTeam: team.Pets,
-		Roster:     roster,
+		Roster:     s.applyRosterPowerOverrides(roster, team.Pets),
 	}, nil
 }
 
@@ -71,4 +95,59 @@ func totalPower(pets []BattlePet) int64 {
 		total += battlePet.Power
 	}
 	return total
+}
+
+const boneBonusPerLevel int64 = 24
+const soulBonusPerPiece int64 = 8
+
+func (s *Service) applyGrowthBonuses(ctx context.Context, playerID int64, team TeamSnapshot) TeamSnapshot {
+	if s.growth == nil || len(team.Pets) == 0 {
+		return team
+	}
+
+	wallet, err := s.growth.GetWallet(ctx, playerID)
+	if err != nil {
+		return team
+	}
+
+	teamBonus := growthTeamBonus(wallet)
+	if teamBonus == 0 {
+		return team
+	}
+
+	pets := clonePets(team.Pets)
+	share := teamBonus / int64(len(pets))
+	remainder := teamBonus % int64(len(pets))
+	for idx := range pets {
+		pets[idx].Power += share
+		if int64(idx) < remainder {
+			pets[idx].Power++
+		}
+	}
+	team.Pets = pets
+	return team
+}
+
+func applyPowerOverrides(pets []BattlePet, overrides map[int64]BattlePet) []BattlePet {
+	next := clonePets(pets)
+	for idx := range next {
+		if override, ok := overrides[next[idx].PetID]; ok {
+			next[idx].Power = override.Power
+		}
+	}
+	return next
+}
+
+func (s *Service) applyRosterPowerOverrides(roster []BattlePet, active []BattlePet) []BattlePet {
+	overrides := make(map[int64]BattlePet, len(active))
+	for _, battlePet := range active {
+		overrides[battlePet.PetID] = battlePet
+	}
+	return applyPowerOverrides(roster, overrides)
+}
+
+func growthTeamBonus(wallet growth.Wallet) int64 {
+	boneLevels := max(wallet.BoneLevel-1, 0)
+	soulPieces := max(wallet.SoulPieces, 0)
+	return int64(boneLevels)*boneBonusPerLevel + int64(soulPieces)*soulBonusPerPiece
 }

@@ -37,7 +37,7 @@ func NewRouter() *gin.Engine {
 	growthRepo := growth.NewMemoryRepository()
 	assetService := asset.NewService(growthRepo)
 	accountService := account.NewService(accountRepo)
-	petService := pet.NewService(pet.NewMemoryRepository())
+	petService := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
 	dungeonService := dungeon.NewService(
 		dungeonRepo,
 		assetService,

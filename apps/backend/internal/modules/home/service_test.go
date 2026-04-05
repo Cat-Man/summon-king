@@ -123,3 +123,33 @@ func TestOverview_SkipsExhaustedDungeonWhenChoosingNextAction(t *testing.T) {
 		t.Fatalf("expected next action /tower/pagoda, got %s", overview.NextAction.Route)
 	}
 }
+
+func TestOverview_ReflectsGrowthBoostedPetPower(t *testing.T) {
+	ctx := context.Background()
+
+	accountRepo := account.NewMemoryRepository()
+	accountSvc := account.NewService(accountRepo)
+	guest, err := accountSvc.GuestLogin(ctx, "战骨修士")
+	if err != nil {
+		t.Fatalf("expected guest login success, got %v", err)
+	}
+
+	dungeonRepo := dungeon.NewMemoryRepository()
+	growthRepo := growth.NewMemoryRepository()
+	if _, err := growthRepo.UpgradeBoneLevel(ctx, guest.PlayerID, 1); err != nil {
+		t.Fatalf("expected bone upgrade success, got %v", err)
+	}
+	assetSvc := asset.NewService(growthRepo)
+	dungeonSvc := dungeon.NewService(dungeonRepo, assetSvc)
+	towerSvc := tower.NewService(tower.NewMemoryRepository(), assetSvc)
+	petSvc := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
+	svc := NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc)
+
+	overview, err := svc.GetOverview(ctx, guest.PlayerID, guest.Token)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if overview.Modules.Pet.TotalPower != 144 {
+		t.Fatalf("expected pet total power 144 with bone bonus, got %d", overview.Modules.Pet.TotalPower)
+	}
+}

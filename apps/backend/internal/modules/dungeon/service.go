@@ -184,14 +184,14 @@ func (s *Service) RollDice(ctx context.Context, playerID int64) (DungeonRun, err
 		return DungeonRun{}, err
 	}
 	run.LastReward = resolveRollReward(run)
+	run, err = s.attachBattleSummary(ctx, playerID, run)
+	if err != nil {
+		return DungeonRun{}, err
+	}
 	if s.asset != nil {
 		if err := s.applyReward(ctx, playerID, run.LastReward); err != nil {
 			return DungeonRun{}, err
 		}
-	}
-	run, err = s.attachBattleSummary(ctx, playerID, run)
-	if err != nil {
-		return DungeonRun{}, err
 	}
 	run, err = s.attachRollPetGrowth(ctx, playerID, run)
 	if err != nil {

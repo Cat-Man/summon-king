@@ -3,6 +3,8 @@ package pet
 import (
 	"context"
 	"testing"
+
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 )
 
 func TestService_GetBattleTeamReturnsStarterPet(t *testing.T) {
@@ -287,5 +289,80 @@ func TestService_GrantActiveTeamExperienceAppliesToWholeActiveTeam(t *testing.T)
 	}
 	if team.TotalPower != 324 {
 		t.Fatalf("expected total power 324, got %d", team.TotalPower)
+	}
+}
+
+func TestService_GetBattleTeamKeepsStarterPowerWithDefaultGrowthState(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	svc := NewService(NewMemoryRepository(), WithGrowthReader(growthRepo))
+
+	team, err := svc.GetBattleTeam(ctx, 1001)
+
+	if err != nil {
+		t.Fatalf("expected battle team success, got %v", err)
+	}
+	if team.TotalPower != 120 {
+		t.Fatalf("expected starter total power 120, got %d", team.TotalPower)
+	}
+	if team.Pets[0].Power != 120 {
+		t.Fatalf("expected starter pet power 120, got %d", team.Pets[0].Power)
+	}
+}
+
+func TestService_GetBattleTeamAddsBoneBonusAboveStarterLevel(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	if _, err := growthRepo.UpgradeBoneLevel(ctx, 1001, 1); err != nil {
+		t.Fatalf("expected bone upgrade success, got %v", err)
+	}
+	svc := NewService(NewMemoryRepository(), WithGrowthReader(growthRepo))
+
+	team, err := svc.GetBattleTeam(ctx, 1001)
+
+	if err != nil {
+		t.Fatalf("expected battle team success, got %v", err)
+	}
+	if team.TotalPower != 144 {
+		t.Fatalf("expected total power 144 after bone bonus, got %d", team.TotalPower)
+	}
+	if team.Pets[0].Power != 144 {
+		t.Fatalf("expected pet power 144 after bone bonus, got %d", team.Pets[0].Power)
+	}
+}
+
+func TestService_GetCollectionDistributesSoulBonusAcrossActiveTeam(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	if _, err := growthRepo.UpgradeSoulPower(ctx, 1001, 2); err != nil {
+		t.Fatalf("expected soul upgrade success, got %v", err)
+	}
+	svc := NewService(NewMemoryRepository(), WithGrowthReader(growthRepo))
+	if _, err := svc.SaveTeam(ctx, 1001, []int64{10011, 10012}); err != nil {
+		t.Fatalf("expected save team success, got %v", err)
+	}
+
+	data, err := svc.GetCollection(ctx, 1001)
+
+	if err != nil {
+		t.Fatalf("expected collection success, got %v", err)
+	}
+	if data.TotalPower != 292 {
+		t.Fatalf("expected total power 292 after soul bonus, got %d", data.TotalPower)
+	}
+	if len(data.ActiveTeam) != 2 {
+		t.Fatalf("expected active team 2, got %d", len(data.ActiveTeam))
+	}
+	if data.ActiveTeam[0].Power != 128 {
+		t.Fatalf("expected slot 1 power 128, got %d", data.ActiveTeam[0].Power)
+	}
+	if data.ActiveTeam[1].Power != 164 {
+		t.Fatalf("expected slot 2 power 164, got %d", data.ActiveTeam[1].Power)
+	}
+	if data.Roster[0].Power != 128 {
+		t.Fatalf("expected roster active slot 1 power 128, got %d", data.Roster[0].Power)
+	}
+	if data.Roster[1].Power != 164 {
+		t.Fatalf("expected roster active slot 2 power 164, got %d", data.Roster[1].Power)
 	}
 }
