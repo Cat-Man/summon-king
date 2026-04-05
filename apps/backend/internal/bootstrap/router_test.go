@@ -5,8 +5,43 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
+
+func TestNewRouterWithConfig_UsesMemoryStorage(t *testing.T) {
+	r, err := NewRouterWithConfig(Config{
+		AppName:       defaultAppName,
+		HTTPPort:      8080,
+		StorageDriver: "memory",
+	})
+	if err != nil {
+		t.Fatalf("expected memory router setup success, got %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusOK {
+		t.Fatalf("expected healthz 200, got %d", resp.Code)
+	}
+}
+
+func TestNewRouterWithConfig_RejectsMySQLStorageUntilImplemented(t *testing.T) {
+	_, err := NewRouterWithConfig(Config{
+		AppName:       defaultAppName,
+		HTTPPort:      8080,
+		StorageDriver: "mysql",
+		MySQLDSN:      "root:secret@tcp(localhost:3306)/zhzw",
+	})
+	if err == nil {
+		t.Fatal("expected mysql storage setup to fail before repository implementation")
+	}
+	if !strings.Contains(err.Error(), "not implemented") {
+		t.Fatalf("expected not implemented error, got %v", err)
+	}
+}
 
 func TestRouter_ModuleRoots(t *testing.T) {
 	r := NewRouter()

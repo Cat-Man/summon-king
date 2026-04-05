@@ -12,7 +12,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("config validation failed: %v", err)
 	}
-	router := bootstrap.NewRouter()
+	router, err := bootstrap.NewRouterWithConfig(cfg)
+	if err != nil {
+		log.Fatalf("router setup failed: %v", err)
+	}
 	addr := fmt.Sprintf(":%d", cfg.HTTPPort)
 
 	if err := router.Run(addr); err != nil {

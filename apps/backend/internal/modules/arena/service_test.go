@@ -204,3 +204,60 @@ func TestArena_BattleSummaryUsesPreRewardTeamPower(t *testing.T) {
 		t.Fatalf("expected attacker power 120 before arena reward write-back, got %d", result.BattleResult.AttackerPower)
 	}
 }
+
+func TestArena_GetIndexReturnsOpponentsAndRefreshChangesThem(t *testing.T) {
+	ctx := context.Background()
+	svc := newTestArenaService(t)
+
+	index, err := svc.GetIndex(ctx, 3501)
+	if err != nil {
+		t.Fatalf("expected arena index success, got %v", err)
+	}
+	if len(index.Opponents) != 2 {
+		t.Fatalf("expected 2 opponents, got %d", len(index.Opponents))
+	}
+	if index.Opponents[0].Name == "" || index.Opponents[1].Name == "" {
+		t.Fatal("expected opponent names in arena index")
+	}
+
+	refreshed, err := svc.RefreshOpponents(ctx, 3501)
+	if err != nil {
+		t.Fatalf("expected arena refresh success, got %v", err)
+	}
+	if len(refreshed.Opponents) != 2 {
+		t.Fatalf("expected 2 refreshed opponents, got %d", len(refreshed.Opponents))
+	}
+	if refreshed.Opponents[0].OpponentID == index.Opponents[0].OpponentID {
+		t.Fatalf("expected refreshed opponents to change, still got %d", refreshed.Opponents[0].OpponentID)
+	}
+}
+
+func TestArena_ChallengeOpponentUsesOpponentPower(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	svc := NewService(
+		NewMemoryRepository(),
+		asset.NewService(growthRepo),
+		WithBattleTeamReader(petSvc),
+	)
+
+	index, err := svc.GetIndex(ctx, 3502)
+	if err != nil {
+		t.Fatalf("expected arena index success, got %v", err)
+	}
+
+	result, err := svc.ChallengeOpponent(ctx, 3502, index.Opponents[0].OpponentID)
+	if err != nil {
+		t.Fatalf("expected challenge opponent success, got %v", err)
+	}
+	if result.BattleResult.DefenderPower != index.Opponents[0].Power {
+		t.Fatalf("expected defender power %d, got %d", index.Opponents[0].Power, result.BattleResult.DefenderPower)
+	}
+	if result.BattleResult.Result != "success" {
+		t.Fatalf("expected success against first opponent, got %s", result.BattleResult.Result)
+	}
+	if result.Record.CurrentStreak != 1 {
+		t.Fatalf("expected current streak 1, got %d", result.Record.CurrentStreak)
+	}
+}

@@ -1,13 +1,13 @@
 package bootstrap
 
 import (
+	"fmt"
 	stdhttp "net/http"
 
 	httpx "github.com/Cat-Man/summon-king/apps/backend/internal/infra/http"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
-	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/home"
@@ -18,6 +18,24 @@ import (
 )
 
 func NewRouter() *gin.Engine {
+	cfg, err := LoadConfig()
+	if err != nil {
+		panic(fmt.Sprintf("failed to load config: %v", err))
+	}
+
+	router, err := NewRouterWithConfig(cfg)
+	if err != nil {
+		panic(fmt.Sprintf("failed to build router: %v", err))
+	}
+	return router
+}
+
+func NewRouterWithConfig(cfg Config) (*gin.Engine, error) {
+	deps, err := buildDependencies(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	router := gin.New()
 	router.Use(gin.Recovery())
 	router.Use(middleware.InjectTraceID())
@@ -27,56 +45,41 @@ func NewRouter() *gin.Engine {
 	router.GET("/healthz", func(c *gin.Context) {
 		c.JSON(stdhttp.StatusOK, httpx.Success(gin.H{
 			"status": "ok",
-			"app":    defaultAppName,
+			"app":    cfg.AppName,
 		}, middleware.GetTraceID(c)))
 	})
 	api := router.Group("/api/v1")
 
-	accountRepo := account.NewMemoryRepository()
-	dungeonRepo := dungeon.NewMemoryRepository()
-	growthRepo := growth.NewMemoryRepository()
-	assetService := asset.NewService(growthRepo)
-	accountService := account.NewService(accountRepo)
-	petService := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
-	dungeonService := dungeon.NewService(
-		dungeonRepo,
-		assetService,
-		dungeon.WithBattleTeamReader(petService),
-		dungeon.WithPetProgressor(petService),
-	)
-	arenaService := arena.NewService(arena.NewMemoryRepository(), assetService, arena.WithBattleTeamReader(petService))
-	towerService := tower.NewService(tower.NewMemoryRepository(), assetService, tower.WithBattleTeamReader(petService))
-
 	authGroup := api.Group("/auth")
-	account.NewHandler(accountService).RegisterRoutes(authGroup)
+	account.NewHandler(deps.accountService).RegisterRoutes(authGroup)
 
 	homeGroup := api.Group("/home")
-	home.NewHandler(home.NewService(accountRepo, dungeonService, growthRepo, petService, towerService)).RegisterRoutes(homeGroup)
+	home.NewHandler(deps.homeService).RegisterRoutes(homeGroup)
 
 	rankingGroup := api.Group("/ranking")
-	ranking.NewHandler(ranking.NewService(accountRepo, growthRepo, dungeonService, arenaService)).RegisterRoutes(rankingGroup)
+	ranking.NewHandler(deps.rankingService).RegisterRoutes(rankingGroup)
 
 	arenaGroup := api.Group("/arena")
 	registerModuleRoot(arenaGroup, "arena")
-	arena.NewHandler(arenaService).RegisterRoutes(arenaGroup)
+	arena.NewHandler(deps.arenaService).RegisterRoutes(arenaGroup)
 
 	dungeonGroup := api.Group("/dungeon")
 	registerModuleRoot(dungeonGroup, "dungeon")
-	dungeon.NewHandler(dungeonService).RegisterRoutes(dungeonGroup)
+	dungeon.NewHandler(deps.dungeonService).RegisterRoutes(dungeonGroup)
 
 	growthGroup := api.Group("/growth")
 	registerModuleRoot(growthGroup, "growth")
-	growth.NewHandler(growthRepo).RegisterRoutes(growthGroup)
+	growth.NewHandler(deps.growthRepo).RegisterRoutes(growthGroup)
 
 	petGroup := api.Group("/pet")
 	registerModuleRoot(petGroup, "pet")
-	pet.NewHandler(petService).RegisterRoutes(petGroup)
+	pet.NewHandler(deps.petService).RegisterRoutes(petGroup)
 
 	towerGroup := api.Group("/tower")
 	registerModuleRoot(towerGroup, "tower")
-	tower.NewHandler(towerService).RegisterRoutes(towerGroup)
+	tower.NewHandler(deps.towerService).RegisterRoutes(towerGroup)
 
-	return router
+	return router, nil
 }
 
 func registerModuleRoot(group *gin.RouterGroup, module string) {

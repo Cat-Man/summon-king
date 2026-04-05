@@ -2,13 +2,16 @@ package home
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/ranking"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/tower"
 )
 
@@ -38,7 +41,9 @@ func TestOverview_ReturnsCoreSections(t *testing.T) {
 		t.Fatalf("expected pagoda start, got %v", err)
 	}
 	petSvc := pet.NewService(pet.NewMemoryRepository())
-	svc := NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc)
+	arenaSvc := arena.NewService(arena.NewMemoryRepository(), assetSvc)
+	rankingSvc := ranking.NewService(accountRepo, growthRepo, dungeonSvc, arenaSvc)
+	svc := NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc, arenaSvc, rankingSvc)
 
 	overview, err := svc.GetOverview(ctx, guest.PlayerID, guest.Token)
 	if err != nil {
@@ -104,7 +109,9 @@ func TestOverview_SkipsExhaustedDungeonWhenChoosingNextAction(t *testing.T) {
 
 	towerSvc := tower.NewService(tower.NewMemoryRepository(), assetSvc)
 	petSvc := pet.NewService(pet.NewMemoryRepository())
-	svc := NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc)
+	arenaSvc := arena.NewService(arena.NewMemoryRepository(), assetSvc)
+	rankingSvc := ranking.NewService(accountRepo, growthRepo, dungeonSvc, arenaSvc)
+	svc := NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc, arenaSvc, rankingSvc)
 
 	overview, err := svc.GetOverview(ctx, guest.PlayerID, guest.Token)
 	if err != nil {
@@ -143,7 +150,9 @@ func TestOverview_ReflectsGrowthBoostedPetPower(t *testing.T) {
 	dungeonSvc := dungeon.NewService(dungeonRepo, assetSvc)
 	towerSvc := tower.NewService(tower.NewMemoryRepository(), assetSvc)
 	petSvc := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
-	svc := NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc)
+	arenaSvc := arena.NewService(arena.NewMemoryRepository(), assetSvc)
+	rankingSvc := ranking.NewService(accountRepo, growthRepo, dungeonSvc, arenaSvc)
+	svc := NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc, arenaSvc, rankingSvc)
 
 	overview, err := svc.GetOverview(ctx, guest.PlayerID, guest.Token)
 	if err != nil {
@@ -151,5 +160,67 @@ func TestOverview_ReflectsGrowthBoostedPetPower(t *testing.T) {
 	}
 	if overview.Modules.Pet.TotalPower != 144 {
 		t.Fatalf("expected pet total power 144 with bone bonus, got %d", overview.Modules.Pet.TotalPower)
+	}
+}
+
+func TestOverview_RecommendsArenaAndExposesArenaRankingModulesAfterTowersExhausted(t *testing.T) {
+	ctx := context.Background()
+
+	accountRepo := account.NewMemoryRepository()
+	accountSvc := account.NewService(accountRepo)
+	guest, err := accountSvc.GuestLogin(ctx, "斗法修士")
+	if err != nil {
+		t.Fatalf("expected guest login success, got %v", err)
+	}
+
+	dungeonRepo := dungeon.NewMemoryRepository()
+	growthRepo := growth.NewMemoryRepository()
+	assetSvc := asset.NewService(growthRepo)
+	dungeonSvc := dungeon.NewService(dungeonRepo, assetSvc)
+	towerSvc := tower.NewService(tower.NewMemoryRepository(), assetSvc)
+	for i := 0; i < 5; i++ {
+		if _, err := towerSvc.StartChallenge(ctx, guest.PlayerID, "pagoda"); err != nil {
+			t.Fatalf("expected pagoda start success, got %v", err)
+		}
+		if _, err := towerSvc.StartChallenge(ctx, guest.PlayerID, "spirit"); err != nil {
+			t.Fatalf("expected spirit start success, got %v", err)
+		}
+	}
+
+	arenaSvc := arena.NewService(arena.NewMemoryRepository(), assetSvc)
+	if _, err := arenaSvc.RecordBattleResult(ctx, guest.PlayerID, true); err != nil {
+		t.Fatalf("expected arena win success, got %v", err)
+	}
+	rankingSvc := ranking.NewService(accountRepo, growthRepo, dungeonSvc, arenaSvc)
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	svc := NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc, arenaSvc, rankingSvc)
+
+	overview, err := svc.GetOverview(ctx, guest.PlayerID, guest.Token)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if overview.NextAction.Route != "/arena" {
+		t.Fatalf("expected next action /arena after towers exhausted, got %s", overview.NextAction.Route)
+	}
+
+	payload, err := json.Marshal(overview)
+	if err != nil {
+		t.Fatalf("expected overview marshal success, got %v", err)
+	}
+
+	var raw map[string]any
+	if err := json.Unmarshal(payload, &raw); err != nil {
+		t.Fatalf("expected overview json decode success, got %v", err)
+	}
+
+	modules, ok := raw["modules"].(map[string]any)
+	if !ok {
+		t.Fatal("expected modules object")
+	}
+	if _, ok := modules["arena"]; !ok {
+		t.Fatal("expected arena summary in overview modules")
+	}
+	if _, ok := modules["ranking"]; !ok {
+		t.Fatal("expected ranking summary in overview modules")
 	}
 }

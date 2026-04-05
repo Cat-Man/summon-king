@@ -22,6 +22,8 @@ type ModulesOverview struct {
 	Cultivation  CultivationSummary `json:"cultivation"`
 	Pet          PetSummary         `json:"pet"`
 	Tower        TowerOverview      `json:"tower"`
+	Arena        ArenaSummary       `json:"arena"`
+	Ranking      RankingSummary     `json:"ranking"`
 }
 
 type PetSummary struct {
@@ -47,6 +49,18 @@ type CultivationSummary struct {
 type TowerOverview struct {
 	Pagoda tower.TowerStatus `json:"pagoda"`
 	Spirit tower.TowerStatus `json:"spirit"`
+}
+
+type ArenaSummary struct {
+	CurrentStreak int  `json:"current_streak"`
+	LastWin       bool `json:"last_win"`
+}
+
+type RankingSummary struct {
+	SelfRank  int    `json:"self_rank"`
+	SelfScore int64  `json:"self_score"`
+	TopName   string `json:"top_name"`
+	TopScore  int64  `json:"top_score"`
 }
 
 type NextAction struct {

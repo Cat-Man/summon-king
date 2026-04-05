@@ -113,3 +113,89 @@ func TestHandler_ChallengeReturnsRewardPayload(t *testing.T) {
 		t.Fatalf("expected winner_side attacker, got %s", summary.WinnerSide)
 	}
 }
+
+func TestHandler_IndexReturnsOpponentPayload(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	r := gin.New()
+	r.Use(middleware.InjectTraceID())
+	h := NewHandler(NewService(NewMemoryRepository(), asset.NewService(growth.NewMemoryRepository())))
+	g := r.Group("/arena")
+	h.RegisterRoutes(g)
+
+	req := httptest.NewRequest(http.MethodGet, "/arena/index?player_id=1001", nil)
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	var payload struct {
+		Code int `json:"code"`
+		Data struct {
+			Opponents []struct {
+				OpponentID int64  `json:"opponent_id"`
+				Name       string `json:"name"`
+			} `json:"opponents"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		t.Fatalf("expected JSON payload, got %v", err)
+	}
+	if resp.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.Code)
+	}
+	if len(payload.Data.Opponents) != 2 {
+		t.Fatalf("expected 2 opponents, got %d", len(payload.Data.Opponents))
+	}
+	if payload.Data.Opponents[0].OpponentID == 0 {
+		t.Fatal("expected non-zero opponent id")
+	}
+}
+
+func TestHandler_RefreshChangesOpponentPayload(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	r := gin.New()
+	r.Use(middleware.InjectTraceID())
+	h := NewHandler(NewService(NewMemoryRepository(), asset.NewService(growth.NewMemoryRepository())))
+	g := r.Group("/arena")
+	h.RegisterRoutes(g)
+
+	indexReq := httptest.NewRequest(http.MethodGet, "/arena/index?player_id=1002", nil)
+	indexResp := httptest.NewRecorder()
+	r.ServeHTTP(indexResp, indexReq)
+
+	var indexPayload struct {
+		Data struct {
+			Opponents []struct {
+				OpponentID int64 `json:"opponent_id"`
+			} `json:"opponents"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(indexResp.Body).Decode(&indexPayload); err != nil {
+		t.Fatalf("expected index JSON payload, got %v", err)
+	}
+
+	refreshReq := httptest.NewRequest(http.MethodPost, "/arena/refresh", bytes.NewBufferString(`{"player_id":1002}`))
+	refreshReq.Header.Set("Content-Type", "application/json")
+	refreshResp := httptest.NewRecorder()
+	r.ServeHTTP(refreshResp, refreshReq)
+
+	var refreshPayload struct {
+		Data struct {
+			Opponents []struct {
+				OpponentID int64 `json:"opponent_id"`
+			} `json:"opponents"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(refreshResp.Body).Decode(&refreshPayload); err != nil {
+		t.Fatalf("expected refresh JSON payload, got %v", err)
+	}
+	if refreshResp.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", refreshResp.Code)
+	}
+	if len(refreshPayload.Data.Opponents) != 2 {
+		t.Fatalf("expected 2 refreshed opponents, got %d", len(refreshPayload.Data.Opponents))
+	}
+	if refreshPayload.Data.Opponents[0].OpponentID == indexPayload.Data.Opponents[0].OpponentID {
+		t.Fatalf("expected refreshed opponent id to change, still got %d", refreshPayload.Data.Opponents[0].OpponentID)
+	}
+}

@@ -10,9 +10,11 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/ranking"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/tower"
 	"github.com/gin-gonic/gin"
 )
@@ -37,12 +39,17 @@ func TestHandler_OverviewReturnsAggregatedPayload(t *testing.T) {
 	}
 	towerSvc := tower.NewService(tower.NewMemoryRepository(), assetSvc)
 	petSvc := pet.NewService(pet.NewMemoryRepository())
+	arenaSvc := arena.NewService(arena.NewMemoryRepository(), assetSvc)
+	if _, err := arenaSvc.RecordBattleResult(ctx, guest.PlayerID, true); err != nil {
+		t.Fatalf("expected arena win success, got %v", err)
+	}
+	rankingSvc := ranking.NewService(accountRepo, growthRepo, dungeonSvc, arenaSvc)
 
 	r := gin.New()
 	r.Use(middleware.InjectTraceID())
 	r.Use(middleware.InjectAuthToken())
 
-	h := NewHandler(NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc))
+	h := NewHandler(NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc, arenaSvc, rankingSvc))
 	g := r.Group("/home")
 	h.RegisterRoutes(g)
 
@@ -87,6 +94,25 @@ func TestHandler_OverviewReturnsAggregatedPayload(t *testing.T) {
 	if payload.Data.Modules.Pet.StarterPetName != "初始灵狐" {
 		t.Fatalf("expected starter pet 初始灵狐, got %s", payload.Data.Modules.Pet.StarterPetName)
 	}
+
+	raw, err := json.Marshal(payload.Data)
+	if err != nil {
+		t.Fatalf("expected marshal success, got %v", err)
+	}
+	var view map[string]any
+	if err := json.Unmarshal(raw, &view); err != nil {
+		t.Fatalf("expected decode success, got %v", err)
+	}
+	modules, ok := view["modules"].(map[string]any)
+	if !ok {
+		t.Fatal("expected modules object")
+	}
+	if _, ok := modules["arena"]; !ok {
+		t.Fatal("expected arena module in home overview payload")
+	}
+	if _, ok := modules["ranking"]; !ok {
+		t.Fatal("expected ranking module in home overview payload")
+	}
 }
 
 func TestHandler_OverviewRequiresPlayerID(t *testing.T) {
@@ -98,7 +124,9 @@ func TestHandler_OverviewRequiresPlayerID(t *testing.T) {
 	assetSvc := asset.NewService(growthRepo)
 	towerSvc2 := tower.NewService(tower.NewMemoryRepository(), assetSvc)
 	petSvc := pet.NewService(pet.NewMemoryRepository())
-	h := NewHandler(NewService(account.NewMemoryRepository(), dungeon.NewService(dungeon.NewMemoryRepository(), assetSvc), growthRepo, petSvc, towerSvc2))
+	arenaSvc := arena.NewService(arena.NewMemoryRepository(), assetSvc)
+	rankingSvc := ranking.NewService(account.NewMemoryRepository(), growthRepo, dungeon.NewService(dungeon.NewMemoryRepository(), assetSvc), arenaSvc)
+	h := NewHandler(NewService(account.NewMemoryRepository(), dungeon.NewService(dungeon.NewMemoryRepository(), assetSvc), growthRepo, petSvc, towerSvc2, arenaSvc, rankingSvc))
 	g := r.Group("/home")
 	h.RegisterRoutes(g)
 
