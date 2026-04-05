@@ -24,6 +24,19 @@
         </div>
       </article>
     </div>
+    <article class="prebattle-card">
+      <header class="battle-header">
+        <h3>战斗前摘要</h3>
+        <span>共享队伍</span>
+      </header>
+      <div class="prebattle-metrics">
+        <span>当前队伍战力 {{ prebattleSummary.teamPower }}</span>
+        <span>成长总加成 +{{ prebattleSummary.totalBonus }}</span>
+        <span>战骨 +{{ prebattleSummary.boneBonus }}</span>
+        <span>战灵 +{{ prebattleSummary.spiritBonus }}</span>
+        <span>魔魂 +{{ prebattleSummary.soulBonus }}</span>
+      </div>
+    </article>
     <article v-if="rewardLines.length" class="spirits-list reward-card">
       <h3>奖励拆分</h3>
       <ul>
@@ -58,9 +71,10 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 
 import { APIError } from "@/api/http"
+import { getPetCollection, type PetCollection } from "@/api/modules/pet"
 import {
   getTowerStatus,
   startTowerChallenge,
@@ -70,6 +84,7 @@ import {
 } from "@/api/modules/tower"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
+import { summarizePetGrowth } from "@/utils/petGrowthSummary"
 
 const sessionStore = useSessionStore()
 const resourceSyncStore = useResourceSyncStore()
@@ -81,10 +96,12 @@ const status = ref<TowerStatus>({
   remaining_challenges: 0,
   reward_preview: "",
 })
+const petCollection = ref<PetCollection | null>(null)
 const lastReward = ref("")
 const battleSummary = ref<TowerBattleSummary | null>(null)
 const rewardLines = ref<string[]>([])
 const errorMessage = ref("")
+const prebattleSummary = computed(() => summarizePetGrowth(petCollection.value))
 
 function summarizeRewards(delta: TowerRewardDelta) {
   const lines: string[] = []
@@ -115,6 +132,20 @@ async function loadStatus() {
   }
 }
 
+async function loadPetSummary() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    return
+  }
+
+  try {
+    const nextCollection = await getPetCollection(playerId)
+    if (nextCollection) {
+      petCollection.value = nextCollection
+    }
+  } catch {}
+}
+
 async function startChallenge() {
   const playerId = sessionStore.playerId
   if (!playerId) {
@@ -135,8 +166,19 @@ async function startChallenge() {
 }
 
 onMounted(async () => {
-  await loadStatus()
+  await Promise.all([loadStatus(), loadPetSummary()])
 })
+
+watch(
+  () => resourceSyncStore.version,
+  async (next, prev) => {
+    if (next === prev) {
+      return
+    }
+    await loadPetSummary()
+  },
+  { flush: "sync" },
+)
 </script>
 
 <style scoped>
@@ -240,6 +282,22 @@ onMounted(async () => {
   border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 1.5rem;
   border-radius: 16px;
+}
+
+.prebattle-card {
+  margin-top: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 1.5rem;
+  border-radius: 16px;
+}
+
+.prebattle-metrics {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  color: #f6f5ff;
 }
 
 .reward-card ul {

@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from "pinia"
 import { flushPromises, mount } from "@vue/test-utils"
 
+import { getPetCollection } from "@/api/modules/pet"
 import { getTowerStatus, startTowerChallenge } from "@/api/modules/tower"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
@@ -10,6 +11,10 @@ import SpiritTowerPage from "../SpiritTowerPage.vue"
 vi.mock("@/api/modules/tower", () => ({
   getTowerStatus: vi.fn(),
   startTowerChallenge: vi.fn(),
+}))
+
+vi.mock("@/api/modules/pet", () => ({
+  getPetCollection: vi.fn(),
 }))
 
 test("loads spirit tower status from api", async () => {
@@ -31,6 +36,32 @@ test("loads spirit tower status from api", async () => {
     remaining_challenges: 2,
     reward_preview: "灵魂碎片",
   })
+  vi.mocked(getPetCollection).mockResolvedValue({
+    player_id: 6202,
+    total_power: 152,
+    team_size: 1,
+    active_team: [
+      {
+        pet_id: 10011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        exp: 0,
+        next_level_exp: 100,
+        power: 152,
+        power_breakdown: {
+          base: 120,
+          level: 0,
+          bone: 24,
+          spirit: 8,
+          soul: 0,
+          total: 152,
+        },
+        is_active: true,
+      },
+    ],
+    roster: [],
+  })
 
   const wrapper = mount(SpiritTowerPage, {
     global: {
@@ -43,6 +74,9 @@ test("loads spirit tower status from api", async () => {
   expect(wrapper.text()).toContain("第 3 层")
   expect(wrapper.text()).toContain("2/5")
   expect(wrapper.text()).toContain("灵魂碎片")
+  expect(wrapper.text()).toContain("战斗前摘要")
+  expect(wrapper.text()).toContain("当前队伍战力 152")
+  expect(wrapper.text()).toContain("成长总加成 +32")
 })
 
 test("challenges spirit tower and refreshes resources", async () => {
@@ -72,6 +106,59 @@ test("challenges spirit tower and refreshes resources", async () => {
       max_floor: 12,
       remaining_challenges: 1,
       reward_preview: "灵魂碎片",
+    })
+  vi.mocked(getPetCollection)
+    .mockResolvedValueOnce({
+      player_id: 6205,
+      total_power: 152,
+      team_size: 1,
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 152,
+          power_breakdown: {
+            base: 120,
+            level: 0,
+            bone: 24,
+            spirit: 8,
+            soul: 0,
+            total: 152,
+          },
+          is_active: true,
+        },
+      ],
+      roster: [],
+    })
+    .mockResolvedValueOnce({
+      player_id: 6205,
+      total_power: 172,
+      team_size: 1,
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 172,
+          power_breakdown: {
+            base: 120,
+            level: 0,
+            bone: 24,
+            spirit: 20,
+            soul: 8,
+            total: 172,
+          },
+          is_active: true,
+        },
+      ],
+      roster: [],
     })
   vi.mocked(startTowerChallenge).mockResolvedValue({
     player_id: 6205,
@@ -110,6 +197,8 @@ test("challenges spirit tower and refreshes resources", async () => {
   expect(startTowerChallenge).toHaveBeenCalledWith("spirit", 6205)
   expect(wrapper.text()).toContain("灵力 +12")
   expect(wrapper.text()).toContain("魔魂碎片 +1")
+  expect(wrapper.text()).toContain("当前队伍战力 172")
+  expect(wrapper.text()).toContain("成长总加成 +52")
   expect(wrapper.text()).toContain("战斗摘要")
   expect(wrapper.text()).toContain("战斗结果")
   expect(wrapper.text()).toContain("回合数")
@@ -139,6 +228,32 @@ test("still syncs resources when spirit tower status refresh fails after challen
       reward_preview: "灵魂碎片",
     })
     .mockRejectedValueOnce(new Error("refresh failed"))
+  vi.mocked(getPetCollection).mockResolvedValue({
+    player_id: 6206,
+    total_power: 152,
+    team_size: 1,
+    active_team: [
+      {
+        pet_id: 10011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        exp: 0,
+        next_level_exp: 100,
+        power: 152,
+        power_breakdown: {
+          base: 120,
+          level: 0,
+          bone: 24,
+          spirit: 8,
+          soul: 0,
+          total: 152,
+        },
+        is_active: true,
+      },
+    ],
+    roster: [],
+  })
   vi.mocked(startTowerChallenge).mockResolvedValue({
     player_id: 6206,
     tower: "spirit",
