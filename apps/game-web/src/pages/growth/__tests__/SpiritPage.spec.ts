@@ -57,14 +57,52 @@ test("loads wallet and refreshes after spirit wash", async () => {
       player_id: 8101,
       total_power: 196,
       team_size: 1,
-      active_team: [],
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 196,
+          power_breakdown: {
+            base: 120,
+            level: 24,
+            bone: 24,
+            spirit: 28,
+            soul: 0,
+            total: 196,
+          },
+          is_active: true,
+        },
+      ],
       roster: [],
     })
     .mockResolvedValueOnce({
       player_id: 8101,
       total_power: 196,
       team_size: 1,
-      active_team: [],
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 196,
+          power_breakdown: {
+            base: 120,
+            level: 24,
+            bone: 24,
+            spirit: 28,
+            soul: 0,
+            total: 196,
+          },
+          is_active: true,
+        },
+      ],
       roster: [],
     })
   vi.mocked(washSpirit).mockResolvedValue({ washed: true })
@@ -80,6 +118,8 @@ test("loads wallet and refreshes after spirit wash", async () => {
   expect(wrapper.text()).toContain("120")
   expect(wrapper.text()).toContain("3")
   expect(wrapper.text()).toContain("阵容战力 196")
+  expect(wrapper.text()).toContain("当前战灵加成 +28")
+  expect(wrapper.text()).toContain("本次洗炼预计阵容战力 196")
 
   await wrapper.get("button.primary").trigger("click")
   await flushPromises()
@@ -89,6 +129,8 @@ test("loads wallet and refreshes after spirit wash", async () => {
   expect(syncStore.version).toBe(1)
   expect(wrapper.text()).toContain("2")
   expect(wrapper.text()).toContain("阵容战力 196")
+  expect(wrapper.text()).toContain("当前战灵加成 +28")
+  expect(wrapper.text()).toContain("本次洗炼预计阵容战力 196")
 })
 
 test("refreshes wallet when resource sync changes", async () => {
@@ -124,14 +166,52 @@ test("refreshes wallet when resource sync changes", async () => {
       player_id: 8102,
       total_power: 120,
       team_size: 1,
-      active_team: [],
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 120,
+          power_breakdown: {
+            base: 120,
+            level: 0,
+            bone: 0,
+            spirit: 0,
+            soul: 0,
+            total: 120,
+          },
+          is_active: true,
+        },
+      ],
       roster: [],
     })
     .mockResolvedValueOnce({
       player_id: 8102,
       total_power: 128,
       team_size: 1,
-      active_team: [],
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 128,
+          power_breakdown: {
+            base: 120,
+            level: 0,
+            bone: 0,
+            spirit: 8,
+            soul: 0,
+            total: 128,
+          },
+          is_active: true,
+        },
+      ],
       roster: [],
     })
 
@@ -150,4 +230,6 @@ test("refreshes wallet when resource sync changes", async () => {
   expect(wrapper.text()).toContain("108")
   expect(wrapper.text()).toContain("1")
   expect(wrapper.text()).toContain("阵容战力 128")
+  expect(wrapper.text()).toContain("当前战灵加成 +8")
+  expect(wrapper.text()).toContain("本次洗炼预计阵容战力 128")
 })

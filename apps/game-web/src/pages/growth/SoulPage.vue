@@ -18,6 +18,8 @@
     </div>
     <div class="panel panel--power">
       <p>阵容战力 {{ teamPower }}</p>
+      <span>当前魔魂加成 +{{ currentSoulBonus }}</span>
+      <span>升级后预计阵容战力 {{ predictedTeamPower }}</span>
       <span>魔魂提升已实时计入共享战斗队。</span>
     </div>
     <button class="primary" type="button" @click="upgradeNow">升级魔魂</button>
@@ -28,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 
 import { APIError } from "@/api/http"
 import { getSoulState, type SoulState, upgradeSoul } from "@/api/modules/growth"
@@ -36,14 +38,19 @@ import { getPetCollection } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
+import { emptyPetCollection, predictNextTotalPower, soulBonusPerPiece, sumActiveTeamBonus } from "./powerPreview"
+
 const sessionStore = useSessionStore()
 const resourceSyncStore = useResourceSyncStore()
 const soul = ref<SoulState>({
   name: "",
   power: 0,
 })
-const teamPower = ref(0)
+const collection = ref(emptyPetCollection)
 const errorMessage = ref("")
+const teamPower = computed(() => collection.value.total_power)
+const currentSoulBonus = computed(() => sumActiveTeamBonus(collection.value.active_team, "soul"))
+const predictedTeamPower = computed(() => predictNextTotalPower(collection.value, soulBonusPerPiece))
 
 async function loadSoul() {
   const playerId = sessionStore.playerId
@@ -60,15 +67,14 @@ async function loadSoul() {
   }
 }
 
-async function loadTeamPower() {
+async function loadCollection() {
   const playerId = sessionStore.playerId
   if (!playerId) {
     return
   }
 
   try {
-    const collection = await getPetCollection(playerId)
-    teamPower.value = collection.total_power
+    collection.value = (await getPetCollection(playerId)) ?? emptyPetCollection
   } catch {}
 }
 
@@ -81,7 +87,7 @@ async function upgradeNow() {
 
   try {
     soul.value = await upgradeSoul(playerId)
-    await loadTeamPower()
+    errorMessage.value = ""
     resourceSyncStore.touch()
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "魔魂升级失败。"
@@ -94,12 +100,13 @@ watch(
     if (next === prev) {
       return
     }
-    await Promise.all([loadSoul(), loadTeamPower()])
+    await Promise.all([loadSoul(), loadCollection()])
   },
+  { flush: "sync" },
 )
 
 onMounted(async () => {
-  await Promise.all([loadSoul(), loadTeamPower()])
+  await Promise.all([loadSoul(), loadCollection()])
 })
 </script>
 

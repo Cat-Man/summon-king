@@ -55,14 +55,52 @@ test("loads bone state from api and upgrades bone", async () => {
       player_id: 8202,
       total_power: 120,
       team_size: 1,
-      active_team: [],
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 120,
+          power_breakdown: {
+            base: 120,
+            level: 0,
+            bone: 0,
+            spirit: 0,
+            soul: 0,
+            total: 120,
+          },
+          is_active: true,
+        },
+      ],
       roster: [],
     })
     .mockResolvedValueOnce({
       player_id: 8202,
       total_power: 144,
       team_size: 1,
-      active_team: [],
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 144,
+          power_breakdown: {
+            base: 120,
+            level: 0,
+            bone: 24,
+            spirit: 0,
+            soul: 0,
+            total: 144,
+          },
+          is_active: true,
+        },
+      ],
       roster: [],
     })
 
@@ -77,6 +115,8 @@ test("loads bone state from api and upgrades bone", async () => {
   expect(wrapper.text()).toContain("战骨")
   expect(wrapper.text()).toContain("3")
   expect(wrapper.text()).toContain("阵容战力 120")
+  expect(wrapper.text()).toContain("当前战骨加成 +0")
+  expect(wrapper.text()).toContain("升级后预计阵容战力 144")
 
   await wrapper.get("button.primary").trigger("click")
   await flushPromises()
@@ -85,4 +125,6 @@ test("loads bone state from api and upgrades bone", async () => {
   expect(syncStore.version).toBe(1)
   expect(wrapper.text()).toContain("4")
   expect(wrapper.text()).toContain("阵容战力 144")
+  expect(wrapper.text()).toContain("当前战骨加成 +24")
+  expect(wrapper.text()).toContain("升级后预计阵容战力 168")
 })

@@ -11,7 +11,9 @@
     </div>
     <div class="panel panel--power">
       <p>阵容战力 {{ teamPower }}</p>
-      <span>当前战灵成长已计入共享战斗队。</span>
+      <span>当前战灵加成 +{{ currentSpiritBonus }}</span>
+      <span>本次洗炼预计阵容战力 {{ predictedTeamPower }}</span>
+      <span>洗炼优先消耗次数与灵力，当前战灵成长已计入共享战斗队。</span>
     </div>
     <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
     <button class="primary" type="button" @click="washNow">立刻洗炼</button>
@@ -19,13 +21,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 
 import { APIError } from "@/api/http"
 import { getGrowthWallet, washSpirit, type GrowthWallet } from "@/api/modules/growth"
 import { getPetCollection } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
+
+import { emptyPetCollection, predictNextTotalPower, sumActiveTeamBonus } from "./powerPreview"
 
 const sessionStore = useSessionStore()
 const resourceSyncStore = useResourceSyncStore()
@@ -37,8 +41,11 @@ const wallet = ref<GrowthWallet>({
   soul_pieces: 0,
   manor_plots: 0,
 })
-const teamPower = ref(0)
+const collection = ref(emptyPetCollection)
 const errorMessage = ref("")
+const teamPower = computed(() => collection.value.total_power)
+const currentSpiritBonus = computed(() => sumActiveTeamBonus(collection.value.active_team, "spirit"))
+const predictedTeamPower = computed(() => predictNextTotalPower(collection.value, 0))
 
 async function loadWallet() {
   const playerId = sessionStore.playerId
@@ -55,15 +62,14 @@ async function loadWallet() {
   }
 }
 
-async function loadTeamPower() {
+async function loadCollection() {
   const playerId = sessionStore.playerId
   if (!playerId) {
     return
   }
 
   try {
-    const collection = await getPetCollection(playerId)
-    teamPower.value = collection.total_power
+    collection.value = (await getPetCollection(playerId)) ?? emptyPetCollection
   } catch {}
 }
 
@@ -88,12 +94,13 @@ watch(
     if (next === prev) {
       return
     }
-    await Promise.all([loadWallet(), loadTeamPower()])
+    await Promise.all([loadWallet(), loadCollection()])
   },
+  { flush: "sync" },
 )
 
 onMounted(async () => {
-  await Promise.all([loadWallet(), loadTeamPower()])
+  await Promise.all([loadWallet(), loadCollection()])
 })
 </script>
 

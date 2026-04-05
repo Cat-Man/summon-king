@@ -57,14 +57,52 @@ test("loads soul state from api and upgrades soul", async () => {
       player_id: 8303,
       total_power: 120,
       team_size: 1,
-      active_team: [],
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 120,
+          power_breakdown: {
+            base: 120,
+            level: 0,
+            bone: 0,
+            spirit: 0,
+            soul: 0,
+            total: 120,
+          },
+          is_active: true,
+        },
+      ],
       roster: [],
     })
     .mockResolvedValueOnce({
       player_id: 8303,
       total_power: 136,
       team_size: 1,
-      active_team: [],
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 136,
+          power_breakdown: {
+            base: 120,
+            level: 0,
+            bone: 0,
+            spirit: 0,
+            soul: 16,
+            total: 136,
+          },
+          is_active: true,
+        },
+      ],
       roster: [],
     })
 
@@ -79,6 +117,8 @@ test("loads soul state from api and upgrades soul", async () => {
   expect(wrapper.text()).toContain("魔魂")
   expect(wrapper.text()).toContain("9")
   expect(wrapper.text()).toContain("阵容战力 120")
+  expect(wrapper.text()).toContain("当前魔魂加成 +0")
+  expect(wrapper.text()).toContain("升级后预计阵容战力 128")
 
   await wrapper.get("button.primary").trigger("click")
   await flushPromises()
@@ -87,6 +127,8 @@ test("loads soul state from api and upgrades soul", async () => {
   expect(syncStore.version).toBe(1)
   expect(wrapper.text()).toContain("10")
   expect(wrapper.text()).toContain("阵容战力 136")
+  expect(wrapper.text()).toContain("当前魔魂加成 +16")
+  expect(wrapper.text()).toContain("升级后预计阵容战力 144")
 })
 
 test("refreshes soul when resource sync changes", async () => {
@@ -109,6 +151,59 @@ test("refreshes soul when resource sync changes", async () => {
       name: "魔魂",
       power: 1,
     })
+  vi.mocked(getPetCollection)
+    .mockResolvedValueOnce({
+      player_id: 8304,
+      total_power: 120,
+      team_size: 1,
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 120,
+          power_breakdown: {
+            base: 120,
+            level: 0,
+            bone: 0,
+            spirit: 0,
+            soul: 0,
+            total: 120,
+          },
+          is_active: true,
+        },
+      ],
+      roster: [],
+    })
+    .mockResolvedValueOnce({
+      player_id: 8304,
+      total_power: 128,
+      team_size: 1,
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 128,
+          power_breakdown: {
+            base: 120,
+            level: 0,
+            bone: 0,
+            spirit: 0,
+            soul: 8,
+            total: 128,
+          },
+          is_active: true,
+        },
+      ],
+      roster: [],
+    })
 
   const wrapper = mount(SoulPage, {
     global: {
@@ -122,4 +217,6 @@ test("refreshes soul when resource sync changes", async () => {
 
   expect(getSoulState).toHaveBeenCalledTimes(2)
   expect(wrapper.text()).toContain("1")
+  expect(wrapper.text()).toContain("当前魔魂加成 +8")
+  expect(wrapper.text()).toContain("升级后预计阵容战力 136")
 })
