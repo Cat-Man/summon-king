@@ -119,7 +119,7 @@ const moduleCards = computed(() => {
       title: "幻兽阵容",
       value: `${overview.value.modules.pet.total_power} 战力`,
       description: `主战 ${overview.value.modules.pet.starter_pet_name || "未上阵幻兽"}，已上阵 ${overview.value.modules.pet.active_count} 只。`,
-      route: "/growth/spirit",
+      route: "/pet",
       cta: "继续养成",
     },
   ]

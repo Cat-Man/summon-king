@@ -11,3 +11,9 @@ test("contains arena route", () => {
 
   expect(hasRoute).toBe(true)
 })
+
+test("contains pet route", () => {
+  const hasRoute = router.getRoutes().some((route) => route.path === "/pet")
+
+  expect(hasRoute).toBe(true)
+})

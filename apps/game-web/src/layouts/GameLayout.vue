@@ -34,6 +34,7 @@ const primaryNav = [
 ]
 
 const featureNav = [
+  { to: "/pet", label: "幻兽" },
   { to: "/growth/spirit", label: "战灵" },
   { to: "/growth/bone", label: "战骨" },
   { to: "/growth/soul", label: "魔魂" },

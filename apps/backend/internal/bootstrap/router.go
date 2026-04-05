@@ -63,6 +63,10 @@ func NewRouter() *gin.Engine {
 	registerModuleRoot(growthGroup, "growth")
 	growth.NewHandler(growthRepo).RegisterRoutes(growthGroup)
 
+	petGroup := api.Group("/pet")
+	registerModuleRoot(petGroup, "pet")
+	pet.NewHandler(petService).RegisterRoutes(petGroup)
+
 	towerGroup := api.Group("/tower")
 	registerModuleRoot(towerGroup, "tower")
 	tower.NewHandler(towerService).RegisterRoutes(towerGroup)

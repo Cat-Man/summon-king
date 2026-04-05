@@ -11,6 +11,7 @@ import SoulPage from "@/pages/growth/SoulPage.vue"
 import SpiritPage from "@/pages/growth/SpiritPage.vue"
 import HomePage from "@/pages/home/HomePage.vue"
 import WorldMapPage from "@/pages/maps/WorldMapPage.vue"
+import PetPage from "@/pages/pet/PetPage.vue"
 import RankingPage from "@/pages/ranking/RankingPage.vue"
 import { readSessionSnapshot } from "@/stores/session"
 import PagodaPage from "@/pages/tower/PagodaPage.vue"
@@ -52,6 +53,11 @@ export const router = createRouter({
           path: "cultivation",
           name: "cultivation",
           component: CultivationPage,
+        },
+        {
+          path: "pet",
+          name: "pet",
+          component: PetPage,
         },
         {
           path: "growth/spirit",

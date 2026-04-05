@@ -14,3 +14,11 @@ type TeamSnapshot struct {
 	TotalPower int64       `json:"total_power"`
 	Pets       []BattlePet `json:"pets"`
 }
+
+type CollectionView struct {
+	PlayerID   int64       `json:"player_id"`
+	TotalPower int64       `json:"total_power"`
+	TeamSize   int         `json:"team_size"`
+	ActiveTeam []BattlePet `json:"active_team"`
+	Roster     []BattlePet `json:"roster"`
+}

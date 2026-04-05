@@ -16,11 +16,35 @@ func (s *Service) GetBattleTeam(ctx context.Context, playerID int64) (TeamSnapsh
 		return TeamSnapshot{}, err
 	}
 
-	var totalPower int64
-	for _, battlePet := range team.Pets {
-		totalPower += battlePet.Power
-	}
-	team.TotalPower = totalPower
+	team.TotalPower = totalPower(team.Pets)
 
 	return team, nil
+}
+
+func (s *Service) GetCollection(ctx context.Context, playerID int64) (CollectionView, error) {
+	team, err := s.GetBattleTeam(ctx, playerID)
+	if err != nil {
+		return CollectionView{}, err
+	}
+
+	roster, err := s.repo.ListPets(ctx, playerID)
+	if err != nil {
+		return CollectionView{}, err
+	}
+
+	return CollectionView{
+		PlayerID:   playerID,
+		TotalPower: team.TotalPower,
+		TeamSize:   len(team.Pets),
+		ActiveTeam: team.Pets,
+		Roster:     roster,
+	}, nil
+}
+
+func totalPower(pets []BattlePet) int64 {
+	var total int64
+	for _, battlePet := range pets {
+		total += battlePet.Power
+	}
+	return total
 }
