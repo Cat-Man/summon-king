@@ -12,6 +12,7 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/ranking"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/tower"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/storage/mysqlstore"
 )
 
 type dependencies struct {
@@ -25,15 +26,63 @@ type dependencies struct {
 	towerService   *tower.Service
 }
 
+type mysqlStore interface {
+	mysqlstore.GuestAccountStore
+	mysqlstore.ModuleStateStore
+}
+
+var buildMySQLDependenciesFn = buildMySQLDependencies
+var openMySQLStore = func(cfg Config) (mysqlStore, error) {
+	return mysqlstore.Open(cfg.MySQLDSN)
+}
+
 func buildDependencies(cfg Config) (dependencies, error) {
 	switch cfg.StorageDriver {
 	case "", defaultStorageDriver:
 		return buildMemoryDependencies(), nil
 	case "mysql":
-		return dependencies{}, fmt.Errorf("storage driver %q not implemented yet", cfg.StorageDriver)
+		return buildMySQLDependenciesFn(cfg)
 	default:
 		return dependencies{}, fmt.Errorf("unsupported storage driver %q", cfg.StorageDriver)
 	}
+}
+
+func buildMySQLDependencies(cfg Config) (dependencies, error) {
+	store, err := openMySQLStore(cfg)
+	if err != nil {
+		return dependencies{}, err
+	}
+
+	accountRepo := account.NewMySQLRepository(store)
+	dungeonRepo := dungeon.NewMySQLRepository(store)
+	growthRepo := growth.NewMySQLRepository(store)
+	petRepo := pet.NewMySQLRepository(store)
+	arenaRepo := arena.NewMySQLRepository(store)
+	towerRepo := tower.NewMySQLRepository(store)
+
+	assetService := asset.NewService(growthRepo)
+	accountService := account.NewService(accountRepo)
+	petService := pet.NewService(petRepo, pet.WithGrowthReader(growthRepo))
+	dungeonService := dungeon.NewService(
+		dungeonRepo,
+		assetService,
+		dungeon.WithBattleTeamReader(petService),
+		dungeon.WithPetProgressor(petService),
+	)
+	arenaService := arena.NewService(arenaRepo, assetService, arena.WithBattleTeamReader(petService))
+	towerService := tower.NewService(towerRepo, assetService, tower.WithBattleTeamReader(petService))
+	rankingService := ranking.NewService(accountRepo, growthRepo, dungeonService, arenaService)
+
+	return dependencies{
+		accountService: accountService,
+		homeService:    home.NewService(accountRepo, dungeonService, growthRepo, petService, towerService, arenaService, rankingService),
+		rankingService: rankingService,
+		arenaService:   arenaService,
+		dungeonService: dungeonService,
+		growthRepo:     growthRepo,
+		petService:     petService,
+		towerService:   towerService,
+	}, nil
 }
 
 func buildMemoryDependencies() dependencies {

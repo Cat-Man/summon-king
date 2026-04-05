@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"sync"
+
+	"github.com/Cat-Man/summon-king/apps/backend/internal/storage/mysqlstore"
 )
 
 var ErrNoChallengesRemaining = errors.New("tower challenges exhausted")
@@ -18,6 +20,16 @@ type MemoryRepository struct {
 	progress map[string]map[int64]int
 }
 
+type MySQLRepository struct {
+	store mysqlstore.ModuleStateStore
+}
+
+type mysqlState struct {
+	Progress map[string]int `json:"progress"`
+}
+
+const mysqlModuleName = "tower"
+
 func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{
 		progress: map[string]map[int64]int{
@@ -25,6 +37,10 @@ func NewMemoryRepository() *MemoryRepository {
 			"spirit": {},
 		},
 	}
+}
+
+func NewMySQLRepository(store mysqlstore.ModuleStateStore) *MySQLRepository {
+	return &MySQLRepository{store: store}
 }
 
 func (r *MemoryRepository) StartChallenge(_ context.Context, playerID int64, tower string) (TowerResult, error) {
@@ -87,4 +103,59 @@ func buildTowerStatus(tower string, currentFloor int) TowerStatus {
 	status.Label = "通天塔"
 	status.RewardPreview = "战骨锻造"
 	return status
+}
+
+func (r *MySQLRepository) StartChallenge(ctx context.Context, playerID int64, tower string) (TowerResult, error) {
+	state, err := r.loadState(ctx, playerID)
+	if err != nil {
+		return TowerResult{}, err
+	}
+
+	if state.Progress[tower] >= 5 {
+		return TowerResult{}, ErrNoChallengesRemaining
+	}
+	floor := state.Progress[tower] + 1
+	state.Progress[tower] = floor
+
+	status := buildTowerStatus(tower, floor)
+	return TowerResult{
+		PlayerID:            playerID,
+		Tower:               status.Tower,
+		Floor:               floor,
+		Reward:              status.RewardPreview,
+		RemainingChallenges: status.RemainingChallenges,
+	}, r.saveState(ctx, playerID, state)
+}
+
+func (r *MySQLRepository) GetStatus(ctx context.Context, playerID int64, tower string) TowerStatus {
+	state, err := r.loadState(ctx, playerID)
+	if err != nil {
+		return buildTowerStatus(tower, 0)
+	}
+	return buildTowerStatus(tower, state.Progress[tower])
+}
+
+func (r *MySQLRepository) loadState(ctx context.Context, playerID int64) (mysqlState, error) {
+	state := mysqlState{Progress: map[string]int{"pagoda": 0, "spirit": 0}}
+	ok, err := r.store.LoadModuleState(ctx, playerID, mysqlModuleName, &state)
+	if err != nil {
+		return mysqlState{}, err
+	}
+	if !ok || state.Progress == nil {
+		state.Progress = map[string]int{"pagoda": 0, "spirit": 0}
+	}
+	if _, ok := state.Progress["pagoda"]; !ok {
+		state.Progress["pagoda"] = 0
+	}
+	if _, ok := state.Progress["spirit"]; !ok {
+		state.Progress["spirit"] = 0
+	}
+	return state, nil
+}
+
+func (r *MySQLRepository) saveState(ctx context.Context, playerID int64, state mysqlState) error {
+	if state.Progress == nil {
+		state.Progress = map[string]int{"pagoda": 0, "spirit": 0}
+	}
+	return r.store.SaveModuleState(ctx, playerID, mysqlModuleName, state)
 }

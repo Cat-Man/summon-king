@@ -5,6 +5,8 @@ import (
 	"errors"
 	"sort"
 	"sync"
+
+	"github.com/Cat-Man/summon-king/apps/backend/internal/storage/mysqlstore"
 )
 
 var ErrPetNotFound = errors.New("pet not found")
@@ -26,10 +28,24 @@ type MemoryRepository struct {
 	petsByPlayer map[int64][]BattlePet
 }
 
+type MySQLRepository struct {
+	store mysqlstore.ModuleStateStore
+}
+
+type mysqlState struct {
+	Pets []BattlePet `json:"pets"`
+}
+
+const mysqlModuleName = "pet"
+
 func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{
 		petsByPlayer: make(map[int64][]BattlePet),
 	}
+}
+
+func NewMySQLRepository(store mysqlstore.ModuleStateStore) *MySQLRepository {
+	return &MySQLRepository{store: store}
 }
 
 func (r *MemoryRepository) GetBattleTeam(_ context.Context, playerID int64) (TeamSnapshot, error) {
@@ -284,4 +300,161 @@ func powerForLevel(basePower int64, level int) int64 {
 		level = 1
 	}
 	return basePower + int64(level-1)*levelPowerGain
+}
+
+func (r *MySQLRepository) GetBattleTeam(ctx context.Context, playerID int64) (TeamSnapshot, error) {
+	pets, err := r.loadPets(ctx, playerID)
+	if err != nil {
+		return TeamSnapshot{}, err
+	}
+	return TeamSnapshot{
+		PlayerID: playerID,
+		Pets:     activePets(pets),
+	}, nil
+}
+
+func (r *MySQLRepository) ListPets(ctx context.Context, playerID int64) ([]BattlePet, error) {
+	pets, err := r.loadPets(ctx, playerID)
+	if err != nil {
+		return nil, err
+	}
+	return rosterPets(pets), nil
+}
+
+func (r *MySQLRepository) SaveTeam(ctx context.Context, playerID int64, petIDs []int64) error {
+	pets, err := r.loadPets(ctx, playerID)
+	if err != nil {
+		return err
+	}
+	if err := saveTeamIntoPets(pets, petIDs); err != nil {
+		return err
+	}
+	return r.savePets(ctx, playerID, pets)
+}
+
+func (r *MySQLRepository) SetMainPet(ctx context.Context, playerID, petID int64) error {
+	pets, err := r.loadPets(ctx, playerID)
+	if err != nil {
+		return err
+	}
+
+	targetIndex := -1
+	for idx := range pets {
+		if pets[idx].PetID == petID {
+			targetIndex = idx
+			break
+		}
+	}
+	if targetIndex == -1 {
+		return ErrPetNotFound
+	}
+
+	teamIDs := []int64{petID}
+	if pets[targetIndex].IsActive {
+		teamIDs = append(teamIDs, removePetID(activePetIDs(pets), petID)...)
+	}
+	if err := saveTeamIntoPets(pets, teamIDs); err != nil {
+		return err
+	}
+	return r.savePets(ctx, playerID, pets)
+}
+
+func (r *MySQLRepository) GrantActiveTeamExperience(ctx context.Context, playerID int64, exp int64) (TeamSnapshot, error) {
+	pets, err := r.loadPets(ctx, playerID)
+	if err != nil {
+		return TeamSnapshot{}, err
+	}
+	if exp > 0 {
+		for idx := range pets {
+			if !pets[idx].IsActive {
+				continue
+			}
+			grantExperience(&pets[idx], exp)
+		}
+		if err := r.savePets(ctx, playerID, pets); err != nil {
+			return TeamSnapshot{}, err
+		}
+	}
+	return TeamSnapshot{
+		PlayerID: playerID,
+		Pets:     activePets(pets),
+	}, nil
+}
+
+func (r *MySQLRepository) loadPets(ctx context.Context, playerID int64) ([]BattlePet, error) {
+	var state mysqlState
+	ok, err := r.store.LoadModuleState(ctx, playerID, mysqlModuleName, &state)
+	if err != nil {
+		return nil, err
+	}
+	if !ok || len(state.Pets) == 0 {
+		return defaultPets(playerID), nil
+	}
+	return normalizePets(state.Pets), nil
+}
+
+func (r *MySQLRepository) savePets(ctx context.Context, playerID int64, pets []BattlePet) error {
+	return r.store.SaveModuleState(ctx, playerID, mysqlModuleName, mysqlState{
+		Pets: normalizePets(pets),
+	})
+}
+
+func defaultPets(playerID int64) []BattlePet {
+	return []BattlePet{
+		{
+			PetID:        playerID*10 + 1,
+			Slot:         1,
+			Name:         "初始灵狐",
+			Level:        1,
+			Exp:          0,
+			NextLevelExp: nextLevelExp(1),
+			Power:        120,
+			IsActive:     true,
+			BasePower:    120,
+		},
+		{
+			PetID:        playerID*10 + 2,
+			Slot:         0,
+			Name:         "玄甲龟",
+			Level:        1,
+			Exp:          0,
+			NextLevelExp: nextLevelExp(1),
+			Power:        156,
+			IsActive:     false,
+			BasePower:    156,
+		},
+	}
+}
+
+func saveTeamIntoPets(pets []BattlePet, petIDs []int64) error {
+	if len(petIDs) == 0 || len(petIDs) > maxActiveTeamSize {
+		return ErrInvalidTeam
+	}
+
+	slots := make(map[int64]int, len(petIDs))
+	existing := make(map[int64]struct{}, len(pets))
+	for _, battlePet := range pets {
+		existing[battlePet.PetID] = struct{}{}
+	}
+	for idx, petID := range petIDs {
+		if _, exists := slots[petID]; exists {
+			return ErrInvalidTeam
+		}
+		if _, exists := existing[petID]; !exists {
+			return ErrPetNotFound
+		}
+		slots[petID] = idx + 1
+	}
+
+	for idx := range pets {
+		slot, exists := slots[pets[idx].PetID]
+		if exists {
+			pets[idx].IsActive = true
+			pets[idx].Slot = slot
+			continue
+		}
+		pets[idx].IsActive = false
+		pets[idx].Slot = 0
+	}
+	return nil
 }

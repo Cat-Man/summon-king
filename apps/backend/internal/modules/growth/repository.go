@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 	"time"
+
+	"github.com/Cat-Man/summon-king/apps/backend/internal/storage/mysqlstore"
 )
 
 type Repository interface {
@@ -25,12 +27,28 @@ type MemoryRepository struct {
 	plots   map[int64][]ManorPlot
 }
 
+type MySQLRepository struct {
+	store mysqlstore.ModuleStateStore
+}
+
+type mysqlState struct {
+	Wallet           Wallet      `json:"wallet"`
+	SpiritBonusPower int64       `json:"spirit_bonus_power"`
+	Plots            []ManorPlot `json:"plots"`
+}
+
+const mysqlModuleName = "growth"
+
 func NewMemoryRepository() *MemoryRepository {
 	return &MemoryRepository{
 		wallets: make(map[int64]Wallet),
 		updated: make(map[int64]time.Time),
 		plots:   make(map[int64][]ManorPlot),
 	}
+}
+
+func NewMySQLRepository(store mysqlstore.ModuleStateStore) *MySQLRepository {
+	return &MySQLRepository{store: store}
 }
 
 func (r *MemoryRepository) ensureWallet(playerID int64) Wallet {
@@ -171,4 +189,198 @@ func (r *MemoryRepository) ensurePlots(playerID int64) []ManorPlot {
 	}
 	r.plots[playerID] = plots
 	return plots
+}
+
+func (r *MySQLRepository) GetWallet(ctx context.Context, playerID int64) (Wallet, error) {
+	state, err := r.loadState(ctx, playerID)
+	if err != nil {
+		return Wallet{}, err
+	}
+	return state.Wallet, nil
+}
+
+func (r *MySQLRepository) BeginFreeWash(ctx context.Context, playerID int64) (bool, error) {
+	state, err := r.loadState(ctx, playerID)
+	if err != nil {
+		return false, err
+	}
+	if state.Wallet.SpiritFreeWash <= 0 {
+		return false, nil
+	}
+	state.Wallet.SpiritFreeWash--
+	return true, r.saveState(ctx, playerID, state)
+}
+
+func (r *MySQLRepository) CommitWash(ctx context.Context, playerID int64, delta int64) error {
+	state, err := r.loadState(ctx, playerID)
+	if err != nil {
+		return err
+	}
+	state.Wallet.SpiritPower += delta
+	if state.Wallet.SpiritPower < 0 {
+		state.Wallet.SpiritPower = 0
+	}
+	return r.saveState(ctx, playerID, state)
+}
+
+func (r *MySQLRepository) UpdateSpiritPower(ctx context.Context, playerID int64, delta int64) error {
+	state, err := r.loadState(ctx, playerID)
+	if err != nil {
+		return err
+	}
+	state.Wallet.SpiritPower += delta
+	if state.Wallet.SpiritPower < 0 {
+		state.Wallet.SpiritPower = 0
+	}
+	if delta > 0 {
+		state.Wallet.SpiritBonusPower += delta
+	}
+	return r.saveState(ctx, playerID, state)
+}
+
+func (r *MySQLRepository) UpgradeBoneLevel(ctx context.Context, playerID int64, delta int) (Wallet, error) {
+	state, err := r.loadState(ctx, playerID)
+	if err != nil {
+		return Wallet{}, err
+	}
+	state.Wallet.BoneLevel += delta
+	if state.Wallet.BoneLevel < 1 {
+		state.Wallet.BoneLevel = 1
+	}
+	return state.Wallet, r.saveState(ctx, playerID, state)
+}
+
+func (r *MySQLRepository) UpgradeSoulPower(ctx context.Context, playerID int64, delta int) (Wallet, error) {
+	state, err := r.loadState(ctx, playerID)
+	if err != nil {
+		return Wallet{}, err
+	}
+	state.Wallet.SoulPieces += delta
+	if state.Wallet.SoulPieces < 0 {
+		state.Wallet.SoulPieces = 0
+	}
+	return state.Wallet, r.saveState(ctx, playerID, state)
+}
+
+func (r *MySQLRepository) GetManorPlots(ctx context.Context, playerID int64) ([]ManorPlot, error) {
+	state, err := r.loadState(ctx, playerID)
+	if err != nil {
+		return nil, err
+	}
+	return append([]ManorPlot(nil), state.Plots...), nil
+}
+
+func (r *MySQLRepository) HarvestManor(ctx context.Context, playerID int64) ([]ManorPlot, error) {
+	state, err := r.loadState(ctx, playerID)
+	if err != nil {
+		return nil, err
+	}
+	next := make([]ManorPlot, len(state.Plots))
+	for i, plot := range state.Plots {
+		plot.State = "冷却中"
+		next[i] = plot
+	}
+	state.Plots = next
+	if err := r.saveState(ctx, playerID, state); err != nil {
+		return nil, err
+	}
+	return append([]ManorPlot(nil), next...), nil
+}
+
+func (r *MySQLRepository) PlantManor(ctx context.Context, playerID int64) ([]ManorPlot, error) {
+	state, err := r.loadState(ctx, playerID)
+	if err != nil {
+		return nil, err
+	}
+	next := make([]ManorPlot, len(state.Plots))
+	for i, plot := range state.Plots {
+		plot.State = "成长中"
+		next[i] = plot
+	}
+	state.Plots = next
+	if err := r.saveState(ctx, playerID, state); err != nil {
+		return nil, err
+	}
+	return append([]ManorPlot(nil), next...), nil
+}
+
+func (r *MySQLRepository) loadState(ctx context.Context, playerID int64) (mysqlState, error) {
+	var state mysqlState
+	ok, err := r.store.LoadModuleState(ctx, playerID, mysqlModuleName, &state)
+	if err != nil {
+		return mysqlState{}, err
+	}
+	if !ok {
+		state = defaultMySQLState(playerID)
+		return state, nil
+	}
+	if state.SpiritBonusPower > 0 {
+		state.Wallet.SpiritBonusPower = state.SpiritBonusPower
+	}
+	if state.Wallet.PlayerID == 0 {
+		state.Wallet.PlayerID = playerID
+	}
+	if state.Wallet.BoneLevel < 1 {
+		state.Wallet.BoneLevel = 1
+	}
+	if state.Wallet.ManorPlots == 0 {
+		state.Wallet.ManorPlots = 2
+	}
+	if len(state.Plots) == 0 {
+		state.Plots = defaultPlots()
+	}
+	return state, nil
+}
+
+func (r *MySQLRepository) saveState(ctx context.Context, playerID int64, state mysqlState) error {
+	if state.Wallet.PlayerID == 0 {
+		state.Wallet.PlayerID = playerID
+	}
+	if state.Wallet.BoneLevel < 1 {
+		state.Wallet.BoneLevel = 1
+	}
+	if state.Wallet.ManorPlots == 0 {
+		state.Wallet.ManorPlots = 2
+	}
+	if len(state.Plots) == 0 {
+		state.Plots = defaultPlots()
+	}
+	state.SpiritBonusPower = state.Wallet.SpiritBonusPower
+	return r.store.SaveModuleState(ctx, playerID, mysqlModuleName, state)
+}
+
+func defaultMySQLState(playerID int64) mysqlState {
+	return mysqlState{
+		Wallet: normalizeWallet(playerID, Wallet{}),
+		Plots:  defaultPlots(),
+	}
+}
+
+func normalizeWallet(playerID int64, wallet Wallet) Wallet {
+	if wallet.PlayerID == 0 {
+		wallet.PlayerID = playerID
+	}
+	if wallet.SpiritPower == 0 {
+		wallet.SpiritPower = 100
+	}
+	if wallet.SpiritBonusPower == 0 {
+		wallet.SpiritBonusPower = 100
+	}
+	if wallet.SpiritFreeWash == 0 {
+		wallet.SpiritFreeWash = 3
+	}
+	if wallet.BoneLevel <= 0 {
+		wallet.BoneLevel = 1
+	}
+	if wallet.ManorPlots == 0 {
+		wallet.ManorPlots = 2
+	}
+	return wallet
+}
+
+func defaultPlots() []ManorPlot {
+	return []ManorPlot{
+		{PlotID: 1, State: "空闲"},
+		{PlotID: 2, State: "成长中"},
+	}
 }
