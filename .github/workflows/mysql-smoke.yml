@@ -1,0 +1,26 @@
+name: MySQL Smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  mysql-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: apps/backend/go.mod
+
+      - name: Show tool versions
+        run: |
+          go version
+          docker --version
+          docker compose version
+
+      - name: Run MySQL smoke
+        run: make smoke-backend-mysql
