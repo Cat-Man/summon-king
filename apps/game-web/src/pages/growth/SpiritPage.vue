@@ -9,6 +9,10 @@
       <span>免费洗炼优先消耗</span>
       <span>战骨 {{ wallet.bone_level }} · 魔魂 {{ wallet.soul_pieces }}</span>
     </div>
+    <div class="panel panel--power">
+      <p>阵容战力 {{ teamPower }}</p>
+      <span>当前战灵成长已计入共享战斗队。</span>
+    </div>
     <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
     <button class="primary" type="button" @click="washNow">立刻洗炼</button>
   </section>
@@ -19,6 +23,7 @@ import { onMounted, ref, watch } from "vue"
 
 import { APIError } from "@/api/http"
 import { getGrowthWallet, washSpirit, type GrowthWallet } from "@/api/modules/growth"
+import { getPetCollection } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
@@ -32,6 +37,7 @@ const wallet = ref<GrowthWallet>({
   soul_pieces: 0,
   manor_plots: 0,
 })
+const teamPower = ref(0)
 const errorMessage = ref("")
 
 async function loadWallet() {
@@ -47,6 +53,18 @@ async function loadWallet() {
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "战灵状态加载失败。"
   }
+}
+
+async function loadTeamPower() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    return
+  }
+
+  try {
+    const collection = await getPetCollection(playerId)
+    teamPower.value = collection.total_power
+  } catch {}
 }
 
 async function washNow() {
@@ -70,12 +88,12 @@ watch(
     if (next === prev) {
       return
     }
-    await loadWallet()
+    await Promise.all([loadWallet(), loadTeamPower()])
   },
 )
 
 onMounted(async () => {
-  await loadWallet()
+  await Promise.all([loadWallet(), loadTeamPower()])
 })
 </script>
 
@@ -101,6 +119,21 @@ onMounted(async () => {
   background: rgba(255, 255, 255, 0.4);
   display: flex;
   justify-content: space-between;
+}
+.panel {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.panel--power p,
+.panel--power span {
+  margin: 0;
+}
+.panel--power span {
+  display: block;
+  margin-top: 6px;
+  color: rgba(23, 23, 23, 0.72);
+  font-size: 14px;
 }
 .status-text {
   margin: 0;

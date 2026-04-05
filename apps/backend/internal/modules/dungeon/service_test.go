@@ -529,7 +529,7 @@ func TestRollDice_UsesGrowthBoostedBattleTeamReader(t *testing.T) {
 	}
 }
 
-func TestRollDice_BossBattleSummaryDoesNotUseCurrentRewardSoulBonus(t *testing.T) {
+func TestRollDice_BossBattleSummaryUsesPriorSpiritBonusButNotCurrentSoulBonus(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
 	petSvc := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
@@ -558,8 +558,8 @@ func TestRollDice_BossBattleSummaryDoesNotUseCurrentRewardSoulBonus(t *testing.T
 	if run.LastReward.SoulPieces != 1 {
 		t.Fatalf("expected soul reward 1, got %d", run.LastReward.SoulPieces)
 	}
-	if run.BattleResult.AttackerPower != 120 {
-		t.Fatalf("expected boss battle attacker power 120 before current reward settles, got %d", run.BattleResult.AttackerPower)
+	if run.BattleResult.AttackerPower != 135 {
+		t.Fatalf("expected boss battle attacker power 135 before current soul reward settles, got %d", run.BattleResult.AttackerPower)
 	}
 }
 

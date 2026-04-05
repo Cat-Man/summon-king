@@ -1,12 +1,13 @@
 package growth
 
 type Wallet struct {
-	PlayerID       int64 `json:"player_id"`
-	SpiritPower    int64 `json:"spirit_power"`
-	SpiritFreeWash int   `json:"spirit_free_wash"`
-	BoneLevel      int   `json:"bone_level"`
-	SoulPieces     int   `json:"soul_pieces"`
-	ManorPlots     int   `json:"manor_plots"`
+	PlayerID         int64 `json:"player_id"`
+	SpiritPower      int64 `json:"spirit_power"`
+	SpiritBonusPower int64 `json:"-"`
+	SpiritFreeWash   int   `json:"spirit_free_wash"`
+	BoneLevel        int   `json:"bone_level"`
+	SoulPieces       int   `json:"soul_pieces"`
+	ManorPlots       int   `json:"manor_plots"`
 }
 
 type WashOption struct {

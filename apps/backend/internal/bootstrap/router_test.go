@@ -196,8 +196,8 @@ func TestRouter_CultivationClaimAffectsPetTeamAndArenaPower(t *testing.T) {
 	if petPayload.Code != 0 {
 		t.Fatalf("expected pet business code 0, got %d", petPayload.Code)
 	}
-	if petPayload.Data.TotalPower != 144 {
-		t.Fatalf("expected pet total power 144 after cultivation claim, got %d", petPayload.Data.TotalPower)
+	if petPayload.Data.TotalPower != 154 {
+		t.Fatalf("expected pet total power 154 after cultivation claim, got %d", petPayload.Data.TotalPower)
 	}
 	if len(petPayload.Data.ActiveTeam) != 1 {
 		t.Fatalf("expected active team size 1, got %d", len(petPayload.Data.ActiveTeam))
@@ -208,8 +208,8 @@ func TestRouter_CultivationClaimAffectsPetTeamAndArenaPower(t *testing.T) {
 	if petPayload.Data.ActiveTeam[0].Exp != 0 {
 		t.Fatalf("expected remaining exp 0 after level up, got %d", petPayload.Data.ActiveTeam[0].Exp)
 	}
-	if petPayload.Data.ActiveTeam[0].Power != 144 {
-		t.Fatalf("expected pet power 144 after cultivation claim, got %d", petPayload.Data.ActiveTeam[0].Power)
+	if petPayload.Data.ActiveTeam[0].Power != 154 {
+		t.Fatalf("expected pet power 154 after cultivation claim, got %d", petPayload.Data.ActiveTeam[0].Power)
 	}
 
 	arenaReq := httptest.NewRequest(http.MethodPost, "/api/v1/arena/challenge", bytes.NewBufferString(`{"player_id":1001,"won":true}`))
@@ -235,8 +235,8 @@ func TestRouter_CultivationClaimAffectsPetTeamAndArenaPower(t *testing.T) {
 	if arenaPayload.Code != 0 {
 		t.Fatalf("expected arena business code 0, got %d", arenaPayload.Code)
 	}
-	if arenaPayload.Data.Battle.AttackerPower != 144 {
-		t.Fatalf("expected attacker power 144 after cultivation growth, got %d", arenaPayload.Data.Battle.AttackerPower)
+	if arenaPayload.Data.Battle.AttackerPower != 154 {
+		t.Fatalf("expected attacker power 154 after cultivation growth, got %d", arenaPayload.Data.Battle.AttackerPower)
 	}
 }
 
@@ -292,5 +292,61 @@ func TestRouter_BoneUpgradeAffectsPetTeamAndArenaPower(t *testing.T) {
 	}
 	if arenaPayload.Data.Battle.AttackerPower != 144 {
 		t.Fatalf("expected attacker power 144 after bone upgrade, got %d", arenaPayload.Data.Battle.AttackerPower)
+	}
+}
+
+func TestRouter_SpiritTowerRewardAffectsPetTeamAndArenaPower(t *testing.T) {
+	r := NewRouter()
+
+	towerReq := httptest.NewRequest(http.MethodPost, "/api/v1/tower/spirit-tower/start", bytes.NewBufferString(`{"player_id":1003}`))
+	towerReq.Header.Set("Content-Type", "application/json")
+	towerResp := httptest.NewRecorder()
+	r.ServeHTTP(towerResp, towerReq)
+
+	if towerResp.Code != http.StatusOK {
+		t.Fatalf("expected spirit tower challenge 200, got %d", towerResp.Code)
+	}
+
+	petReq := httptest.NewRequest(http.MethodGet, "/api/v1/pet/team?player_id=1003", nil)
+	petResp := httptest.NewRecorder()
+	r.ServeHTTP(petResp, petReq)
+
+	var petPayload struct {
+		Code int `json:"code"`
+		Data struct {
+			TotalPower int64 `json:"total_power"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(petResp.Body).Decode(&petPayload); err != nil {
+		t.Fatalf("expected pet JSON payload, got %v", err)
+	}
+	if petPayload.Code != 0 {
+		t.Fatalf("expected pet business code 0, got %d", petPayload.Code)
+	}
+	if petPayload.Data.TotalPower != 140 {
+		t.Fatalf("expected pet total power 140 after spirit tower reward, got %d", petPayload.Data.TotalPower)
+	}
+
+	arenaReq := httptest.NewRequest(http.MethodPost, "/api/v1/arena/challenge", bytes.NewBufferString(`{"player_id":1003,"won":true}`))
+	arenaReq.Header.Set("Content-Type", "application/json")
+	arenaResp := httptest.NewRecorder()
+	r.ServeHTTP(arenaResp, arenaReq)
+
+	var arenaPayload struct {
+		Code int `json:"code"`
+		Data struct {
+			Battle struct {
+				AttackerPower int64 `json:"attacker_power"`
+			} `json:"battle"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(arenaResp.Body).Decode(&arenaPayload); err != nil {
+		t.Fatalf("expected arena JSON payload, got %v", err)
+	}
+	if arenaPayload.Code != 0 {
+		t.Fatalf("expected arena business code 0, got %d", arenaPayload.Code)
+	}
+	if arenaPayload.Data.Battle.AttackerPower != 140 {
+		t.Fatalf("expected attacker power 140 after spirit tower reward, got %d", arenaPayload.Data.Battle.AttackerPower)
 	}
 }

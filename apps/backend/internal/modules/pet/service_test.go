@@ -366,3 +366,51 @@ func TestService_GetCollectionDistributesSoulBonusAcrossActiveTeam(t *testing.T)
 		t.Fatalf("expected roster active slot 2 power 164, got %d", data.Roster[1].Power)
 	}
 }
+
+func TestService_GetBattleTeamAddsSpiritBonusAboveWalletBaseline(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	if err := growthRepo.UpdateSpiritPower(ctx, 1001, 8); err != nil {
+		t.Fatalf("expected spirit update success, got %v", err)
+	}
+	svc := NewService(NewMemoryRepository(), WithGrowthReader(growthRepo))
+
+	team, err := svc.GetBattleTeam(ctx, 1001)
+
+	if err != nil {
+		t.Fatalf("expected battle team success, got %v", err)
+	}
+	if team.TotalPower != 128 {
+		t.Fatalf("expected total power 128 after spirit bonus, got %d", team.TotalPower)
+	}
+	if team.Pets[0].Power != 128 {
+		t.Fatalf("expected pet power 128 after spirit bonus, got %d", team.Pets[0].Power)
+	}
+}
+
+func TestService_GetBattleTeamKeepsSpiritBonusAfterSpiritWashConsumesWalletPower(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	if err := growthRepo.UpdateSpiritPower(ctx, 1001, 8); err != nil {
+		t.Fatalf("expected spirit update success, got %v", err)
+	}
+	spiritSvc := growth.NewSpiritService(growthRepo)
+	for i := 0; i < 4; i++ {
+		if err := spiritSvc.WashSpirit(ctx, 1001, growth.WashOption{}); err != nil {
+			t.Fatalf("expected spirit wash success, got %v", err)
+		}
+	}
+	svc := NewService(NewMemoryRepository(), WithGrowthReader(growthRepo))
+
+	team, err := svc.GetBattleTeam(ctx, 1001)
+
+	if err != nil {
+		t.Fatalf("expected battle team success, got %v", err)
+	}
+	if team.TotalPower != 128 {
+		t.Fatalf("expected total power 128 after spending spirit resource, got %d", team.TotalPower)
+	}
+	if team.Pets[0].Power != 128 {
+		t.Fatalf("expected pet power 128 after spending spirit resource, got %d", team.Pets[0].Power)
+	}
+}

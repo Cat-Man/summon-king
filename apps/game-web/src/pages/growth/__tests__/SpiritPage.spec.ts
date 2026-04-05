@@ -2,6 +2,7 @@ import { createPinia, setActivePinia } from "pinia"
 import { flushPromises, mount } from "@vue/test-utils"
 
 import { getGrowthWallet, washSpirit } from "@/api/modules/growth"
+import { getPetCollection } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
@@ -13,6 +14,10 @@ vi.mock("@/api/modules/growth", () => ({
   getBoneState: vi.fn(),
   getSoulState: vi.fn(),
   getManorPlots: vi.fn(),
+}))
+
+vi.mock("@/api/modules/pet", () => ({
+  getPetCollection: vi.fn(),
 }))
 
 beforeEach(() => {
@@ -47,6 +52,21 @@ test("loads wallet and refreshes after spirit wash", async () => {
       soul_pieces: 4,
       manor_plots: 2,
     })
+  vi.mocked(getPetCollection)
+    .mockResolvedValueOnce({
+      player_id: 8101,
+      total_power: 196,
+      team_size: 1,
+      active_team: [],
+      roster: [],
+    })
+    .mockResolvedValueOnce({
+      player_id: 8101,
+      total_power: 196,
+      team_size: 1,
+      active_team: [],
+      roster: [],
+    })
   vi.mocked(washSpirit).mockResolvedValue({ washed: true })
 
   const wrapper = mount(SpiritPage, {
@@ -59,13 +79,16 @@ test("loads wallet and refreshes after spirit wash", async () => {
   expect(getGrowthWallet).toHaveBeenCalledWith(8101)
   expect(wrapper.text()).toContain("120")
   expect(wrapper.text()).toContain("3")
+  expect(wrapper.text()).toContain("阵容战力 196")
 
   await wrapper.get("button.primary").trigger("click")
   await flushPromises()
 
   expect(washSpirit).toHaveBeenCalledWith(8101)
+  expect(getPetCollection).toHaveBeenCalledTimes(2)
   expect(syncStore.version).toBe(1)
   expect(wrapper.text()).toContain("2")
+  expect(wrapper.text()).toContain("阵容战力 196")
 })
 
 test("refreshes wallet when resource sync changes", async () => {
@@ -96,6 +119,21 @@ test("refreshes wallet when resource sync changes", async () => {
       soul_pieces: 1,
       manor_plots: 2,
     })
+  vi.mocked(getPetCollection)
+    .mockResolvedValueOnce({
+      player_id: 8102,
+      total_power: 120,
+      team_size: 1,
+      active_team: [],
+      roster: [],
+    })
+    .mockResolvedValueOnce({
+      player_id: 8102,
+      total_power: 128,
+      team_size: 1,
+      active_team: [],
+      roster: [],
+    })
 
   const wrapper = mount(SpiritPage, {
     global: {
@@ -108,6 +146,8 @@ test("refreshes wallet when resource sync changes", async () => {
   await flushPromises()
 
   expect(getGrowthWallet).toHaveBeenCalledTimes(2)
+  expect(getPetCollection).toHaveBeenCalledTimes(2)
   expect(wrapper.text()).toContain("108")
   expect(wrapper.text()).toContain("1")
+  expect(wrapper.text()).toContain("阵容战力 128")
 })

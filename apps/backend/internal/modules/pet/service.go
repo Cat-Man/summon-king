@@ -98,6 +98,8 @@ func totalPower(pets []BattlePet) int64 {
 }
 
 const boneBonusPerLevel int64 = 24
+const spiritBonusBaseline int64 = 100
+const spiritBonusPerPoint int64 = 1
 const soulBonusPerPiece int64 = 8
 
 func (s *Service) applyGrowthBonuses(ctx context.Context, playerID int64, team TeamSnapshot) TeamSnapshot {
@@ -148,6 +150,13 @@ func (s *Service) applyRosterPowerOverrides(roster []BattlePet, active []BattleP
 
 func growthTeamBonus(wallet growth.Wallet) int64 {
 	boneLevels := max(wallet.BoneLevel-1, 0)
+	spiritPower := wallet.SpiritBonusPower
+	if spiritPower == 0 {
+		spiritPower = wallet.SpiritPower
+	}
+	spiritPower = max(spiritPower-spiritBonusBaseline, 0)
 	soulPieces := max(wallet.SoulPieces, 0)
-	return int64(boneLevels)*boneBonusPerLevel + int64(soulPieces)*soulBonusPerPiece
+	return int64(boneLevels)*boneBonusPerLevel +
+		spiritPower*spiritBonusPerPoint +
+		int64(soulPieces)*soulBonusPerPiece
 }

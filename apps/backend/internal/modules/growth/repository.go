@@ -38,12 +38,13 @@ func (r *MemoryRepository) ensureWallet(playerID int64) Wallet {
 		return wallet
 	}
 	wallet := Wallet{
-		PlayerID:       playerID,
-		SpiritPower:    100,
-		SpiritFreeWash: 3,
-		BoneLevel:      1,
-		SoulPieces:     0,
-		ManorPlots:     2,
+		PlayerID:         playerID,
+		SpiritPower:      100,
+		SpiritBonusPower: 100,
+		SpiritFreeWash:   3,
+		BoneLevel:        1,
+		SoulPieces:       0,
+		ManorPlots:       2,
 	}
 	r.wallets[playerID] = wallet
 	return wallet
@@ -81,7 +82,20 @@ func (r *MemoryRepository) CommitWash(ctx context.Context, playerID int64, delta
 }
 
 func (r *MemoryRepository) UpdateSpiritPower(ctx context.Context, playerID int64, delta int64) error {
-	return r.CommitWash(ctx, playerID, delta)
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	wallet := r.ensureWallet(playerID)
+	wallet.SpiritPower += delta
+	if wallet.SpiritPower < 0 {
+		wallet.SpiritPower = 0
+	}
+	if delta > 0 {
+		wallet.SpiritBonusPower += delta
+	}
+	r.wallets[playerID] = wallet
+	r.updated[playerID] = time.Now()
+	return nil
 }
 
 func (r *MemoryRepository) UpgradeBoneLevel(_ context.Context, playerID int64, delta int) (Wallet, error) {
