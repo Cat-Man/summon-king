@@ -35,6 +35,29 @@
       </article>
     </div>
 
+    <article v-if="growthSummary" class="growth-summary-card">
+      <header>
+        <div>
+          <p>养成入口</p>
+          <h3>成长收益摘要</h3>
+        </div>
+        <strong>养成总加成 +{{ growthSummary.totalBonus }}</strong>
+      </header>
+      <p class="growth-summary-copy">
+        当前战骨、战灵、魔魂加成已经统一沉淀到共享战斗队，首页可以直接跳回对应养成入口继续推进。
+      </p>
+      <div class="growth-summary-metrics">
+        <span>战骨 +{{ growthSummary.boneBonus }}</span>
+        <span>战灵 +{{ growthSummary.spiritBonus }}</span>
+        <span>魔魂 +{{ growthSummary.soulBonus }}</span>
+      </div>
+      <div class="growth-summary-links">
+        <RouterLink class="entry-link" to="/growth/bone">前往战骨</RouterLink>
+        <RouterLink class="entry-link" to="/growth/spirit">前往战灵</RouterLink>
+        <RouterLink class="entry-link" to="/growth/soul">前往魔魂</RouterLink>
+      </div>
+    </article>
+
     <div class="tower-grid" v-if="towerCards.length">
       <article v-for="tower in towerCards" :key="tower.title" class="tower-card">
         <header>
@@ -58,12 +81,14 @@ import { RouterLink } from "vue-router"
 
 import { APIError } from "@/api/http"
 import { getHomeOverview, type HomeOverview } from "@/api/modules/home"
+import { getPetCollection, type PetCollection } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
 const resourceSyncStore = useResourceSyncStore()
 const overview = ref<HomeOverview | null>(null)
+const petCollection = ref<PetCollection | null>(null)
 const errorMessage = ref("")
 
 const displayNickname = computed(() => overview.value?.nickname || sessionStore.nickname || "未登录玩家")
@@ -125,6 +150,24 @@ const moduleCards = computed(() => {
   ]
 })
 
+const growthSummary = computed(() => {
+  const activeTeam = petCollection.value?.active_team ?? []
+  if (activeTeam.length === 0) {
+    return null
+  }
+
+  const boneBonus = activeTeam.reduce((total, pet) => total + (pet.power_breakdown?.bone ?? 0), 0)
+  const spiritBonus = activeTeam.reduce((total, pet) => total + (pet.power_breakdown?.spirit ?? 0), 0)
+  const soulBonus = activeTeam.reduce((total, pet) => total + (pet.power_breakdown?.soul ?? 0), 0)
+
+  return {
+    boneBonus,
+    spiritBonus,
+    soulBonus,
+    totalBonus: boneBonus + spiritBonus + soulBonus,
+  }
+})
+
 type TowerCard = {
   route: string
   title: string
@@ -180,18 +223,33 @@ async function loadOverview() {
   }
 }
 
+async function loadPetSummary() {
+  if (!sessionStore.playerId) {
+    return
+  }
+
+  try {
+    petCollection.value = await getPetCollection(sessionStore.playerId)
+  } catch {}
+}
+
+async function loadHomeData() {
+  await Promise.all([loadOverview(), loadPetSummary()])
+}
+
 watch(
   () => resourceSyncStore.version,
   async (next, prev) => {
     if (next === prev) {
       return
     }
-    await loadOverview()
+    await loadHomeData()
   },
+  { flush: "sync" },
 )
 
 onMounted(async () => {
-  await loadOverview()
+  await loadHomeData()
 })
 </script>
 
@@ -304,6 +362,66 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 18px;
+}
+
+.growth-summary-card {
+  padding: 22px;
+  border-radius: 22px;
+  border: 1px solid rgba(147, 197, 253, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(125, 211, 252, 0.14), transparent 25%),
+    rgba(15, 20, 31, 0.92);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+}
+
+.growth-summary-card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.growth-summary-card header p,
+.growth-summary-card header h3,
+.growth-summary-copy {
+  margin: 0;
+}
+
+.growth-summary-card header p {
+  color: rgba(147, 197, 253, 0.82);
+  letter-spacing: 0.18em;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.growth-summary-card header h3 {
+  margin-top: 6px;
+}
+
+.growth-summary-card header strong {
+  color: #7dd3fc;
+  font-size: 20px;
+}
+
+.growth-summary-copy {
+  margin-top: 12px;
+  color: rgba(247, 239, 225, 0.72);
+  line-height: 1.7;
+}
+
+.growth-summary-metrics,
+.growth-summary-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.growth-summary-metrics span {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(247, 239, 225, 0.06);
+  color: rgba(247, 239, 225, 0.86);
 }
 
 .overview-card {

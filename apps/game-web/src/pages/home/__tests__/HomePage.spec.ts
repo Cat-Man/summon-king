@@ -5,9 +5,14 @@ import { useSessionStore } from "@/stores/session"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import HomePage from "../HomePage.vue"
 import { getHomeOverview } from "@/api/modules/home"
+import { getPetCollection } from "@/api/modules/pet"
 
 vi.mock("@/api/modules/home", () => ({
   getHomeOverview: vi.fn(),
+}))
+
+vi.mock("@/api/modules/pet", () => ({
+  getPetCollection: vi.fn(),
 }))
 
 beforeEach(() => {
@@ -75,6 +80,32 @@ test("renders overview from api", async () => {
       cta: "继续挑战",
     },
   })
+  vi.mocked(getPetCollection).mockResolvedValue({
+    player_id: 2001,
+    total_power: 168,
+    team_size: 1,
+    active_team: [
+      {
+        pet_id: 10011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        exp: 0,
+        next_level_exp: 100,
+        power: 168,
+        power_breakdown: {
+          base: 120,
+          level: 0,
+          bone: 24,
+          spirit: 8,
+          soul: 16,
+          total: 168,
+        },
+        is_active: true,
+      },
+    ],
+    roster: [],
+  })
 
   const wrapper = mount(HomePage, {
     global: {
@@ -92,9 +123,16 @@ test("renders overview from api", async () => {
   expect(wrapper.text()).toContain("战灵塔")
   expect(wrapper.text()).toContain("幻兽阵容")
   expect(wrapper.text()).toContain("初始灵狐")
+  expect(wrapper.text()).toContain("养成总加成 +48")
+  expect(wrapper.text()).toContain("战骨 +24")
+  expect(wrapper.text()).toContain("战灵 +8")
+  expect(wrapper.text()).toContain("魔魂 +16")
   expect(wrapper.text()).toContain("玄境 · 已开放 2 城")
   expect(wrapper.text()).toContain("第 3 层")
-  expect(wrapper.findAllComponents(RouterLinkStub).length).toBeGreaterThan(0)
+  const routes = wrapper.findAllComponents(RouterLinkStub).map((component) => component.props("to"))
+  expect(routes).toContain("/growth/bone")
+  expect(routes).toContain("/growth/spirit")
+  expect(routes).toContain("/growth/soul")
 })
 
 test("refreshes overview when resource sync changes", async () => {
@@ -163,6 +201,59 @@ test("refreshes overview when resource sync changes", async () => {
   vi.mocked(getHomeOverview)
     .mockResolvedValueOnce(overview(3, 12))
     .mockResolvedValueOnce(overview(5, 11))
+  vi.mocked(getPetCollection)
+    .mockResolvedValueOnce({
+      player_id: 2002,
+      total_power: 128,
+      team_size: 1,
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 128,
+          power_breakdown: {
+            base: 120,
+            level: 0,
+            bone: 0,
+            spirit: 8,
+            soul: 0,
+            total: 128,
+          },
+          is_active: true,
+        },
+      ],
+      roster: [],
+    })
+    .mockResolvedValueOnce({
+      player_id: 2002,
+      total_power: 168,
+      team_size: 1,
+      active_team: [
+        {
+          pet_id: 10011,
+          slot: 1,
+          name: "初始灵狐",
+          level: 1,
+          exp: 0,
+          next_level_exp: 100,
+          power: 168,
+          power_breakdown: {
+            base: 120,
+            level: 0,
+            bone: 24,
+            spirit: 8,
+            soul: 16,
+            total: 168,
+          },
+          is_active: true,
+        },
+      ],
+      roster: [],
+    })
 
   const wrapper = mount(HomePage, {
     global: {
@@ -178,5 +269,10 @@ test("refreshes overview when resource sync changes", async () => {
   await flushPromises()
 
   expect(getHomeOverview).toHaveBeenCalledTimes(2)
+  expect(getPetCollection).toHaveBeenCalledTimes(2)
   expect(wrapper.text()).toContain("第 5 层")
+  expect(wrapper.text()).toContain("养成总加成 +48")
+  expect(wrapper.text()).toContain("战骨 +24")
+  expect(wrapper.text()).toContain("战灵 +8")
+  expect(wrapper.text()).toContain("魔魂 +16")
 })
