@@ -6,6 +6,18 @@ export type ArenaRecord = {
   last_win: boolean
 }
 
+export type ArenaOpponent = {
+  opponent_id: number
+  name: string
+  power: number
+  current_streak?: number
+}
+
+export type ArenaIndex = {
+  record: ArenaRecord
+  opponents: ArenaOpponent[]
+}
+
 export type ArenaRewardDelta = {
   spirit_power: number
   soul_pieces: number
@@ -34,13 +46,20 @@ export type ArenaBattleResult = {
   wallet_snapshot: ArenaWalletSnapshot
 }
 
-export function getArenaStatus(playerId: number) {
-  return apiRequest<ArenaRecord>(`arena/status?player_id=${playerId}`)
+export function getArenaIndex(playerId: number) {
+  return apiRequest<ArenaIndex>(`arena/index?player_id=${playerId}`)
 }
 
-export function challengeArena(playerId: number, won: boolean) {
+export function refreshArenaOpponents(playerId: number) {
+  return apiRequest<ArenaIndex>("arena/refresh", {
+    method: "POST",
+    body: JSON.stringify({ player_id: playerId }),
+  })
+}
+
+export function challengeArena(playerId: number, opponentId: number) {
   return apiRequest<ArenaBattleResult>("arena/challenge", {
     method: "POST",
-    body: JSON.stringify({ player_id: playerId, won }),
+    body: JSON.stringify({ player_id: playerId, opponent_id: opponentId }),
   })
 }

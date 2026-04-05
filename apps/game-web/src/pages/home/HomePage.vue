@@ -4,7 +4,7 @@
       <p class="hero-tag">召唤之王</p>
       <h2>首页总览</h2>
       <p class="hero-copy">
-        欢迎回来，{{ displayNickname }}。当前首页已经接入真实 overview 接口，作为地图、副本、修行以及塔的聚合入口。
+        欢迎回来，{{ displayNickname }}。当前首页已经接入真实 overview 接口，作为地图、副本、修行、竞技场、排行榜以及塔的聚合入口。
       </p>
       <div class="hero-actions">
         <span>玩家 ID：{{ sessionStore.playerId ?? "-" }}</span>
@@ -146,6 +146,22 @@ const moduleCards = computed(() => {
       description: `主战 ${overview.value.modules.pet.starter_pet_name || "未上阵幻兽"}，已上阵 ${overview.value.modules.pet.active_count} 只。`,
       route: "/pet",
       cta: "继续养成",
+    },
+    {
+      eyebrow: "竞技场",
+      title: "斗法连胜",
+      value: `当前连胜 ${overview.value.modules.arena.current_streak} 场`,
+      description: overview.value.modules.arena.last_win ? "上场斗法取胜，适合继续冲榜。" : "上场斗法失利，先挑选低战对手回稳。",
+      route: "/arena",
+      cta: "前往竞技场",
+    },
+    {
+      eyebrow: "排行榜",
+      title: "巅峰荣耀榜",
+      value: `第 ${overview.value.modules.ranking.self_rank} 名`,
+      description: `当前榜单分数 ${overview.value.modules.ranking.self_score}，继续斗法可进一步抬升。`,
+      route: "/ranking",
+      cta: "查看排行榜",
     },
   ]
 })

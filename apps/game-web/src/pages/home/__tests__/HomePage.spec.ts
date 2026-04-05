@@ -72,6 +72,15 @@ test("renders overview from api", async () => {
           reward_preview: "灵魂碎片",
         },
       },
+      arena: {
+        current_streak: 2,
+        last_win: true,
+      },
+      ranking: {
+        self_rank: 1,
+        self_score: 1680,
+        arena_streak: 2,
+      },
     },
     next_action: {
       title: "前往通天塔",
@@ -79,7 +88,7 @@ test("renders overview from api", async () => {
       route: "/tower/pagoda",
       cta: "继续挑战",
     },
-  })
+  } as any)
   vi.mocked(getPetCollection).mockResolvedValue({
     player_id: 2001,
     total_power: 168,
@@ -121,6 +130,10 @@ test("renders overview from api", async () => {
   expect(wrapper.text()).toContain("下一步推荐")
   expect(wrapper.text()).toContain("通天塔")
   expect(wrapper.text()).toContain("战灵塔")
+  expect(wrapper.text()).toContain("竞技场")
+  expect(wrapper.text()).toContain("排行榜")
+  expect(wrapper.text()).toContain("当前连胜 2 场")
+  expect(wrapper.text()).toContain("第 1 名")
   expect(wrapper.text()).toContain("幻兽阵容")
   expect(wrapper.text()).toContain("初始灵狐")
   expect(wrapper.text()).toContain("养成总加成 +48")
@@ -130,6 +143,8 @@ test("renders overview from api", async () => {
   expect(wrapper.text()).toContain("玄境 · 已开放 2 城")
   expect(wrapper.text()).toContain("第 3 层")
   const routes = wrapper.findAllComponents(RouterLinkStub).map((component) => component.props("to"))
+  expect(routes).toContain("/arena")
+  expect(routes).toContain("/ranking")
   expect(routes).toContain("/growth/bone")
   expect(routes).toContain("/growth/spirit")
   expect(routes).toContain("/growth/soul")
@@ -189,6 +204,15 @@ test("refreshes overview when resource sync changes", async () => {
           reward_preview: "灵魂碎片",
         },
       },
+      arena: {
+        current_streak: floor - 1,
+        last_win: floor >= 5,
+      },
+      ranking: {
+        self_rank: 4 - Math.min(floor, 3),
+        self_score: 1400 + floor * 40,
+        arena_streak: floor - 1,
+      },
     },
     next_action: {
       title: "前往通天塔",
@@ -196,7 +220,7 @@ test("refreshes overview when resource sync changes", async () => {
       route: "/tower/pagoda",
       cta: "继续挑战",
     },
-  })
+  } as any)
 
   vi.mocked(getHomeOverview)
     .mockResolvedValueOnce(overview(3, 12))

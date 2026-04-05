@@ -20,6 +20,18 @@ export type TowerOverview = {
   spirit: TowerSummary
 }
 
+export type ArenaOverview = {
+  current_streak: number
+  last_win: boolean
+}
+
+export type RankingOverview = {
+  self_rank: number
+  self_score: number
+  top_name?: string
+  top_score?: number
+}
+
 export type NextAction = {
   title: string
   description: string
@@ -52,6 +64,8 @@ export type HomeOverview = {
       starter_pet_name: string
     }
     tower: TowerOverview
+    arena: ArenaOverview
+    ranking: RankingOverview
   }
   next_action: NextAction
 }

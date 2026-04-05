@@ -3,10 +3,16 @@
     <div class="arena-hero">
       <p class="arena-label">今日斗法</p>
       <h1>竞技场连胜试炼</h1>
-      <p class="arena-subtitle">先打通最小真实闭环：查看今日战绩，并模拟一场胜负切磋。</p>
+      <p class="arena-subtitle">查看当前连胜、刷新斗法对手，并直接挑选目标发起挑战。</p>
       <div class="arena-actions">
-        <button class="primary" type="button" @click="battle(true)">切磋获胜</button>
-        <button class="ghost" type="button" @click="battle(false)">切磋失利</button>
+        <button
+          class="primary"
+          type="button"
+          data-refresh-opponents="true"
+          @click="refreshOpponents"
+        >
+          刷新对手
+        </button>
       </div>
     </div>
 
@@ -22,6 +28,29 @@
         <p>上次结果</p>
       </article>
     </div>
+
+    <article class="opponents-card">
+      <header>
+        <h3>斗法对手</h3>
+        <span>当前候选 {{ opponents.length }} 名</span>
+      </header>
+      <ul class="opponents-list">
+        <li v-for="opponent in opponents" :key="opponent.opponent_id" class="opponent-item">
+          <div>
+            <strong>{{ opponent.name }}</strong>
+            <p>战力 {{ opponent.power }}<span v-if="opponent.current_streak"> · 连胜 {{ opponent.current_streak }}</span></p>
+          </div>
+          <button
+            class="ghost"
+            type="button"
+            :data-opponent-id="opponent.opponent_id"
+            @click="battle(opponent.opponent_id)"
+          >
+            发起挑战
+          </button>
+        </li>
+      </ul>
+    </article>
 
     <article class="prebattle-card">
       <header>
@@ -86,7 +115,10 @@ import { RouterLink } from "vue-router"
 import { APIError } from "@/api/http"
 import {
   challengeArena,
-  getArenaStatus,
+  getArenaIndex,
+  refreshArenaOpponents,
+  type ArenaIndex,
+  type ArenaOpponent,
   type ArenaBattleSummary,
   type ArenaRecord,
 } from "@/api/modules/arena"
@@ -102,6 +134,7 @@ const record = ref<ArenaRecord>({
   current_streak: 0,
   last_win: false,
 })
+const opponents = ref<ArenaOpponent[]>([])
 const petCollection = ref<PetCollection | null>(null)
 const battleSummary = ref<ArenaBattleSummary | null>(null)
 const rewardLines = ref<string[]>([])
@@ -119,7 +152,12 @@ function summarizeRewards(spiritPower: number, soulPieces: number) {
   rewardLines.value = lines
 }
 
-async function loadStatus() {
+function applyArenaIndex(nextIndex: ArenaIndex) {
+  record.value = nextIndex.record
+  opponents.value = nextIndex.opponents
+}
+
+async function loadArenaIndex() {
   const playerId = sessionStore.playerId
   if (!playerId) {
     errorMessage.value = "当前未登录，无法加载竞技场。"
@@ -127,7 +165,7 @@ async function loadStatus() {
   }
 
   try {
-    record.value = await getArenaStatus(playerId)
+    applyArenaIndex(await getArenaIndex(playerId))
     errorMessage.value = ""
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "竞技场状态加载失败。"
@@ -148,27 +186,42 @@ async function loadPetSummary() {
   } catch {}
 }
 
-async function battle(won: boolean) {
+async function refreshOpponents() {
   const playerId = sessionStore.playerId
   if (!playerId) {
-    errorMessage.value = "当前未登录，无法发起切磋。"
+    errorMessage.value = "当前未登录，无法刷新对手。"
     return
   }
 
   try {
-    const result = await challengeArena(playerId, won)
+    applyArenaIndex(await refreshArenaOpponents(playerId))
+    errorMessage.value = ""
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "竞技场对手刷新失败。"
+  }
+}
+
+async function battle(opponentId: number) {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法发起挑战。"
+    return
+  }
+
+  try {
+    const result = await challengeArena(playerId, opponentId)
     record.value = result.record
     battleSummary.value = result.battle ? { ...result.battle } : null
     summarizeRewards(result.reward_delta.spirit_power, result.reward_delta.soul_pieces)
     resourceSyncStore.touch()
     errorMessage.value = ""
   } catch (error) {
-    errorMessage.value = error instanceof APIError ? error.message : "竞技场切磋失败。"
+    errorMessage.value = error instanceof APIError ? error.message : "竞技场挑战失败。"
   }
 }
 
 onMounted(async () => {
-  await Promise.all([loadStatus(), loadPetSummary()])
+  await Promise.all([loadArenaIndex(), loadPetSummary()])
 })
 
 watch(
@@ -272,6 +325,7 @@ watch(
   color: rgba(255, 247, 239, 0.72);
 }
 
+.opponents-card,
 .prebattle-card,
 .reward-card {
   margin-top: 1rem;
@@ -281,6 +335,7 @@ watch(
   background: rgba(255, 255, 255, 0.04);
 }
 
+.opponents-card header,
 .prebattle-card header,
 .reward-card header {
   display: flex;
@@ -288,6 +343,8 @@ watch(
   gap: 1rem;
 }
 
+.opponents-card h3,
+.opponents-card span,
 .prebattle-card h3,
 .prebattle-card span,
 .reward-card h3,
@@ -295,9 +352,39 @@ watch(
   margin: 0;
 }
 
+.opponents-card span,
 .prebattle-card span,
 .reward-card span {
   color: rgba(255, 247, 239, 0.65);
+}
+
+.opponents-list {
+  margin: 0.8rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.opponent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.opponent-item p,
+.opponent-item strong {
+  margin: 0;
+}
+
+.opponent-item p {
+  margin-top: 0.35rem;
+  color: rgba(255, 247, 239, 0.72);
 }
 
 .prebattle-metrics {

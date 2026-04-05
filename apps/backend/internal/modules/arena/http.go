@@ -14,8 +14,9 @@ type Handler struct {
 }
 
 type challengeRequest struct {
-	PlayerID int64 `json:"player_id"`
-	Won      bool  `json:"won"`
+	PlayerID   int64 `json:"player_id"`
+	Won        bool  `json:"won"`
+	OpponentID int64 `json:"opponent_id"`
 }
 
 type playerRequest struct {
@@ -94,7 +95,15 @@ func (h *Handler) challenge(c *gin.Context) {
 		return
 	}
 
-	result, err := h.service.RecordBattleResult(c.Request.Context(), req.PlayerID, req.Won)
+	var (
+		result BattleResult
+		err    error
+	)
+	if req.OpponentID != 0 {
+		result, err = h.service.ChallengeOpponent(c.Request.Context(), req.PlayerID, req.OpponentID)
+	} else {
+		result, err = h.service.RecordBattleResult(c.Request.Context(), req.PlayerID, req.Won)
+	}
 	if err != nil {
 		c.JSON(stdhttp.StatusInternalServerError, httpx.Error(5001, "failed to record result", middleware.GetTraceID(c)))
 		return

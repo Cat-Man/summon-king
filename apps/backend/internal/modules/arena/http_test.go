@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
@@ -197,5 +198,71 @@ func TestHandler_RefreshChangesOpponentPayload(t *testing.T) {
 	}
 	if refreshPayload.Data.Opponents[0].OpponentID == indexPayload.Data.Opponents[0].OpponentID {
 		t.Fatalf("expected refreshed opponent id to change, still got %d", refreshPayload.Data.Opponents[0].OpponentID)
+	}
+}
+
+func TestHandler_ChallengeUsesOpponentIDWhenProvided(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	r := gin.New()
+	r.Use(middleware.InjectTraceID())
+	h := NewHandler(NewService(NewMemoryRepository(), asset.NewService(growth.NewMemoryRepository())))
+	g := r.Group("/arena")
+	h.RegisterRoutes(g)
+
+	indexReq := httptest.NewRequest(http.MethodGet, "/arena/index?player_id=1003", nil)
+	indexResp := httptest.NewRecorder()
+	r.ServeHTTP(indexResp, indexReq)
+
+	var indexPayload struct {
+		Data struct {
+			Opponents []struct {
+				OpponentID int64 `json:"opponent_id"`
+				Power      int64 `json:"power"`
+			} `json:"opponents"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(indexResp.Body).Decode(&indexPayload); err != nil {
+		t.Fatalf("expected index JSON payload, got %v", err)
+	}
+	if len(indexPayload.Data.Opponents) == 0 {
+		t.Fatal("expected opponents in arena index")
+	}
+
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/arena/challenge",
+		bytes.NewBufferString(`{"player_id":1003,"opponent_id":`+strconv.FormatInt(indexPayload.Data.Opponents[0].OpponentID, 10)+`}`),
+	)
+	req.Header.Set("Content-Type", "application/json")
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	var payload struct {
+		Code int `json:"code"`
+		Data struct {
+			Record struct {
+				CurrentStreak int `json:"current_streak"`
+			} `json:"record"`
+			Battle struct {
+				DefenderPower int64 `json:"defender_power"`
+				Result        string `json:"result"`
+			} `json:"battle"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		t.Fatalf("expected JSON payload, got %v", err)
+	}
+	if resp.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.Code)
+	}
+	if payload.Data.Battle.DefenderPower != indexPayload.Data.Opponents[0].Power {
+		t.Fatalf("expected defender power %d, got %d", indexPayload.Data.Opponents[0].Power, payload.Data.Battle.DefenderPower)
+	}
+	if payload.Data.Record.CurrentStreak != 1 {
+		t.Fatalf("expected current streak 1, got %d", payload.Data.Record.CurrentStreak)
+	}
+	if payload.Data.Battle.Result != "success" {
+		t.Fatalf("expected success result, got %s", payload.Data.Battle.Result)
 	}
 }
