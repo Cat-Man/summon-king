@@ -22,6 +22,8 @@ type battleResolver interface {
 	Resolve(ctx context.Context, req battle.Request) (battle.Summary, error)
 }
 
+type Option func(*Service)
+
 type Service struct {
 	repo    Repository
 	asset   assetWriter
@@ -29,13 +31,25 @@ type Service struct {
 	battles battleResolver
 }
 
-func NewService(repo Repository, assetWriter assetWriter) *Service {
-	return &Service{
+func WithBattleTeamReader(reader teamReader) Option {
+	return func(s *Service) {
+		s.teams = reader
+	}
+}
+
+func NewService(repo Repository, assetWriter assetWriter, options ...Option) *Service {
+	svc := &Service{
 		repo:    repo,
 		asset:   assetWriter,
 		teams:   pet.NewService(pet.NewMemoryRepository()),
 		battles: battle.NewService(),
 	}
+	for _, option := range options {
+		if option != nil {
+			option(svc)
+		}
+	}
+	return svc
 }
 
 func (s *Service) SetCurrentStreak(ctx context.Context, playerID int64, streak int) error {

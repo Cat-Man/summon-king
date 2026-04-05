@@ -63,10 +63,60 @@ func TestService_GetCollectionReturnsBattleTeamAndRoster(t *testing.T) {
 	if len(data.ActiveTeam) != 1 {
 		t.Fatalf("expected active team 1, got %d", len(data.ActiveTeam))
 	}
-	if len(data.Roster) != 1 {
-		t.Fatalf("expected roster 1, got %d", len(data.Roster))
+	if len(data.Roster) != 2 {
+		t.Fatalf("expected roster 2, got %d", len(data.Roster))
 	}
 	if data.Roster[0].Name != "初始灵狐" {
 		t.Fatalf("expected starter pet 初始灵狐, got %s", data.Roster[0].Name)
+	}
+}
+
+func TestService_SetMainPetSwitchesActiveTeam(t *testing.T) {
+	ctx := context.Background()
+	svc := NewService(NewMemoryRepository())
+
+	data, err := svc.SetMainPet(ctx, 1001, 10012)
+
+	if err != nil {
+		t.Fatalf("expected set main pet success, got %v", err)
+	}
+	if len(data.ActiveTeam) != 1 {
+		t.Fatalf("expected active team 1, got %d", len(data.ActiveTeam))
+	}
+	if data.ActiveTeam[0].PetID != 10012 {
+		t.Fatalf("expected main pet 10012, got %d", data.ActiveTeam[0].PetID)
+	}
+	if data.ActiveTeam[0].Name != "玄甲龟" {
+		t.Fatalf("expected main pet 玄甲龟, got %s", data.ActiveTeam[0].Name)
+	}
+	if data.TotalPower != 156 {
+		t.Fatalf("expected total power 156, got %d", data.TotalPower)
+	}
+}
+
+func TestService_SetMainPetDoesNotClearActiveTeamWhenPetMissing(t *testing.T) {
+	ctx := context.Background()
+	svc := NewService(NewMemoryRepository())
+
+	_, err := svc.SetMainPet(ctx, 1001, 99999)
+	if err == nil {
+		t.Fatal("expected missing pet error")
+	}
+	if err != ErrPetNotFound {
+		t.Fatalf("expected ErrPetNotFound, got %v", err)
+	}
+
+	data, err := svc.GetCollection(ctx, 1001)
+	if err != nil {
+		t.Fatalf("expected collection success after failed switch, got %v", err)
+	}
+	if len(data.ActiveTeam) != 1 {
+		t.Fatalf("expected active team to remain 1, got %d", len(data.ActiveTeam))
+	}
+	if data.ActiveTeam[0].PetID != 10011 {
+		t.Fatalf("expected original main pet 10011, got %d", data.ActiveTeam[0].PetID)
+	}
+	if data.TotalPower != 120 {
+		t.Fatalf("expected total power 120, got %d", data.TotalPower)
 	}
 }

@@ -41,6 +41,13 @@ func (s *Service) GetCollection(ctx context.Context, playerID int64) (Collection
 	}, nil
 }
 
+func (s *Service) SetMainPet(ctx context.Context, playerID, petID int64) (CollectionView, error) {
+	if err := s.repo.SetMainPet(ctx, playerID, petID); err != nil {
+		return CollectionView{}, err
+	}
+	return s.GetCollection(ctx, playerID)
+}
+
 func totalPower(pets []BattlePet) int64 {
 	var total int64
 	for _, battlePet := range pets {

@@ -20,3 +20,13 @@ export type PetCollection = {
 export function getPetCollection(playerId: number) {
   return apiRequest<PetCollection>(`pet/team?player_id=${playerId}`)
 }
+
+export function setMainPet(playerId: number, petId: number) {
+  return apiRequest<PetCollection>("pet/team/main", {
+    method: "POST",
+    body: JSON.stringify({
+      player_id: playerId,
+      pet_id: petId,
+    }),
+  })
+}

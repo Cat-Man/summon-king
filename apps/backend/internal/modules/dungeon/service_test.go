@@ -6,6 +6,7 @@ import (
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
 )
 
 func TestEnterDungeon_GivesInitialDice(t *testing.T) {
@@ -394,6 +395,32 @@ func TestRollDice_DungeonTwoUsesConfiguredReward(t *testing.T) {
 	}
 	if run.WalletSnapshot.SpiritPower != 127 {
 		t.Fatalf("expected wallet spirit 127, got %d", run.WalletSnapshot.SpiritPower)
+	}
+}
+
+func TestRollDice_UsesInjectedBattleTeamReader(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	if _, err := petSvc.SetMainPet(ctx, 5101, 51012); err != nil {
+		t.Fatalf("expected set main pet success, got %v", err)
+	}
+
+	svc := NewService(
+		NewMemoryRepository(),
+		asset.NewService(growthRepo),
+		WithBattleTeamReader(petSvc),
+	)
+	if _, err := svc.EnterDungeon(ctx, 5101, 1); err != nil {
+		t.Fatalf("expected enter dungeon success, got %v", err)
+	}
+
+	run, err := svc.RollDice(ctx, 5101)
+	if err != nil {
+		t.Fatalf("expected roll dice success, got %v", err)
+	}
+	if run.BattleResult.AttackerPower != 156 {
+		t.Fatalf("expected attacker power 156, got %d", run.BattleResult.AttackerPower)
 	}
 }
 

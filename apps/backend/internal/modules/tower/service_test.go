@@ -6,6 +6,7 @@ import (
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
 )
 
 func TestService_TracksProgressPerTower(t *testing.T) {
@@ -97,5 +98,28 @@ func TestService_StartChallengeRejectsWhenNoChallengesRemain(t *testing.T) {
 	}
 	if after.BoneLevel != before.BoneLevel {
 		t.Fatalf("expected wallet to stay at bone level %d, got %d", before.BoneLevel, after.BoneLevel)
+	}
+}
+
+func TestService_UsesInjectedBattleTeamReader(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	if _, err := petSvc.SetMainPet(ctx, 4101, 41012); err != nil {
+		t.Fatalf("expected set main pet success, got %v", err)
+	}
+
+	svc := NewService(
+		NewMemoryRepository(),
+		asset.NewService(growthRepo),
+		WithBattleTeamReader(petSvc),
+	)
+
+	result, err := svc.StartChallenge(ctx, 4101, "pagoda")
+	if err != nil {
+		t.Fatalf("expected challenge success, got %v", err)
+	}
+	if result.BattleResult.AttackerPower != 156 {
+		t.Fatalf("expected attacker power 156, got %d", result.BattleResult.AttackerPower)
 	}
 }

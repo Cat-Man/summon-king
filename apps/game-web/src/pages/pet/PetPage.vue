@@ -37,7 +37,20 @@
             <p>{{ pet.name }}</p>
             <span>槽位 {{ pet.slot }} · Lv.{{ pet.level }} · {{ pet.is_active ? "上阵中" : "待命" }}</span>
           </div>
-          <strong>{{ pet.power }}</strong>
+          <div class="pet-actions">
+            <strong>{{ pet.power }}</strong>
+            <span v-if="pet.is_active" class="status-chip">当前主战</span>
+            <button
+              v-else
+              :data-testid="`set-main-${pet.pet_id}`"
+              type="button"
+              class="set-main-button"
+              :disabled="switchingPetId !== null"
+              @click="handleSetMainPet(pet.pet_id)"
+            >
+              设为主战
+            </button>
+          </div>
         </li>
       </ul>
     </article>
@@ -61,13 +74,14 @@ import { onMounted, ref, watch } from "vue"
 import { RouterLink } from "vue-router"
 
 import { APIError } from "@/api/http"
-import { getPetCollection, type PetCollection } from "@/api/modules/pet"
+import { getPetCollection, setMainPet, type PetCollection } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
 const resourceSyncStore = useResourceSyncStore()
 const errorMessage = ref("")
+const switchingPetId = ref<number | null>(null)
 const collection = ref<PetCollection>({
   player_id: 0,
   total_power: 0,
@@ -88,6 +102,25 @@ async function loadCollection() {
     errorMessage.value = ""
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "幻兽阵容加载失败。"
+  }
+}
+
+async function handleSetMainPet(petId: number) {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    errorMessage.value = "当前未登录，无法切换主战幻兽。"
+    return
+  }
+
+  try {
+    switchingPetId.value = petId
+    collection.value = await setMainPet(playerId, petId)
+    errorMessage.value = ""
+    resourceSyncStore.touch()
+  } catch (error) {
+    errorMessage.value = error instanceof APIError ? error.message : "主战幻兽切换失败。"
+  } finally {
+    switchingPetId.value = null
   }
 }
 
@@ -201,6 +234,32 @@ onMounted(async () => {
 
 .pet-item strong {
   color: #bae6fd;
+}
+
+.pet-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-chip {
+  font-size: 12px;
+  color: #bbf7d0;
+}
+
+.set-main-button {
+  min-width: 86px;
+  border: 1px solid rgba(186, 230, 253, 0.45);
+  border-radius: 10px;
+  padding: 6px 10px;
+  background: rgba(125, 211, 252, 0.12);
+  color: #dbeafe;
+  cursor: pointer;
+}
+
+.set-main-button:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .growth-actions .actions-grid {

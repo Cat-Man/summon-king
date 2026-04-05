@@ -6,6 +6,7 @@ import (
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
 )
 
 func TestArena_FailResetsCurrentStreak(t *testing.T) {
@@ -112,5 +113,28 @@ func TestArena_LoseBattleReturnsFailedBattleSummary(t *testing.T) {
 	}
 	if result.BattleResult.WinnerSide != "defender" {
 		t.Fatalf("expected arena winner side defender, got %s", result.BattleResult.WinnerSide)
+	}
+}
+
+func TestArena_UsesInjectedBattleTeamReader(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	if _, err := petSvc.SetMainPet(ctx, 3101, 31012); err != nil {
+		t.Fatalf("expected set main pet success, got %v", err)
+	}
+
+	svc := NewService(
+		NewMemoryRepository(),
+		asset.NewService(growthRepo),
+		WithBattleTeamReader(petSvc),
+	)
+
+	result, err := svc.RecordBattleResult(ctx, 3101, true)
+	if err != nil {
+		t.Fatalf("expected record battle success, got %v", err)
+	}
+	if result.BattleResult.AttackerPower != 156 {
+		t.Fatalf("expected attacker power 156, got %d", result.BattleResult.AttackerPower)
 	}
 }

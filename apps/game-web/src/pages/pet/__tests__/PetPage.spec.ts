@@ -1,7 +1,7 @@
 import { createPinia, setActivePinia } from "pinia"
 import { flushPromises, mount, RouterLinkStub } from "@vue/test-utils"
 
-import { getPetCollection } from "@/api/modules/pet"
+import { getPetCollection, setMainPet } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
@@ -9,6 +9,7 @@ import PetPage from "../PetPage.vue"
 
 vi.mock("@/api/modules/pet", () => ({
   getPetCollection: vi.fn(),
+  setMainPet: vi.fn(),
 }))
 
 beforeEach(() => {
@@ -143,4 +144,97 @@ test("refreshes pet collection when resource sync changes", async () => {
   expect(getPetCollection).toHaveBeenCalledTimes(2)
   expect(wrapper.text()).toContain("144")
   expect(wrapper.text()).toContain("Lv.2")
+})
+
+test("switches main pet and updates collection", async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const sessionStore = useSessionStore()
+  const syncStore = useResourceSyncStore()
+  sessionStore.setSession({
+    token: "guest-token",
+    playerId: 3001,
+    nickname: "主战切换",
+  })
+
+  const first = {
+    player_id: 3001,
+    total_power: 276,
+    team_size: 1,
+    active_team: [
+      {
+        pet_id: 30011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        power: 120,
+        is_active: true,
+      },
+    ],
+    roster: [
+      {
+        pet_id: 30011,
+        slot: 1,
+        name: "初始灵狐",
+        level: 1,
+        power: 120,
+        is_active: true,
+      },
+      {
+        pet_id: 30012,
+        slot: 2,
+        name: "玄甲龟",
+        level: 1,
+        power: 156,
+        is_active: false,
+      },
+    ],
+  }
+
+  const second = {
+    ...first,
+    active_team: [
+      {
+        pet_id: 30012,
+        slot: 1,
+        name: "玄甲龟",
+        level: 1,
+        power: 156,
+        is_active: true,
+      },
+    ],
+    roster: [
+      {
+        ...first.roster[0],
+        slot: 2,
+        is_active: false,
+      },
+      {
+        ...first.roster[1],
+        slot: 1,
+        is_active: true,
+      },
+    ],
+  }
+
+  vi.mocked(getPetCollection).mockResolvedValueOnce(first).mockResolvedValueOnce(second)
+  vi.mocked(setMainPet).mockResolvedValueOnce(second)
+
+  const wrapper = mount(PetPage, {
+    global: {
+      plugins: [pinia],
+      stubs: {
+        RouterLink: RouterLinkStub,
+      },
+    },
+  })
+  await flushPromises()
+
+  await wrapper.get('[data-testid="set-main-30012"]').trigger("click")
+  await flushPromises()
+
+  expect(setMainPet).toHaveBeenCalledWith(3001, 30012)
+  expect(syncStore.version).toBe(1)
+  expect(wrapper.text()).toContain("玄甲龟")
+  expect(wrapper.text()).toContain("当前主战")
 })

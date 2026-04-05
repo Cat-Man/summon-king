@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -66,5 +67,45 @@ func TestRouter_ModuleRoots(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestRouter_PetMainSwitchAffectsArenaBattlePower(t *testing.T) {
+	r := NewRouter()
+
+	switchReq := httptest.NewRequest(http.MethodPost, "/api/v1/pet/team/main", bytes.NewBufferString(`{"player_id":1001,"pet_id":10012}`))
+	switchReq.Header.Set("Content-Type", "application/json")
+	switchResp := httptest.NewRecorder()
+	r.ServeHTTP(switchResp, switchReq)
+
+	if switchResp.Code != http.StatusOK {
+		t.Fatalf("expected pet switch 200, got %d", switchResp.Code)
+	}
+
+	arenaReq := httptest.NewRequest(http.MethodPost, "/api/v1/arena/challenge", bytes.NewBufferString(`{"player_id":1001,"won":true}`))
+	arenaReq.Header.Set("Content-Type", "application/json")
+	arenaResp := httptest.NewRecorder()
+	r.ServeHTTP(arenaResp, arenaReq)
+
+	if arenaResp.Code != http.StatusOK {
+		t.Fatalf("expected arena challenge 200, got %d", arenaResp.Code)
+	}
+
+	var payload struct {
+		Code int `json:"code"`
+		Data struct {
+			Battle struct {
+				AttackerPower int64 `json:"attacker_power"`
+			} `json:"battle"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(arenaResp.Body).Decode(&payload); err != nil {
+		t.Fatalf("expected JSON payload, got %v", err)
+	}
+	if payload.Code != 0 {
+		t.Fatalf("expected business code 0, got %d", payload.Code)
+	}
+	if payload.Data.Battle.AttackerPower != 156 {
+		t.Fatalf("expected attacker power 156 after switching main pet, got %d", payload.Data.Battle.AttackerPower)
 	}
 }
