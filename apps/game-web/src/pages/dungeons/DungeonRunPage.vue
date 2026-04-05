@@ -31,6 +31,19 @@
         </article>
       </div>
     </div>
+    <article class="prebattle-panel">
+      <header>
+        <strong>战斗前摘要</strong>
+        <span>共享队伍</span>
+      </header>
+      <div class="prebattle-metrics">
+        <span>当前队伍战力 {{ prebattleTeamPower }}</span>
+        <span>成长总加成 +{{ totalGrowthBonus }}</span>
+        <span>战骨 +{{ boneGrowthBonus }}</span>
+        <span>战灵 +{{ spiritGrowthBonus }}</span>
+        <span>魔魂 +{{ soulGrowthBonus }}</span>
+      </div>
+    </article>
     <div class="reward-panel">
       <article>
         <p>{{ run.last_reward.label || "本次掉落" }}</p>
@@ -93,6 +106,7 @@ import { useRoute } from "vue-router"
 
 import { APIError } from "@/api/http"
 import { enterDungeon, getDungeonStatus, rollDungeonDice, type DungeonRun } from "@/api/modules/dungeon"
+import { getPetCollection, type PetCollection } from "@/api/modules/pet"
 import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
@@ -138,10 +152,24 @@ const sessionStore = useSessionStore()
 const resourceSyncStore = useResourceSyncStore()
 const route = useRoute()
 const run = ref<DungeonRun>(defaultRun)
+const petCollection = ref<PetCollection | null>(null)
 const errorMessage = ref("")
 const selectedDungeonId = ref(1)
 
 const floors = computed(() => Math.max(6, run.value.current_floor + 2))
+const prebattleTeamPower = computed(() => petCollection.value?.total_power ?? 0)
+const boneGrowthBonus = computed(() =>
+  (petCollection.value?.active_team ?? []).reduce((total, pet) => total + (pet.power_breakdown?.bone ?? 0), 0),
+)
+const spiritGrowthBonus = computed(() =>
+  (petCollection.value?.active_team ?? []).reduce((total, pet) => total + (pet.power_breakdown?.spirit ?? 0), 0),
+)
+const soulGrowthBonus = computed(() =>
+  (petCollection.value?.active_team ?? []).reduce((total, pet) => total + (pet.power_breakdown?.soul ?? 0), 0),
+)
+const totalGrowthBonus = computed(
+  () => boneGrowthBonus.value + spiritGrowthBonus.value + soulGrowthBonus.value,
+)
 const currentDungeonName = computed(() => {
   return dungeonOptions.find((option) => option.id === selectedDungeonId.value)?.name ?? "妖窟试炼"
 })
@@ -222,6 +250,17 @@ async function refreshRun() {
   }
 }
 
+async function loadPetSummary() {
+  const playerId = sessionStore.playerId
+  if (!playerId) {
+    return
+  }
+
+  try {
+    petCollection.value = await getPetCollection(playerId)
+  } catch {}
+}
+
 async function rollForward() {
   const playerId = sessionStore.playerId
   if (!playerId) {
@@ -256,7 +295,7 @@ async function restartRun() {
 
 onMounted(async () => {
   syncSelectedDungeonId(route.query.dungeon_id)
-  await refreshRun()
+  await Promise.all([refreshRun(), loadPetSummary()])
 })
 
 watch(
@@ -281,6 +320,17 @@ watch(
       errorMessage.value = error instanceof APIError ? error.message : "进入副本失败，请稍后重试。"
     }
   },
+)
+
+watch(
+  () => resourceSyncStore.version,
+  async (next, prev) => {
+    if (next === prev) {
+      return
+    }
+    await loadPetSummary()
+  },
+  { flush: "sync" },
 )
 </script>
 
@@ -322,6 +372,7 @@ watch(
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
 }
+.prebattle-panel,
 .reward-panel article {
   padding: 18px;
   border-radius: 18px;
@@ -338,6 +389,29 @@ watch(
   display: flex;
   justify-content: space-between;
   gap: 1rem;
+}
+.prebattle-panel header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.prebattle-panel header span {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.prebattle-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+.prebattle-metrics span {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(248, 251, 255, 0.88);
 }
 .battle-panel dl {
   margin: 0.8rem 0 0;
