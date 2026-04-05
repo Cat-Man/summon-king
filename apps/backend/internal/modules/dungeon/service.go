@@ -18,6 +18,10 @@ type teamReader interface {
 	GetBattleTeam(ctx context.Context, playerID int64) (pet.TeamSnapshot, error)
 }
 
+type petProgressor interface {
+	GrantActiveTeamExperience(ctx context.Context, playerID int64, exp int64) (pet.TeamSnapshot, error)
+}
+
 type battleResolver interface {
 	Resolve(ctx context.Context, req battle.Request) (battle.Summary, error)
 }
@@ -25,10 +29,11 @@ type battleResolver interface {
 type Option func(*Service)
 
 type Service struct {
-	repo    Repository
-	asset   assetWriter
-	teams   teamReader
-	battles battleResolver
+	repo        Repository
+	asset       assetWriter
+	teams       teamReader
+	progressor  petProgressor
+	battles     battleResolver
 }
 
 type rewardRule struct {
@@ -132,12 +137,19 @@ func WithBattleTeamReader(reader teamReader) Option {
 	}
 }
 
+func WithPetProgressor(progressor petProgressor) Option {
+	return func(s *Service) {
+		s.progressor = progressor
+	}
+}
+
 func NewService(repo Repository, assetWriter assetWriter, options ...Option) *Service {
 	svc := &Service{
-		repo:    repo,
-		asset:   assetWriter,
-		teams:   pet.NewService(pet.NewMemoryRepository()),
-		battles: battle.NewService(),
+		repo:       repo,
+		asset:      assetWriter,
+		teams:      pet.NewService(pet.NewMemoryRepository()),
+		progressor: nil,
+		battles:    battle.NewService(),
 	}
 	for _, option := range options {
 		if option != nil {
@@ -181,6 +193,10 @@ func (s *Service) RollDice(ctx context.Context, playerID int64) (DungeonRun, err
 	if err != nil {
 		return DungeonRun{}, err
 	}
+	run, err = s.attachRollPetGrowth(ctx, playerID, run)
+	if err != nil {
+		return DungeonRun{}, err
+	}
 	return s.attachWalletSnapshot(ctx, playerID, run)
 }
 
@@ -205,6 +221,10 @@ func (s *Service) ClaimCultivation(ctx context.Context, playerID int64) (Cultiva
 		if _, err := s.asset.Apply(ctx, playerID, asset.Delta{SpiritPower: int64(status.SpiritPower)}); err != nil {
 			return CultivationStatus{}, err
 		}
+	}
+	status, err = s.attachCultivationPetGrowth(ctx, playerID, status)
+	if err != nil {
+		return CultivationStatus{}, err
 	}
 	return status, nil
 }
@@ -320,6 +340,58 @@ func matchesRewardRule(run DungeonRun, rule rewardRule) bool {
 		return false
 	}
 	return true
+}
+
+func (s *Service) attachRollPetGrowth(ctx context.Context, playerID int64, run DungeonRun) (DungeonRun, error) {
+	exp := resolveRollPetExp(run)
+	if exp == 0 || s.progressor == nil {
+		return run, nil
+	}
+
+	team, err := s.progressor.GrantActiveTeamExperience(ctx, playerID, exp)
+	if err != nil {
+		return DungeonRun{}, err
+	}
+	run.PetGrowth = PetGrowth{
+		Exp:            exp,
+		TeamTotalPower: team.TotalPower,
+	}
+	return run, nil
+}
+
+func (s *Service) attachCultivationPetGrowth(ctx context.Context, playerID int64, status CultivationStatus) (CultivationStatus, error) {
+	exp := resolveCultivationPetExp(status)
+	if exp == 0 || s.progressor == nil {
+		return status, nil
+	}
+
+	team, err := s.progressor.GrantActiveTeamExperience(ctx, playerID, exp)
+	if err != nil {
+		return CultivationStatus{}, err
+	}
+	status.PetGrowth = PetGrowth{
+		Exp:            exp,
+		TeamTotalPower: team.TotalPower,
+	}
+	return status, nil
+}
+
+func resolveRollPetExp(run DungeonRun) int64 {
+	switch run.Status {
+	case "exhausted":
+		return 0
+	case "boss":
+		return 100
+	default:
+		return 50
+	}
+}
+
+func resolveCultivationPetExp(status CultivationStatus) int64 {
+	if status.SpiritPower <= 0 {
+		return 0
+	}
+	return 100
 }
 
 func (s *Service) validateDungeonUnlock(ctx context.Context, playerID, dungeonID int64) error {

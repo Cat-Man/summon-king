@@ -11,12 +11,14 @@ var ErrPetNotFound = errors.New("pet not found")
 var ErrInvalidTeam = errors.New("invalid team")
 
 const maxActiveTeamSize = 2
+const levelPowerGain int64 = 24
 
 type Repository interface {
 	GetBattleTeam(ctx context.Context, playerID int64) (TeamSnapshot, error)
 	ListPets(ctx context.Context, playerID int64) ([]BattlePet, error)
 	SaveTeam(ctx context.Context, playerID int64, petIDs []int64) error
 	SetMainPet(ctx context.Context, playerID, petID int64) error
+	GrantActiveTeamExperience(ctx context.Context, playerID int64, exp int64) (TeamSnapshot, error)
 }
 
 type MemoryRepository struct {
@@ -81,29 +83,63 @@ func (r *MemoryRepository) SetMainPet(_ context.Context, playerID, petID int64) 
 
 func (r *MemoryRepository) ensurePetsLocked(playerID int64) []BattlePet {
 	if pets, ok := r.petsByPlayer[playerID]; ok {
-		return pets
+		normalized := normalizePets(pets)
+		r.petsByPlayer[playerID] = normalized
+		return normalized
 	}
 
 	pets := []BattlePet{
 		{
-			PetID:    playerID*10 + 1,
-			Slot:     1,
-			Name:     "初始灵狐",
-			Level:    1,
-			Power:    120,
-			IsActive: true,
+			PetID:        playerID*10 + 1,
+			Slot:         1,
+			Name:         "初始灵狐",
+			Level:        1,
+			Exp:          0,
+			NextLevelExp: nextLevelExp(1),
+			Power:        120,
+			IsActive:     true,
+			BasePower:    120,
 		},
 		{
-			PetID:    playerID*10 + 2,
-			Slot:     0,
-			Name:     "玄甲龟",
-			Level:    1,
-			Power:    156,
-			IsActive: false,
+			PetID:        playerID*10 + 2,
+			Slot:         0,
+			Name:         "玄甲龟",
+			Level:        1,
+			Exp:          0,
+			NextLevelExp: nextLevelExp(1),
+			Power:        156,
+			IsActive:     false,
+			BasePower:    156,
 		},
 	}
 	r.petsByPlayer[playerID] = pets
 	return pets
+}
+
+func (r *MemoryRepository) GrantActiveTeamExperience(_ context.Context, playerID int64, exp int64) (TeamSnapshot, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	pets := r.ensurePetsLocked(playerID)
+	if exp <= 0 {
+		return TeamSnapshot{
+			PlayerID: playerID,
+			Pets:     activePets(pets),
+		}, nil
+	}
+
+	for idx := range pets {
+		if !pets[idx].IsActive {
+			continue
+		}
+		grantExperience(&pets[idx], exp)
+	}
+
+	r.petsByPlayer[playerID] = pets
+	return TeamSnapshot{
+		PlayerID: playerID,
+		Pets:     activePets(pets),
+	}, nil
 }
 
 func clonePets(pets []BattlePet) []BattlePet {
@@ -200,4 +236,52 @@ func removePetID(petIDs []int64, target int64) []int64 {
 		}
 	}
 	return filtered
+}
+
+func normalizePets(pets []BattlePet) []BattlePet {
+	normalized := clonePets(pets)
+	for idx := range normalized {
+		if normalized[idx].Level < 1 {
+			normalized[idx].Level = 1
+		}
+		if normalized[idx].BasePower <= 0 {
+			normalized[idx].BasePower = normalized[idx].Power - int64(normalized[idx].Level-1)*levelPowerGain
+			if normalized[idx].BasePower <= 0 {
+				normalized[idx].BasePower = normalized[idx].Power
+			}
+		}
+		normalized[idx].NextLevelExp = nextLevelExp(normalized[idx].Level)
+		normalized[idx].Power = powerForLevel(normalized[idx].BasePower, normalized[idx].Level)
+	}
+	return normalized
+}
+
+func grantExperience(pet *BattlePet, exp int64) {
+	if exp <= 0 {
+		return
+	}
+
+	pet.Exp += exp
+	threshold := nextLevelExp(pet.Level)
+	for pet.Exp >= threshold {
+		pet.Exp -= threshold
+		pet.Level++
+		threshold = nextLevelExp(pet.Level)
+	}
+	pet.NextLevelExp = threshold
+	pet.Power = powerForLevel(pet.BasePower, pet.Level)
+}
+
+func nextLevelExp(level int) int64 {
+	if level < 1 {
+		level = 1
+	}
+	return int64(level) * 100
+}
+
+func powerForLevel(basePower int64, level int) int64 {
+	if level < 1 {
+		level = 1
+	}
+	return basePower + int64(level-1)*levelPowerGain
 }

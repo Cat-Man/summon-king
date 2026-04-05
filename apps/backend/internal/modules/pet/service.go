@@ -55,6 +55,16 @@ func (s *Service) SaveTeam(ctx context.Context, playerID int64, petIDs []int64) 
 	return s.GetCollection(ctx, playerID)
 }
 
+func (s *Service) GrantActiveTeamExperience(ctx context.Context, playerID int64, exp int64) (TeamSnapshot, error) {
+	team, err := s.repo.GrantActiveTeamExperience(ctx, playerID, exp)
+	if err != nil {
+		return TeamSnapshot{}, err
+	}
+
+	team.TotalPower = totalPower(team.Pets)
+	return team, nil
+}
+
 func totalPower(pets []BattlePet) int64 {
 	var total int64
 	for _, battlePet := range pets {

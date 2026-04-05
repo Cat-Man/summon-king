@@ -30,6 +30,10 @@ export type DungeonRun = {
     spirit_power: number
     soul_pieces: number
   }
+  pet_growth?: {
+    exp: number
+    team_total_power: number
+  }
   last_battle?: {
     battle_no: string
     battle_type: string
@@ -55,6 +59,10 @@ export type CultivationStatus = {
   state: string
   start_at?: string
   claimable_at?: string
+  pet_growth?: {
+    exp: number
+    team_total_power: number
+  }
 }
 
 function toFormBody(payload: Record<string, number>) {

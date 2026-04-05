@@ -24,6 +24,7 @@
         <h2>炼妖记录</h2>
         <p>{{ cultivation.state }}</p>
         <small>预计可领取：{{ cultivation.claimable_at || "未开始修行" }}</small>
+        <small v-if="cultivation.pet_growth?.exp">幻兽经验 +{{ cultivation.pet_growth.exp }}</small>
       </article>
       <article>
         <h2>化仙池</h2>
@@ -49,11 +50,36 @@ const cultivation = ref<CultivationStatus>({
   player_id: 0,
   spirit_power: 0,
   state: "idle",
+  pet_growth: {
+    exp: 0,
+    team_total_power: 0,
+  },
 })
 const walletPower = ref(0)
 const errorMessage = ref("")
 
 const progress = computed(() => Math.min(100, cultivation.value.spirit_power * 10))
+
+function normalizeCultivation(nextStatus: Partial<CultivationStatus>): CultivationStatus {
+  const defaultPetGrowth = {
+    exp: 0,
+    team_total_power: 0,
+  }
+  const baseStatus = {
+    player_id: 0,
+    spirit_power: 0,
+    state: "idle",
+  }
+
+  return {
+    ...baseStatus,
+    ...nextStatus,
+    pet_growth: {
+      ...defaultPetGrowth,
+      ...nextStatus.pet_growth,
+    },
+  }
+}
 
 async function loadOverview() {
   if (!sessionStore.playerId) {
@@ -63,12 +89,12 @@ async function loadOverview() {
 
   try {
     const overview = await getHomeOverview(sessionStore.playerId)
-    cultivation.value = {
+    cultivation.value = normalizeCultivation({
       player_id: overview.player_id,
       spirit_power: overview.modules.cultivation.spirit_power,
       state: overview.modules.cultivation.state,
       claimable_at: overview.modules.cultivation.claimable_at,
-    }
+    })
     walletPower.value = overview.wallet.spirit_power
     errorMessage.value = ""
   } catch (error) {
@@ -84,7 +110,7 @@ async function beginCultivation() {
   }
 
   try {
-    cultivation.value = await startCultivation(playerId)
+    cultivation.value = normalizeCultivation(await startCultivation(playerId))
     errorMessage.value = ""
     resourceSyncStore.touch()
   } catch (error) {
@@ -100,7 +126,7 @@ async function claimReward() {
   }
 
   try {
-    cultivation.value = await claimCultivation(playerId)
+    cultivation.value = normalizeCultivation(await claimCultivation(playerId))
     walletPower.value += cultivation.value.spirit_power
     errorMessage.value = ""
     resourceSyncStore.touch()

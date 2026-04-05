@@ -37,6 +37,8 @@ test("renders active team and roster from api", async () => {
         slot: 1,
         name: "初始灵狐",
         level: 1,
+        exp: 0,
+        next_level_exp: 100,
         power: 120,
         is_active: true,
       },
@@ -47,6 +49,8 @@ test("renders active team and roster from api", async () => {
         slot: 1,
         name: "初始灵狐",
         level: 1,
+        exp: 0,
+        next_level_exp: 100,
         power: 120,
         is_active: true,
       },
@@ -68,6 +72,7 @@ test("renders active team and roster from api", async () => {
   expect(wrapper.text()).toContain("幻兽栏")
   expect(wrapper.text()).toContain("初始灵狐")
   expect(wrapper.text()).toContain("120")
+  expect(wrapper.text()).toContain("EXP 0/100")
   expect(wrapper.findAllComponents(RouterLinkStub).length).toBeGreaterThanOrEqual(3)
 })
 
@@ -92,6 +97,8 @@ test("refreshes pet collection when resource sync changes", async () => {
         slot: 1,
         name: "初始灵狐",
         level: 1,
+        exp: 40,
+        next_level_exp: 100,
         power: 120,
         is_active: true,
       },
@@ -102,6 +109,8 @@ test("refreshes pet collection when resource sync changes", async () => {
         slot: 1,
         name: "初始灵狐",
         level: 1,
+        exp: 40,
+        next_level_exp: 100,
         power: 120,
         is_active: true,
       },
@@ -115,6 +124,8 @@ test("refreshes pet collection when resource sync changes", async () => {
       {
         ...first.active_team[0],
         level: 2,
+        exp: 25,
+        next_level_exp: 200,
         power: 144,
       },
     ],
@@ -122,6 +133,8 @@ test("refreshes pet collection when resource sync changes", async () => {
       {
         ...first.roster[0],
         level: 2,
+        exp: 25,
+        next_level_exp: 200,
         power: 144,
       },
     ],
@@ -145,6 +158,7 @@ test("refreshes pet collection when resource sync changes", async () => {
   expect(getPetCollection).toHaveBeenCalledTimes(2)
   expect(wrapper.text()).toContain("144")
   expect(wrapper.text()).toContain("Lv.2")
+  expect(wrapper.text()).toContain("EXP 25/200")
 })
 
 test("adds pet to active team when slot available", async () => {

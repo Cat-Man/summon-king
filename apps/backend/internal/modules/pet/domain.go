@@ -1,12 +1,15 @@
 package pet
 
 type BattlePet struct {
-	PetID    int64  `json:"pet_id"`
-	Slot     int    `json:"slot"`
-	Name     string `json:"name"`
-	Level    int    `json:"level"`
-	Power    int64  `json:"power"`
-	IsActive bool   `json:"is_active"`
+	PetID        int64  `json:"pet_id"`
+	Slot         int    `json:"slot"`
+	Name         string `json:"name"`
+	Level        int    `json:"level"`
+	Exp          int64  `json:"exp"`
+	NextLevelExp int64  `json:"next_level_exp"`
+	Power        int64  `json:"power"`
+	IsActive     bool   `json:"is_active"`
+	BasePower    int64  `json:"-"`
 }
 
 type TeamSnapshot struct {

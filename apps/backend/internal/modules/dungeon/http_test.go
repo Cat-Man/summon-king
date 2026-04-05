@@ -12,6 +12,7 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
 	"github.com/gin-gonic/gin"
 )
 
@@ -125,7 +126,13 @@ func TestHandler_RollReturnsLastBattlePayload(t *testing.T) {
 
 	repo := NewMemoryRepository()
 	growthRepo := growth.NewMemoryRepository()
-	svc := NewService(repo, asset.NewService(growthRepo))
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	svc := NewService(
+		repo,
+		asset.NewService(growthRepo),
+		WithBattleTeamReader(petSvc),
+		WithPetProgressor(petSvc),
+	)
 	if _, err := svc.EnterDungeon(context.Background(), 1002, 1); err != nil {
 		t.Fatalf("expected enter dungeon success, got %v", err)
 	}
@@ -159,6 +166,9 @@ func TestHandler_RollReturnsLastBattlePayload(t *testing.T) {
 	if _, ok := raw.Data["last_battle"]; !ok {
 		t.Fatal("expected last_battle key in dungeon roll payload")
 	}
+	if _, ok := raw.Data["pet_growth"]; !ok {
+		t.Fatal("expected pet_growth key in dungeon roll payload")
+	}
 	if _, ok := raw.Data["battle_result"]; ok {
 		t.Fatal("expected dungeon roll payload to stop exposing battle_result")
 	}
@@ -175,5 +185,64 @@ func TestHandler_RollReturnsLastBattlePayload(t *testing.T) {
 	}
 	if summary.WinnerSide != "attacker" {
 		t.Fatalf("expected winner_side attacker, got %s", summary.WinnerSide)
+	}
+
+	var growth PetGrowth
+	if err := json.Unmarshal(raw.Data["pet_growth"], &growth); err != nil {
+		t.Fatalf("expected pet growth JSON, got %v", err)
+	}
+	if growth.Exp != 50 {
+		t.Fatalf("expected pet growth exp 50, got %d", growth.Exp)
+	}
+	if growth.TeamTotalPower != 120 {
+		t.Fatalf("expected pet growth team total power 120, got %d", growth.TeamTotalPower)
+	}
+}
+
+func TestHandler_ClaimCultivationReturnsPetGrowth(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	repo := NewMemoryRepository()
+	growthRepo := growth.NewMemoryRepository()
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	svc := NewService(
+		repo,
+		asset.NewService(growthRepo),
+		WithPetProgressor(petSvc),
+	)
+	if _, err := svc.StartCultivation(context.Background(), 1003); err != nil {
+		t.Fatalf("expected cultivation start success, got %v", err)
+	}
+
+	r := gin.New()
+	r.Use(middleware.InjectTraceID())
+	h := NewHandler(svc)
+	g := r.Group("/dungeon")
+	h.RegisterRoutes(g)
+
+	req := httptest.NewRequest(http.MethodPost, "/dungeon/cultivation/claim", strings.NewReader("player_id=1003"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-Trace-ID", "trace-dungeon-cultivation-claim")
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	var payload struct {
+		Code int               `json:"code"`
+		Data CultivationStatus `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		t.Fatalf("expected JSON payload, got %v", err)
+	}
+	if resp.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", resp.Code)
+	}
+	if payload.Code != 0 {
+		t.Fatalf("expected business code 0, got %d", payload.Code)
+	}
+	if payload.Data.PetGrowth.Exp != 100 {
+		t.Fatalf("expected cultivation pet growth exp 100, got %d", payload.Data.PetGrowth.Exp)
+	}
+	if payload.Data.PetGrowth.TeamTotalPower != 144 {
+		t.Fatalf("expected cultivation pet growth team total power 144, got %d", payload.Data.PetGrowth.TeamTotalPower)
 	}
 }

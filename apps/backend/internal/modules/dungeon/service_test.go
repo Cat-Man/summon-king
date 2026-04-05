@@ -183,6 +183,45 @@ func TestClaimCultivation_UpdatesSpiritWallet(t *testing.T) {
 	}
 }
 
+func TestClaimCultivation_GrantsPetExperienceToActiveTeam(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	svc := NewService(
+		NewMemoryRepository(),
+		asset.NewService(growthRepo),
+		WithPetProgressor(petSvc),
+	)
+	playerID := int64(1009)
+
+	if _, err := svc.StartCultivation(ctx, playerID); err != nil {
+		t.Fatalf("expected cultivation start success, got %v", err)
+	}
+
+	status, err := svc.ClaimCultivation(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected cultivation claim success, got %v", err)
+	}
+
+	if status.PetGrowth.Exp != 100 {
+		t.Fatalf("expected cultivation pet exp 100, got %d", status.PetGrowth.Exp)
+	}
+	if status.PetGrowth.TeamTotalPower != 144 {
+		t.Fatalf("expected cultivation pet team power 144, got %d", status.PetGrowth.TeamTotalPower)
+	}
+
+	collection, err := petSvc.GetCollection(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected pet collection success, got %v", err)
+	}
+	if collection.ActiveTeam[0].Level != 2 {
+		t.Fatalf("expected active pet level 2 after cultivation, got %d", collection.ActiveTeam[0].Level)
+	}
+	if collection.TotalPower != 144 {
+		t.Fatalf("expected collection total power 144, got %d", collection.TotalPower)
+	}
+}
+
 func TestRollDice_UpdatesSpiritWallet(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
@@ -203,6 +242,46 @@ func TestRollDice_UpdatesSpiritWallet(t *testing.T) {
 	}
 	if wallet.SpiritPower != 105 {
 		t.Fatalf("expected spirit power 105 after roll reward, got %d", wallet.SpiritPower)
+	}
+}
+
+func TestRollDice_GrantsPetExperienceToActiveTeam(t *testing.T) {
+	ctx := context.Background()
+	growthRepo := growth.NewMemoryRepository()
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	svc := NewService(
+		NewMemoryRepository(),
+		asset.NewService(growthRepo),
+		WithBattleTeamReader(petSvc),
+		WithPetProgressor(petSvc),
+	)
+	playerID := int64(1010)
+
+	if _, err := svc.EnterDungeon(ctx, playerID, 1); err != nil {
+		t.Fatalf("expected enter dungeon success, got %v", err)
+	}
+
+	run, err := svc.RollDice(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected roll dice success, got %v", err)
+	}
+
+	if run.PetGrowth.Exp != 50 {
+		t.Fatalf("expected pet exp 50 after roll, got %d", run.PetGrowth.Exp)
+	}
+	if run.PetGrowth.TeamTotalPower != 120 {
+		t.Fatalf("expected team power 120 after first roll, got %d", run.PetGrowth.TeamTotalPower)
+	}
+
+	collection, err := petSvc.GetCollection(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected pet collection success, got %v", err)
+	}
+	if collection.ActiveTeam[0].Exp != 50 {
+		t.Fatalf("expected active pet exp 50, got %d", collection.ActiveTeam[0].Exp)
+	}
+	if collection.ActiveTeam[0].Level != 1 {
+		t.Fatalf("expected active pet level 1 after first roll, got %d", collection.ActiveTeam[0].Level)
 	}
 }
 

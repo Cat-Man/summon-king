@@ -69,7 +69,11 @@ test("loads cultivation status and updates after start and claim", async () => {
     state: "idle",
     start_at: "2026-04-04T00:00:00Z",
     claimable_at: "",
-  })
+    pet_growth: {
+      exp: 100,
+      team_total_power: 144,
+    },
+  } as any)
 
   const wrapper = mount(CultivationPage, {
     global: {
@@ -91,4 +95,5 @@ test("loads cultivation status and updates after start and claim", async () => {
   expect(claimCultivation).toHaveBeenCalledWith(4004)
   expect(syncStore.version).toBe(2)
   expect(wrapper.text()).toContain("110")
+  expect(wrapper.text()).toContain("幻兽经验 +100")
 })

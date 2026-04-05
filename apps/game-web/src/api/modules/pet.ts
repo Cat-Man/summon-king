@@ -5,6 +5,8 @@ export type BattlePet = {
   slot: number
   name: string
   level: number
+  exp?: number
+  next_level_exp?: number
   power: number
   is_active: boolean
 }

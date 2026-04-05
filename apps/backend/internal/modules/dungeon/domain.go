@@ -15,6 +15,7 @@ type DungeonRun struct {
 	Status         string         `json:"status"`
 	StartedAt      time.Time      `json:"started_at"`
 	LastReward     RollReward     `json:"last_reward"`
+	PetGrowth      PetGrowth      `json:"pet_growth"`
 	BattleResult   battle.Summary `json:"last_battle"`
 	WalletSnapshot growth.Wallet  `json:"wallet_snapshot"`
 }
@@ -53,4 +54,10 @@ type CultivationStatus struct {
 	State       string    `json:"state"`
 	StartAt     time.Time `json:"start_at,omitempty"`
 	ClaimableAt time.Time `json:"claimable_at,omitempty"`
+	PetGrowth   PetGrowth `json:"pet_growth"`
+}
+
+type PetGrowth struct {
+	Exp            int64 `json:"exp"`
+	TeamTotalPower int64 `json:"team_total_power"`
 }

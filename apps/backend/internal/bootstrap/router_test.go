@@ -149,3 +149,93 @@ func TestRouter_SavedPetTeamAffectsArenaBattlePower(t *testing.T) {
 		t.Fatalf("expected attacker power 276 after saving team, got %d", payload.Data.Battle.AttackerPower)
 	}
 }
+
+func TestRouter_CultivationClaimAffectsPetTeamAndArenaPower(t *testing.T) {
+	r := NewRouter()
+
+	startReq := httptest.NewRequest(http.MethodPost, "/api/v1/dungeon/cultivation/start", bytes.NewBufferString("player_id=1001"))
+	startReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	startResp := httptest.NewRecorder()
+	r.ServeHTTP(startResp, startReq)
+
+	if startResp.Code != http.StatusOK {
+		t.Fatalf("expected cultivation start 200, got %d", startResp.Code)
+	}
+
+	claimReq := httptest.NewRequest(http.MethodPost, "/api/v1/dungeon/cultivation/claim", bytes.NewBufferString("player_id=1001"))
+	claimReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	claimResp := httptest.NewRecorder()
+	r.ServeHTTP(claimResp, claimReq)
+
+	if claimResp.Code != http.StatusOK {
+		t.Fatalf("expected cultivation claim 200, got %d", claimResp.Code)
+	}
+
+	petReq := httptest.NewRequest(http.MethodGet, "/api/v1/pet/team?player_id=1001", nil)
+	petResp := httptest.NewRecorder()
+	r.ServeHTTP(petResp, petReq)
+
+	if petResp.Code != http.StatusOK {
+		t.Fatalf("expected pet team 200, got %d", petResp.Code)
+	}
+
+	var petPayload struct {
+		Code int `json:"code"`
+		Data struct {
+			TotalPower int64 `json:"total_power"`
+			ActiveTeam []struct {
+				Level int   `json:"level"`
+				Exp   int64 `json:"exp"`
+				Power int64 `json:"power"`
+			} `json:"active_team"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(petResp.Body).Decode(&petPayload); err != nil {
+		t.Fatalf("expected pet JSON payload, got %v", err)
+	}
+	if petPayload.Code != 0 {
+		t.Fatalf("expected pet business code 0, got %d", petPayload.Code)
+	}
+	if petPayload.Data.TotalPower != 144 {
+		t.Fatalf("expected pet total power 144 after cultivation claim, got %d", petPayload.Data.TotalPower)
+	}
+	if len(petPayload.Data.ActiveTeam) != 1 {
+		t.Fatalf("expected active team size 1, got %d", len(petPayload.Data.ActiveTeam))
+	}
+	if petPayload.Data.ActiveTeam[0].Level != 2 {
+		t.Fatalf("expected pet level 2 after cultivation claim, got %d", petPayload.Data.ActiveTeam[0].Level)
+	}
+	if petPayload.Data.ActiveTeam[0].Exp != 0 {
+		t.Fatalf("expected remaining exp 0 after level up, got %d", petPayload.Data.ActiveTeam[0].Exp)
+	}
+	if petPayload.Data.ActiveTeam[0].Power != 144 {
+		t.Fatalf("expected pet power 144 after cultivation claim, got %d", petPayload.Data.ActiveTeam[0].Power)
+	}
+
+	arenaReq := httptest.NewRequest(http.MethodPost, "/api/v1/arena/challenge", bytes.NewBufferString(`{"player_id":1001,"won":true}`))
+	arenaReq.Header.Set("Content-Type", "application/json")
+	arenaResp := httptest.NewRecorder()
+	r.ServeHTTP(arenaResp, arenaReq)
+
+	if arenaResp.Code != http.StatusOK {
+		t.Fatalf("expected arena challenge 200, got %d", arenaResp.Code)
+	}
+
+	var arenaPayload struct {
+		Code int `json:"code"`
+		Data struct {
+			Battle struct {
+				AttackerPower int64 `json:"attacker_power"`
+			} `json:"battle"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(arenaResp.Body).Decode(&arenaPayload); err != nil {
+		t.Fatalf("expected arena JSON payload, got %v", err)
+	}
+	if arenaPayload.Code != 0 {
+		t.Fatalf("expected arena business code 0, got %d", arenaPayload.Code)
+	}
+	if arenaPayload.Data.Battle.AttackerPower != 144 {
+		t.Fatalf("expected attacker power 144 after cultivation growth, got %d", arenaPayload.Data.Battle.AttackerPower)
+	}
+}

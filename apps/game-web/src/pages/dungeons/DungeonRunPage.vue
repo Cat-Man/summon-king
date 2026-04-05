@@ -36,11 +36,13 @@
         <p>{{ run.last_reward.label || "本次掉落" }}</p>
         <strong>灵力 +{{ run.last_reward.spirit_power }}</strong>
         <span>魂力 +{{ run.last_reward.soul_pieces }}</span>
+        <span v-if="run.pet_growth.exp > 0">幻兽经验 +{{ run.pet_growth.exp }}</span>
       </article>
       <article>
         <p>当前资源</p>
         <strong>当前灵力 {{ run.wallet_snapshot.spirit_power }}</strong>
         <span>当前魂力 {{ run.wallet_snapshot.soul_pieces }}</span>
+        <span v-if="run.pet_growth.team_total_power > 0">队伍战力 {{ run.pet_growth.team_total_power }}</span>
       </article>
     </div>
     <article v-if="run.last_battle?.battle_type" class="battle-panel">
@@ -111,6 +113,10 @@ const defaultRun: DungeonRun = {
     spirit_power: 0,
     soul_pieces: 0,
   },
+  pet_growth: {
+    exp: 0,
+    team_total_power: 0,
+  },
   last_battle: {
     battle_type: "",
     result: "",
@@ -147,6 +153,10 @@ function normalizeRun(nextRun: Partial<DungeonRun>): DungeonRun {
     last_reward: {
       ...defaultRun.last_reward,
       ...nextRun.last_reward,
+    },
+    pet_growth: {
+      ...defaultRun.pet_growth,
+      ...nextRun.pet_growth,
     },
     last_battle: {
       ...defaultRun.last_battle,

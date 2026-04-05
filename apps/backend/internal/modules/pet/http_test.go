@@ -44,6 +44,12 @@ func TestHandler_TeamReturnsPetCollection(t *testing.T) {
 	if len(payload.Data.ActiveTeam) != 1 {
 		t.Fatalf("expected active team 1, got %d", len(payload.Data.ActiveTeam))
 	}
+	if payload.Data.ActiveTeam[0].Exp != 0 {
+		t.Fatalf("expected active pet exp 0, got %d", payload.Data.ActiveTeam[0].Exp)
+	}
+	if payload.Data.ActiveTeam[0].NextLevelExp != 100 {
+		t.Fatalf("expected active pet next level exp 100, got %d", payload.Data.ActiveTeam[0].NextLevelExp)
+	}
 	if len(payload.Data.Roster) != 2 {
 		t.Fatalf("expected roster 2, got %d", len(payload.Data.Roster))
 	}

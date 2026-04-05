@@ -89,7 +89,11 @@ test("enters dungeon when status is missing and rolls forward", async () => {
       soul_pieces: 1,
       manor_plots: 2,
     },
-  })
+    pet_growth: {
+      exp: 50,
+      team_total_power: 120,
+    },
+  } as any)
 
   const wrapper = mount(DungeonRunPage, {
     global: {
@@ -110,6 +114,7 @@ test("enters dungeon when status is missing and rolls forward", async () => {
   expect(wrapper.text()).toContain("Boss掉落")
   expect(wrapper.text()).toContain("灵力 +8")
   expect(wrapper.text()).toContain("魂力 +1")
+  expect(wrapper.text()).toContain("幻兽经验 +50")
   expect(wrapper.text()).toContain("当前灵力 108")
   expect(wrapper.text()).toContain("战斗摘要")
   expect(wrapper.text()).toContain("战斗结果")

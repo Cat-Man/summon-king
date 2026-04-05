@@ -196,3 +196,96 @@ func TestService_SaveTeamDoesNotClearActiveTeamWhenPetMissing(t *testing.T) {
 		t.Fatalf("expected total power 120, got %d", data.TotalPower)
 	}
 }
+
+func TestService_GrantActiveTeamExperienceLevelsMainPet(t *testing.T) {
+	ctx := context.Background()
+	svc := NewService(NewMemoryRepository())
+
+	team, err := svc.GrantActiveTeamExperience(ctx, 1001, 100)
+
+	if err != nil {
+		t.Fatalf("expected grant pet exp success, got %v", err)
+	}
+	if len(team.Pets) != 1 {
+		t.Fatalf("expected active team 1, got %d", len(team.Pets))
+	}
+	if team.Pets[0].Level != 2 {
+		t.Fatalf("expected level 2 after 100 exp, got %d", team.Pets[0].Level)
+	}
+	if team.Pets[0].Exp != 0 {
+		t.Fatalf("expected remaining exp 0 after level up, got %d", team.Pets[0].Exp)
+	}
+	if team.Pets[0].NextLevelExp != 200 {
+		t.Fatalf("expected next level exp 200, got %d", team.Pets[0].NextLevelExp)
+	}
+	if team.Pets[0].Power != 144 {
+		t.Fatalf("expected level 2 power 144, got %d", team.Pets[0].Power)
+	}
+	if team.TotalPower != 144 {
+		t.Fatalf("expected total power 144, got %d", team.TotalPower)
+	}
+}
+
+func TestService_GrantActiveTeamExperienceDoesNotAffectInactivePets(t *testing.T) {
+	ctx := context.Background()
+	svc := NewService(NewMemoryRepository())
+
+	if _, err := svc.GrantActiveTeamExperience(ctx, 1001, 50); err != nil {
+		t.Fatalf("expected grant pet exp success, got %v", err)
+	}
+
+	data, err := svc.GetCollection(ctx, 1001)
+	if err != nil {
+		t.Fatalf("expected collection success, got %v", err)
+	}
+	if data.ActiveTeam[0].Exp != 50 {
+		t.Fatalf("expected main pet exp 50, got %d", data.ActiveTeam[0].Exp)
+	}
+	if data.ActiveTeam[0].NextLevelExp != 100 {
+		t.Fatalf("expected next level exp 100, got %d", data.ActiveTeam[0].NextLevelExp)
+	}
+	if data.Roster[1].PetID != 10012 {
+		t.Fatalf("expected inactive pet 10012, got %d", data.Roster[1].PetID)
+	}
+	if data.Roster[1].Level != 1 {
+		t.Fatalf("expected inactive pet level 1, got %d", data.Roster[1].Level)
+	}
+	if data.Roster[1].Exp != 0 {
+		t.Fatalf("expected inactive pet exp 0, got %d", data.Roster[1].Exp)
+	}
+	if data.Roster[1].Power != 156 {
+		t.Fatalf("expected inactive pet power 156, got %d", data.Roster[1].Power)
+	}
+}
+
+func TestService_GrantActiveTeamExperienceAppliesToWholeActiveTeam(t *testing.T) {
+	ctx := context.Background()
+	svc := NewService(NewMemoryRepository())
+	if _, err := svc.SaveTeam(ctx, 1001, []int64{10011, 10012}); err != nil {
+		t.Fatalf("expected save team success, got %v", err)
+	}
+
+	team, err := svc.GrantActiveTeamExperience(ctx, 1001, 100)
+
+	if err != nil {
+		t.Fatalf("expected grant pet exp success, got %v", err)
+	}
+	if len(team.Pets) != 2 {
+		t.Fatalf("expected active team 2, got %d", len(team.Pets))
+	}
+	if team.Pets[0].Level != 2 {
+		t.Fatalf("expected pet 1 level 2, got %d", team.Pets[0].Level)
+	}
+	if team.Pets[1].Level != 2 {
+		t.Fatalf("expected pet 2 level 2, got %d", team.Pets[1].Level)
+	}
+	if team.Pets[0].Power != 144 {
+		t.Fatalf("expected pet 1 power 144, got %d", team.Pets[0].Power)
+	}
+	if team.Pets[1].Power != 180 {
+		t.Fatalf("expected pet 2 power 180, got %d", team.Pets[1].Power)
+	}
+	if team.TotalPower != 324 {
+		t.Fatalf("expected total power 324, got %d", team.TotalPower)
+	}
+}

@@ -19,7 +19,7 @@
         <li v-for="pet in collection.active_team" :key="`active-${pet.pet_id}`" class="pet-item">
           <div>
             <p>{{ pet.name }}</p>
-            <span>槽位 {{ pet.slot }} · Lv.{{ pet.level }}</span>
+            <span>槽位 {{ pet.slot }} · Lv.{{ pet.level }} · EXP {{ pet.exp ?? 0 }}/{{ pet.next_level_exp ?? 100 }}</span>
           </div>
           <strong>{{ pet.power }}</strong>
         </li>
@@ -35,7 +35,10 @@
         <li v-for="pet in collection.roster" :key="`roster-${pet.pet_id}`" class="pet-item">
           <div>
             <p>{{ pet.name }}</p>
-            <span>槽位 {{ pet.slot }} · Lv.{{ pet.level }} · {{ pet.is_active ? "上阵中" : "待命" }}</span>
+            <span>
+              槽位 {{ pet.slot }} · Lv.{{ pet.level }} · EXP {{ pet.exp ?? 0 }}/{{ pet.next_level_exp ?? 100 }} ·
+              {{ pet.is_active ? "上阵中" : "待命" }}
+            </span>
           </div>
           <div class="pet-actions">
             <strong>{{ pet.power }}</strong>
