@@ -14,6 +14,20 @@ export type AllianceApplication = {
   player_id: number
 }
 
+export type AllianceFireTrainingSummary = {
+  furnace_level: number
+  can_claim_stone: boolean
+  current_room: string
+  claimable: boolean
+  reward_preview: string
+}
+
+export type AllianceWarSummary = {
+  phase: string
+  target_label: string
+  can_register: boolean
+}
+
 export type AllianceSummary = {
   alliance_id: number
   name: string
@@ -30,6 +44,8 @@ export type AllianceIndex = {
   has_alliance: boolean
   current_role: string
   alliance: AllianceSummary | null
+  fire_training?: AllianceFireTrainingSummary
+  war?: AllianceWarSummary
   pending_applications?: AllianceApplication[]
 }
 

@@ -33,6 +33,21 @@ func TestService_CreateAllianceBuildsLeaderIndex(t *testing.T) {
 	if len(index.Alliance.Buildings) != 2 {
 		t.Fatalf("expected 2 default buildings, got %d", len(index.Alliance.Buildings))
 	}
+	if index.FireTraining == nil {
+		t.Fatal("expected fire training summary")
+	}
+	if index.FireTraining.FurnaceLevel != 1 {
+		t.Fatalf("expected furnace level 1, got %d", index.FireTraining.FurnaceLevel)
+	}
+	if index.FireTraining.RewardPreview != "焚火晶 x6 / 2小时" {
+		t.Fatalf("expected reward preview 焚火晶 x6 / 2小时, got %s", index.FireTraining.RewardPreview)
+	}
+	if index.War == nil {
+		t.Fatal("expected war summary")
+	}
+	if !index.War.CanRegister {
+		t.Fatal("expected leader can register alliance war")
+	}
 }
 
 func TestService_ApplyAndApprovePromotesApplicantIntoAlliance(t *testing.T) {
@@ -69,6 +84,12 @@ func TestService_ApplyAndApprovePromotesApplicantIntoAlliance(t *testing.T) {
 	}
 	if applicantIndex.Alliance == nil || len(applicantIndex.Alliance.Members) != 2 {
 		t.Fatalf("expected 2 alliance members after approval, got %#v", applicantIndex.Alliance)
+	}
+	if applicantIndex.War == nil {
+		t.Fatal("expected war summary for member")
+	}
+	if applicantIndex.War.CanRegister {
+		t.Fatal("expected member cannot register alliance war")
 	}
 }
 

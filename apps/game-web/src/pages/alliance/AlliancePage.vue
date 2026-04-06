@@ -43,6 +43,44 @@
         </section>
       </div>
 
+      <div class="grid">
+        <section v-if="index.fire_training" class="panel">
+          <h3>火能修行</h3>
+          <ul class="simple-list">
+            <li>
+              <span>熔炉等级</span>
+              <strong>Lv.{{ index.fire_training.furnace_level }}</strong>
+            </li>
+            <li>
+              <span>当前房间</span>
+              <strong>{{ index.fire_training.current_room }}</strong>
+            </li>
+            <li>
+              <span>收益预览</span>
+              <strong>{{ index.fire_training.reward_preview }}</strong>
+            </li>
+          </ul>
+        </section>
+
+        <section v-if="index.war" class="panel">
+          <h3>盟战状态</h3>
+          <ul class="simple-list">
+            <li>
+              <span>阶段</span>
+              <strong>{{ warPhaseLabel(index.war.phase) }}</strong>
+            </li>
+            <li>
+              <span>当前目标</span>
+              <strong>{{ index.war.target_label }}</strong>
+            </li>
+            <li>
+              <span>登记权限</span>
+              <strong>{{ index.war.can_register ? "可登记" : "不可登记" }}</strong>
+            </li>
+          </ul>
+        </section>
+      </div>
+
       <section v-if="index.pending_applications?.length" class="panel apply-panel">
         <header class="panel-header">
           <h3>待审批申请</h3>
@@ -217,6 +255,19 @@ function buildingLabel(buildingType: string) {
     return "焚天炉"
   }
   return buildingType
+}
+
+function warPhaseLabel(phase: string) {
+  if (phase === "preparing") {
+    return "筹备中"
+  }
+  if (phase === "fighting") {
+    return "进行中"
+  }
+  if (phase === "settled") {
+    return "已结算"
+  }
+  return phase
 }
 
 onMounted(async () => {

@@ -11,6 +11,8 @@ type Index struct {
 	HasAlliance         bool                  `json:"has_alliance"`
 	CurrentRole         string                `json:"current_role"`
 	Alliance            *AllianceSummary      `json:"alliance,omitempty"`
+	FireTraining        *FireTrainingStatus   `json:"fire_training,omitempty"`
+	War                 *WarIndex             `json:"war,omitempty"`
 	PendingApplications []AllianceApplication `json:"pending_applications,omitempty"`
 }
 
@@ -127,6 +129,9 @@ func (s *Service) ApproveApplication(ctx context.Context, approverID, applicantI
 }
 
 func buildIndex(playerID int64, role string, state allianceState) Index {
+	fireTraining := NewFireTrainingService().GetStatus(state)
+	war := buildWarIndex(role, state)
+
 	return Index{
 		PlayerID:    playerID,
 		HasAlliance: true,
@@ -141,6 +146,8 @@ func buildIndex(playerID int64, role string, state allianceState) Index {
 			Members:     buildMembers(state.Members),
 			Buildings:   buildBuildings(state.Buildings),
 		},
+		FireTraining: &fireTraining,
+		War:          &war,
 	}
 }
 

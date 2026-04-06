@@ -62,6 +62,10 @@ func NewRouterWithConfig(cfg Config) (*gin.Engine, error) {
 	registerModuleRoot(allianceGroup, "alliance")
 	alliance.NewHandler(deps.allianceService).RegisterRoutes(allianceGroup)
 
+	allianceWarGroup := api.Group("/alliance-war")
+	registerModuleRoot(allianceWarGroup, "alliance-war")
+	alliance.NewWarHandler(deps.allianceWar).RegisterRoutes(allianceWarGroup)
+
 	commerceHandler := commerce.NewHandler(deps.commerceService)
 	signinGroup := api.Group("/signin")
 	registerModuleRoot(signinGroup, "signin")

@@ -17,6 +17,8 @@ var (
 	ErrAlliancePermissionDenied   = errors.New("alliance permission denied")
 	ErrAllianceApplicationMissing = errors.New("alliance application not found")
 	ErrAllianceFull               = errors.New("alliance is full")
+	ErrAllianceWarTargetRequired  = errors.New("alliance war target is required")
+	ErrAllianceWarTargetInvalid   = errors.New("alliance war target is invalid")
 )
 
 const (
@@ -32,6 +34,7 @@ type Repository interface {
 	Apply(ctx context.Context, playerID, allianceID int64) error
 	ListApplications(ctx context.Context, playerID int64) ([]applicationState, error)
 	ApproveApplication(ctx context.Context, approverID, applicantID int64) (allianceState, string, error)
+	RegisterWarTarget(ctx context.Context, playerID int64, target string) (allianceState, string, error)
 }
 
 type allianceState struct {
@@ -40,6 +43,7 @@ type allianceState struct {
 	Level       int
 	Notice      string
 	MemberLimit int
+	WarTarget   string
 	Members     []memberState
 	Buildings   []buildingState
 }
@@ -264,6 +268,33 @@ func (r *MemoryRepository) ApproveApplication(_ context.Context, approverID, app
 	delete(applications, applicantID)
 
 	return cloneAllianceState(state), roleMember, nil
+}
+
+func (r *MemoryRepository) RegisterWarTarget(_ context.Context, playerID int64, target string) (allianceState, string, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	allianceID, role, err := r.findAllianceAndRoleLocked(playerID)
+	if err != nil {
+		return allianceState{}, "", err
+	}
+	if role != roleLeader {
+		return allianceState{}, "", ErrAlliancePermissionDenied
+	}
+
+	target = strings.TrimSpace(target)
+	if target == "" {
+		return allianceState{}, "", ErrAllianceWarTargetRequired
+	}
+	if !isAvailableWarTarget(target) {
+		return allianceState{}, "", ErrAllianceWarTargetInvalid
+	}
+
+	state := r.alliances[allianceID]
+	state.WarTarget = target
+	r.alliances[allianceID] = state
+
+	return cloneAllianceState(state), role, nil
 }
 
 func (r *MemoryRepository) ensureApplicationsLocked(allianceID int64) map[int64]applicationState {
