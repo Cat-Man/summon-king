@@ -1,0 +1,13 @@
+{
+  "name": "@zhzw/mini-shell",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "lint": "node --check app.js && node --check pages/launch/index.js && node --check pages/webview/index.js && node --check utils/bridge.js"
+  },
+  "devDependencies": {
+    "vitest": "^3.0.8"
+  }
+}

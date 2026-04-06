@@ -41,6 +41,9 @@ jobs:
           node -v
           pnpm -v
 
+      - name: Install workspace dependencies
+        run: pnpm install
+
       - name: Run backend tests
         run: make test-backend
 
@@ -50,5 +53,5 @@ jobs:
       - name: Run lint
         run: make lint
 
-      - name: Smoke run backend entry
-        run: make dev-api
+      - name: Smoke build backend entrypoints
+        run: make smoke-backend

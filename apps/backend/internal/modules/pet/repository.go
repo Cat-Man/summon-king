@@ -1,0 +1,460 @@
+package pet
+
+import (
+	"context"
+	"errors"
+	"sort"
+	"sync"
+
+	"github.com/Cat-Man/summon-king/apps/backend/internal/storage/mysqlstore"
+)
+
+var ErrPetNotFound = errors.New("pet not found")
+var ErrInvalidTeam = errors.New("invalid team")
+
+const maxActiveTeamSize = 2
+const levelPowerGain int64 = 24
+
+type Repository interface {
+	GetBattleTeam(ctx context.Context, playerID int64) (TeamSnapshot, error)
+	ListPets(ctx context.Context, playerID int64) ([]BattlePet, error)
+	SaveTeam(ctx context.Context, playerID int64, petIDs []int64) error
+	SetMainPet(ctx context.Context, playerID, petID int64) error
+	GrantActiveTeamExperience(ctx context.Context, playerID int64, exp int64) (TeamSnapshot, error)
+}
+
+type MemoryRepository struct {
+	mu           sync.Mutex
+	petsByPlayer map[int64][]BattlePet
+}
+
+type MySQLRepository struct {
+	store mysqlstore.ModuleStateStore
+}
+
+type mysqlState struct {
+	Pets []BattlePet `json:"pets"`
+}
+
+const mysqlModuleName = "pet"
+
+func NewMemoryRepository() *MemoryRepository {
+	return &MemoryRepository{
+		petsByPlayer: make(map[int64][]BattlePet),
+	}
+}
+
+func NewMySQLRepository(store mysqlstore.ModuleStateStore) *MySQLRepository {
+	return &MySQLRepository{store: store}
+}
+
+func (r *MemoryRepository) GetBattleTeam(_ context.Context, playerID int64) (TeamSnapshot, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	return TeamSnapshot{
+		PlayerID: playerID,
+		Pets:     activePets(r.ensurePetsLocked(playerID)),
+	}, nil
+}
+
+func (r *MemoryRepository) ListPets(_ context.Context, playerID int64) ([]BattlePet, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	return rosterPets(r.ensurePetsLocked(playerID)), nil
+}
+
+func (r *MemoryRepository) SaveTeam(_ context.Context, playerID int64, petIDs []int64) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	pets := r.ensurePetsLocked(playerID)
+	return r.saveTeamLocked(playerID, pets, petIDs)
+}
+
+func (r *MemoryRepository) SetMainPet(_ context.Context, playerID, petID int64) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	pets := r.ensurePetsLocked(playerID)
+	targetIndex := -1
+	for idx := range pets {
+		if pets[idx].PetID == petID {
+			targetIndex = idx
+			break
+		}
+	}
+	if targetIndex == -1 {
+		return ErrPetNotFound
+	}
+
+	teamIDs := []int64{petID}
+	if pets[targetIndex].IsActive {
+		teamIDs = append(teamIDs, removePetID(activePetIDs(pets), petID)...)
+	}
+
+	return r.saveTeamLocked(playerID, pets, teamIDs)
+}
+
+func (r *MemoryRepository) ensurePetsLocked(playerID int64) []BattlePet {
+	if pets, ok := r.petsByPlayer[playerID]; ok {
+		normalized := normalizePets(pets)
+		r.petsByPlayer[playerID] = normalized
+		return normalized
+	}
+
+	pets := []BattlePet{
+		{
+			PetID:        playerID*10 + 1,
+			Slot:         1,
+			Name:         "初始灵狐",
+			Level:        1,
+			Exp:          0,
+			NextLevelExp: nextLevelExp(1),
+			Power:        120,
+			IsActive:     true,
+			BasePower:    120,
+		},
+		{
+			PetID:        playerID*10 + 2,
+			Slot:         0,
+			Name:         "玄甲龟",
+			Level:        1,
+			Exp:          0,
+			NextLevelExp: nextLevelExp(1),
+			Power:        156,
+			IsActive:     false,
+			BasePower:    156,
+		},
+	}
+	r.petsByPlayer[playerID] = pets
+	return pets
+}
+
+func (r *MemoryRepository) GrantActiveTeamExperience(_ context.Context, playerID int64, exp int64) (TeamSnapshot, error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	pets := r.ensurePetsLocked(playerID)
+	if exp <= 0 {
+		return TeamSnapshot{
+			PlayerID: playerID,
+			Pets:     activePets(pets),
+		}, nil
+	}
+
+	for idx := range pets {
+		if !pets[idx].IsActive {
+			continue
+		}
+		grantExperience(&pets[idx], exp)
+	}
+
+	r.petsByPlayer[playerID] = pets
+	return TeamSnapshot{
+		PlayerID: playerID,
+		Pets:     activePets(pets),
+	}, nil
+}
+
+func clonePets(pets []BattlePet) []BattlePet {
+	cloned := make([]BattlePet, len(pets))
+	copy(cloned, pets)
+	return cloned
+}
+
+func (r *MemoryRepository) saveTeamLocked(playerID int64, pets []BattlePet, petIDs []int64) error {
+	if len(petIDs) == 0 || len(petIDs) > maxActiveTeamSize {
+		return ErrInvalidTeam
+	}
+
+	slots := make(map[int64]int, len(petIDs))
+	existing := make(map[int64]struct{}, len(pets))
+	for _, battlePet := range pets {
+		existing[battlePet.PetID] = struct{}{}
+	}
+	for idx, petID := range petIDs {
+		if _, exists := slots[petID]; exists {
+			return ErrInvalidTeam
+		}
+		if _, exists := existing[petID]; !exists {
+			return ErrPetNotFound
+		}
+		slots[petID] = idx + 1
+	}
+
+	for idx := range pets {
+		slot, exists := slots[pets[idx].PetID]
+		if exists {
+			pets[idx].IsActive = true
+			pets[idx].Slot = slot
+			continue
+		}
+		pets[idx].IsActive = false
+		pets[idx].Slot = 0
+	}
+
+	r.petsByPlayer[playerID] = pets
+	return nil
+}
+
+func activePets(pets []BattlePet) []BattlePet {
+	active := make([]BattlePet, 0, len(pets))
+	for _, battlePet := range pets {
+		if battlePet.IsActive {
+			active = append(active, battlePet)
+		}
+	}
+	sort.Slice(active, func(i, j int) bool {
+		if active[i].Slot == active[j].Slot {
+			return active[i].PetID < active[j].PetID
+		}
+		return active[i].Slot < active[j].Slot
+	})
+	return clonePets(active)
+}
+
+func rosterPets(pets []BattlePet) []BattlePet {
+	roster := clonePets(pets)
+	sort.Slice(roster, func(i, j int) bool {
+		if roster[i].IsActive != roster[j].IsActive {
+			return roster[i].IsActive
+		}
+		if roster[i].Slot != roster[j].Slot {
+			if roster[i].Slot == 0 {
+				return false
+			}
+			if roster[j].Slot == 0 {
+				return true
+			}
+			return roster[i].Slot < roster[j].Slot
+		}
+		return roster[i].PetID < roster[j].PetID
+	})
+	return roster
+}
+
+func activePetIDs(pets []BattlePet) []int64 {
+	active := activePets(pets)
+	ids := make([]int64, 0, len(active))
+	for _, battlePet := range active {
+		ids = append(ids, battlePet.PetID)
+	}
+	return ids
+}
+
+func removePetID(petIDs []int64, target int64) []int64 {
+	filtered := make([]int64, 0, len(petIDs))
+	for _, petID := range petIDs {
+		if petID != target {
+			filtered = append(filtered, petID)
+		}
+	}
+	return filtered
+}
+
+func normalizePets(pets []BattlePet) []BattlePet {
+	normalized := clonePets(pets)
+	for idx := range normalized {
+		if normalized[idx].Level < 1 {
+			normalized[idx].Level = 1
+		}
+		if normalized[idx].BasePower <= 0 {
+			normalized[idx].BasePower = normalized[idx].Power - int64(normalized[idx].Level-1)*levelPowerGain
+			if normalized[idx].BasePower <= 0 {
+				normalized[idx].BasePower = normalized[idx].Power
+			}
+		}
+		normalized[idx].NextLevelExp = nextLevelExp(normalized[idx].Level)
+		normalized[idx].Power = powerForLevel(normalized[idx].BasePower, normalized[idx].Level)
+	}
+	return normalized
+}
+
+func grantExperience(pet *BattlePet, exp int64) {
+	if exp <= 0 {
+		return
+	}
+
+	pet.Exp += exp
+	threshold := nextLevelExp(pet.Level)
+	for pet.Exp >= threshold {
+		pet.Exp -= threshold
+		pet.Level++
+		threshold = nextLevelExp(pet.Level)
+	}
+	pet.NextLevelExp = threshold
+	pet.Power = powerForLevel(pet.BasePower, pet.Level)
+}
+
+func nextLevelExp(level int) int64 {
+	if level < 1 {
+		level = 1
+	}
+	return int64(level) * 100
+}
+
+func powerForLevel(basePower int64, level int) int64 {
+	if level < 1 {
+		level = 1
+	}
+	return basePower + int64(level-1)*levelPowerGain
+}
+
+func (r *MySQLRepository) GetBattleTeam(ctx context.Context, playerID int64) (TeamSnapshot, error) {
+	pets, err := r.loadPets(ctx, playerID)
+	if err != nil {
+		return TeamSnapshot{}, err
+	}
+	return TeamSnapshot{
+		PlayerID: playerID,
+		Pets:     activePets(pets),
+	}, nil
+}
+
+func (r *MySQLRepository) ListPets(ctx context.Context, playerID int64) ([]BattlePet, error) {
+	pets, err := r.loadPets(ctx, playerID)
+	if err != nil {
+		return nil, err
+	}
+	return rosterPets(pets), nil
+}
+
+func (r *MySQLRepository) SaveTeam(ctx context.Context, playerID int64, petIDs []int64) error {
+	pets, err := r.loadPets(ctx, playerID)
+	if err != nil {
+		return err
+	}
+	if err := saveTeamIntoPets(pets, petIDs); err != nil {
+		return err
+	}
+	return r.savePets(ctx, playerID, pets)
+}
+
+func (r *MySQLRepository) SetMainPet(ctx context.Context, playerID, petID int64) error {
+	pets, err := r.loadPets(ctx, playerID)
+	if err != nil {
+		return err
+	}
+
+	targetIndex := -1
+	for idx := range pets {
+		if pets[idx].PetID == petID {
+			targetIndex = idx
+			break
+		}
+	}
+	if targetIndex == -1 {
+		return ErrPetNotFound
+	}
+
+	teamIDs := []int64{petID}
+	if pets[targetIndex].IsActive {
+		teamIDs = append(teamIDs, removePetID(activePetIDs(pets), petID)...)
+	}
+	if err := saveTeamIntoPets(pets, teamIDs); err != nil {
+		return err
+	}
+	return r.savePets(ctx, playerID, pets)
+}
+
+func (r *MySQLRepository) GrantActiveTeamExperience(ctx context.Context, playerID int64, exp int64) (TeamSnapshot, error) {
+	pets, err := r.loadPets(ctx, playerID)
+	if err != nil {
+		return TeamSnapshot{}, err
+	}
+	if exp > 0 {
+		for idx := range pets {
+			if !pets[idx].IsActive {
+				continue
+			}
+			grantExperience(&pets[idx], exp)
+		}
+		if err := r.savePets(ctx, playerID, pets); err != nil {
+			return TeamSnapshot{}, err
+		}
+	}
+	return TeamSnapshot{
+		PlayerID: playerID,
+		Pets:     activePets(pets),
+	}, nil
+}
+
+func (r *MySQLRepository) loadPets(ctx context.Context, playerID int64) ([]BattlePet, error) {
+	var state mysqlState
+	ok, err := r.store.LoadModuleState(ctx, playerID, mysqlModuleName, &state)
+	if err != nil {
+		return nil, err
+	}
+	if !ok || len(state.Pets) == 0 {
+		return defaultPets(playerID), nil
+	}
+	return normalizePets(state.Pets), nil
+}
+
+func (r *MySQLRepository) savePets(ctx context.Context, playerID int64, pets []BattlePet) error {
+	return r.store.SaveModuleState(ctx, playerID, mysqlModuleName, mysqlState{
+		Pets: normalizePets(pets),
+	})
+}
+
+func defaultPets(playerID int64) []BattlePet {
+	return []BattlePet{
+		{
+			PetID:        playerID*10 + 1,
+			Slot:         1,
+			Name:         "初始灵狐",
+			Level:        1,
+			Exp:          0,
+			NextLevelExp: nextLevelExp(1),
+			Power:        120,
+			IsActive:     true,
+			BasePower:    120,
+		},
+		{
+			PetID:        playerID*10 + 2,
+			Slot:         0,
+			Name:         "玄甲龟",
+			Level:        1,
+			Exp:          0,
+			NextLevelExp: nextLevelExp(1),
+			Power:        156,
+			IsActive:     false,
+			BasePower:    156,
+		},
+	}
+}
+
+func saveTeamIntoPets(pets []BattlePet, petIDs []int64) error {
+	if len(petIDs) == 0 || len(petIDs) > maxActiveTeamSize {
+		return ErrInvalidTeam
+	}
+
+	slots := make(map[int64]int, len(petIDs))
+	existing := make(map[int64]struct{}, len(pets))
+	for _, battlePet := range pets {
+		existing[battlePet.PetID] = struct{}{}
+	}
+	for idx, petID := range petIDs {
+		if _, exists := slots[petID]; exists {
+			return ErrInvalidTeam
+		}
+		if _, exists := existing[petID]; !exists {
+			return ErrPetNotFound
+		}
+		slots[petID] = idx + 1
+	}
+
+	for idx := range pets {
+		slot, exists := slots[pets[idx].PetID]
+		if exists {
+			pets[idx].IsActive = true
+			pets[idx].Slot = slot
+			continue
+		}
+		pets[idx].IsActive = false
+		pets[idx].Slot = 0
+	}
+	return nil
+}

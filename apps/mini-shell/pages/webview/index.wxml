@@ -1,0 +1,2 @@
+<web-view wx:if="{{url}}" src="{{url}}" />
+<view wx:else>缺少游戏地址</view>
