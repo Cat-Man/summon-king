@@ -114,6 +114,10 @@ func (h *Handler) claimCultivation(c *gin.Context) {
 	}
 	status, err := h.service.ClaimCultivation(c.Request.Context(), playerID)
 	if err != nil {
+		if err == ErrCultivationNotFound {
+			c.JSON(stdhttp.StatusNotFound, httpx.Error(4041, "cultivation not found", middleware.GetTraceID(c)))
+			return
+		}
 		if err == ErrCultivationNotReady {
 			c.JSON(stdhttp.StatusConflict, httpx.Error(4091, "cultivation not ready", middleware.GetTraceID(c)))
 			return

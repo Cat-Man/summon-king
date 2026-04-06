@@ -288,3 +288,35 @@ func TestHandler_ClaimCultivationRejectsBeforeClaimableAt(t *testing.T) {
 		t.Fatalf("expected propagated trace id, got %s", payload.TraceID)
 	}
 }
+
+func TestHandler_ClaimCultivationReturnsNotFoundWhenCultivationMissing(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	svc := NewService(NewMemoryRepository(), asset.NewService(growth.NewMemoryRepository()))
+
+	r := gin.New()
+	r.Use(middleware.InjectTraceID())
+	h := NewHandler(svc)
+	g := r.Group("/dungeon")
+	h.RegisterRoutes(g)
+
+	req := httptest.NewRequest(http.MethodPost, "/dungeon/cultivation/claim", strings.NewReader("player_id=1005"))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-Trace-ID", "trace-dungeon-cultivation-missing")
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	var payload httpx.APIResponse
+	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+		t.Fatalf("expected JSON payload, got %v", err)
+	}
+	if resp.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d", resp.Code)
+	}
+	if payload.Code != 4041 {
+		t.Fatalf("expected business code 4041, got %d", payload.Code)
+	}
+	if payload.TraceID != "trace-dungeon-cultivation-missing" {
+		t.Fatalf("expected propagated trace id, got %s", payload.TraceID)
+	}
+}
