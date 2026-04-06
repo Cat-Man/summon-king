@@ -36,14 +36,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 import { RouterLink } from "vue-router"
 
 import { APIError } from "@/api/http"
 import { getLeaderboard, type LeaderboardEntry } from "@/api/modules/ranking"
+import { useResourceSyncStore } from "@/stores/resourceSync"
 import { useSessionStore } from "@/stores/session"
 
 const sessionStore = useSessionStore()
+const resourceSyncStore = useResourceSyncStore()
 const leaderboard = ref<LeaderboardEntry[]>([])
 const errorMessage = ref("")
 const selfEntry = computed(() => leaderboard.value.find((entry) => entry.is_self) ?? null)
@@ -56,7 +58,7 @@ function formatUpdated(updated: number) {
   return `${diffMinutes} 分钟前`
 }
 
-onMounted(async () => {
+async function loadLeaderboard() {
   if (!sessionStore.playerId) {
     errorMessage.value = "当前未登录，无法加载排行榜。"
     return
@@ -68,6 +70,21 @@ onMounted(async () => {
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "排行榜加载失败，请稍后重试。"
   }
+}
+
+watch(
+  () => resourceSyncStore.version,
+  async (next, prev) => {
+    if (next === prev) {
+      return
+    }
+    await loadLeaderboard()
+  },
+  { flush: "sync" },
+)
+
+onMounted(async () => {
+  await loadLeaderboard()
 })
 </script>
 
