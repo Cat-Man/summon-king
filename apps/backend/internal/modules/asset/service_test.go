@@ -7,15 +7,22 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 )
 
-func TestService_ApplyAccumulatesWalletDelta(t *testing.T) {
+func TestService_ApplyWithMetadataPopulatesResult(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
 	svc := NewService(growthRepo)
 
-	result, err := svc.Apply(ctx, 1001, Delta{
-		SpiritPower: 12,
-		BoneLevel:   1,
-		SoulPieces:  2,
+	result, err := svc.ApplyWithMetadata(ctx, 1001, ApplyRequest{
+		Delta: Delta{
+			SpiritPower: 12,
+			BoneLevel:   1,
+			SoulPieces:  2,
+		},
+		Metadata: ApplyMetadata{
+			Source:         "test",
+			Reason:         "asset_delta",
+			IdempotencyKey: "asset-1001",
+		},
 	})
 	if err != nil {
 		t.Fatalf("expected apply success, got %v", err)
@@ -29,9 +36,12 @@ func TestService_ApplyAccumulatesWalletDelta(t *testing.T) {
 	if result.Wallet.SoulPieces != 2 {
 		t.Fatalf("expected soul pieces 2, got %d", result.Wallet.SoulPieces)
 	}
+	if result.Metadata.Source != "test" || result.Metadata.Reason != "asset_delta" || result.Metadata.IdempotencyKey != "asset-1001" {
+		t.Fatalf("expected metadata round trip, got %+v", result.Metadata)
+	}
 }
 
-func TestService_SnapshotReturnsCurrentWallet(t *testing.T) {
+func TestService_SnapshotReturnsWallet(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
 	svc := NewService(growthRepo)

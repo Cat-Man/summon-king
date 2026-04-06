@@ -9,6 +9,7 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/alliance"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/commerce"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/home"
@@ -60,6 +61,15 @@ func NewRouterWithConfig(cfg Config) (*gin.Engine, error) {
 	allianceGroup := api.Group("/alliance")
 	registerModuleRoot(allianceGroup, "alliance")
 	alliance.NewHandler(deps.allianceService).RegisterRoutes(allianceGroup)
+
+	commerceHandler := commerce.NewHandler(deps.commerceService)
+	signinGroup := api.Group("/signin")
+	registerModuleRoot(signinGroup, "signin")
+	commerceHandler.RegisterSigninRoutes(signinGroup)
+
+	vipGroup := api.Group("/vip")
+	registerModuleRoot(vipGroup, "vip")
+	commerceHandler.RegisterVIPRoutes(vipGroup)
 
 	rankingGroup := api.Group("/ranking")
 	ranking.NewHandler(deps.rankingService).RegisterRoutes(rankingGroup)

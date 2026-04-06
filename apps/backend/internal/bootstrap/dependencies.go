@@ -7,6 +7,7 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/alliance"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/commerce"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/home"
@@ -23,6 +24,7 @@ type dependencies struct {
 	arenaService    *arena.Service
 	dungeonService  *dungeon.Service
 	allianceService *alliance.Service
+	commerceService *commerce.Service
 	growthRepo      growth.Repository
 	petService      *pet.Service
 	towerService    *tower.Service
@@ -61,10 +63,12 @@ func buildMySQLDependencies(cfg Config) (dependencies, error) {
 	petRepo := pet.NewMySQLRepository(store)
 	arenaRepo := arena.NewMySQLRepository(store)
 	towerRepo := tower.NewMySQLRepository(store)
+	commerceRepo := commerce.NewMySQLRepository(store)
 
 	assetService := asset.NewService(growthRepo)
 	accountService := account.NewService(accountRepo)
 	allianceService := alliance.NewService(alliance.NewMemoryRepository())
+	commerceService := commerce.NewService(commerceRepo, assetService)
 	petService := pet.NewService(petRepo, pet.WithGrowthReader(growthRepo))
 	dungeonService := dungeon.NewService(
 		dungeonRepo,
@@ -83,6 +87,7 @@ func buildMySQLDependencies(cfg Config) (dependencies, error) {
 		arenaService:    arenaService,
 		dungeonService:  dungeonService,
 		allianceService: allianceService,
+		commerceService: commerceService,
 		growthRepo:      growthRepo,
 		petService:      petService,
 		towerService:    towerService,
@@ -96,6 +101,7 @@ func buildMemoryDependencies() dependencies {
 	assetService := asset.NewService(growthRepo)
 	accountService := account.NewService(accountRepo)
 	allianceService := alliance.NewService(alliance.NewMemoryRepository())
+	commerceService := commerce.NewService(commerce.NewMemoryRepository(), assetService)
 	petService := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
 	dungeonService := dungeon.NewService(
 		dungeonRepo,
@@ -114,6 +120,7 @@ func buildMemoryDependencies() dependencies {
 		arenaService:    arenaService,
 		dungeonService:  dungeonService,
 		allianceService: allianceService,
+		commerceService: commerceService,
 		growthRepo:      growthRepo,
 		petService:      petService,
 		towerService:    towerService,

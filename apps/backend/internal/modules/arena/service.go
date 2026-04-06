@@ -10,7 +10,7 @@ import (
 )
 
 type assetWriter interface {
-	Apply(ctx context.Context, playerID int64, delta asset.Delta) (asset.ApplyResult, error)
+	Apply(ctx context.Context, playerID int64, req asset.ApplyRequest) (asset.ApplyResult, error)
 	Snapshot(ctx context.Context, playerID int64) (growth.Wallet, error)
 }
 
@@ -170,9 +170,16 @@ func (s *Service) walletSnapshot(ctx context.Context, playerID int64, delta Aren
 	if s.asset == nil {
 		return growth.Wallet{}, nil
 	}
-	result, err := s.asset.Apply(ctx, playerID, asset.Delta{
-		SpiritPower: delta.SpiritPower,
-		SoulPieces:  delta.SoulPieces,
+	result, err := s.asset.Apply(ctx, playerID, asset.ApplyRequest{
+		Delta: asset.Delta{
+			SpiritPower: delta.SpiritPower,
+			SoulPieces:  delta.SoulPieces,
+		},
+		Metadata: asset.ApplyMetadata{
+			Source:         "arena",
+			Reason:         "battle_reward",
+			IdempotencyKey: "arena-battle",
+		},
 	})
 	if err != nil {
 		return growth.Wallet{}, err

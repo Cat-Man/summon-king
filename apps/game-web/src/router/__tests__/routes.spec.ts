@@ -29,3 +29,15 @@ test("contains alliance war route", () => {
 
   expect(hasRoute).toBe(true)
 })
+
+test("contains vip route", () => {
+  const hasRoute = router.getRoutes().some((route) => route.path === "/vip")
+
+  expect(hasRoute).toBe(true)
+})
+
+test("contains signin route", () => {
+  const hasRoute = router.getRoutes().some((route) => route.path === "/signin")
+
+  expect(hasRoute).toBe(true)
+})

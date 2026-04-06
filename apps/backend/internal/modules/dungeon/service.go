@@ -10,7 +10,7 @@ import (
 )
 
 type assetWriter interface {
-	Apply(ctx context.Context, playerID int64, delta asset.Delta) (asset.ApplyResult, error)
+	Apply(ctx context.Context, playerID int64, req asset.ApplyRequest) (asset.ApplyResult, error)
 	Snapshot(ctx context.Context, playerID int64) (growth.Wallet, error)
 }
 
@@ -226,7 +226,14 @@ func (s *Service) ClaimCultivation(ctx context.Context, playerID int64) (Cultiva
 		return CultivationStatus{}, err
 	}
 	if s.asset != nil && status.SpiritPower > 0 {
-		if _, err := s.asset.Apply(ctx, playerID, asset.Delta{SpiritPower: int64(status.SpiritPower)}); err != nil {
+		if _, err := s.asset.Apply(ctx, playerID, asset.ApplyRequest{
+			Delta: asset.Delta{SpiritPower: int64(status.SpiritPower)},
+			Metadata: asset.ApplyMetadata{
+				Source:         "dungeon",
+				Reason:         "cultivation_claim",
+				IdempotencyKey: "dungeon-cultivation",
+			},
+		}); err != nil {
 			return CultivationStatus{}, err
 		}
 	}
@@ -270,9 +277,16 @@ func (s *Service) applyReward(ctx context.Context, playerID int64, reward RollRe
 	if s.asset == nil {
 		return nil
 	}
-	_, err := s.asset.Apply(ctx, playerID, asset.Delta{
-		SpiritPower: reward.SpiritPower,
-		SoulPieces:  reward.SoulPieces,
+	_, err := s.asset.Apply(ctx, playerID, asset.ApplyRequest{
+		Delta: asset.Delta{
+			SpiritPower: reward.SpiritPower,
+			SoulPieces:  reward.SoulPieces,
+		},
+		Metadata: asset.ApplyMetadata{
+			Source:         "dungeon",
+			Reason:         reward.Label,
+			IdempotencyKey: "dungeon-roll",
+		},
 	})
 	if err != nil {
 		return err

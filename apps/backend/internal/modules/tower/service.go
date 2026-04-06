@@ -10,7 +10,7 @@ import (
 )
 
 type assetWriter interface {
-	Apply(ctx context.Context, playerID int64, delta asset.Delta) (asset.ApplyResult, error)
+	Apply(ctx context.Context, playerID int64, req asset.ApplyRequest) (asset.ApplyResult, error)
 	Snapshot(ctx context.Context, playerID int64) (growth.Wallet, error)
 }
 
@@ -72,7 +72,7 @@ func (s *Service) StartChallenge(ctx context.Context, playerID int64, tower stri
 	if err != nil {
 		return TowerResult{}, err
 	}
-	wallet, err := s.walletSnapshot(ctx, playerID, delta)
+	wallet, err := s.walletSnapshot(ctx, playerID, tower, delta)
 	if err != nil {
 		return TowerResult{}, err
 	}
@@ -105,15 +105,22 @@ func (s *Service) battleSummary(ctx context.Context, playerID int64, result Towe
 	})
 }
 
-func (s *Service) walletSnapshot(ctx context.Context, playerID int64, delta TowerRewardDelta) (growth.Wallet, error) {
+func (s *Service) walletSnapshot(ctx context.Context, playerID int64, tower string, delta TowerRewardDelta) (growth.Wallet, error) {
 	if s.asset == nil {
 		return growth.Wallet{}, nil
 	}
 	if delta.BoneLevel != 0 || delta.SpiritPower != 0 || delta.SoulPieces != 0 {
-		result, err := s.asset.Apply(ctx, playerID, asset.Delta{
-			SpiritPower: delta.SpiritPower,
-			BoneLevel:   delta.BoneLevel,
-			SoulPieces:  delta.SoulPieces,
+		result, err := s.asset.Apply(ctx, playerID, asset.ApplyRequest{
+			Delta: asset.Delta{
+				SpiritPower: delta.SpiritPower,
+				BoneLevel:   delta.BoneLevel,
+				SoulPieces:  delta.SoulPieces,
+			},
+			Metadata: asset.ApplyMetadata{
+				Source:         "tower",
+				Reason:         tower,
+				IdempotencyKey: "tower-" + tower,
+			},
 		})
 		if err != nil {
 			return growth.Wallet{}, err

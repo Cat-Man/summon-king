@@ -15,6 +15,8 @@ import HomePage from "@/pages/home/HomePage.vue"
 import WorldMapPage from "@/pages/maps/WorldMapPage.vue"
 import PetPage from "@/pages/pet/PetPage.vue"
 import RankingPage from "@/pages/ranking/RankingPage.vue"
+import SigninPage from "@/pages/signin/SigninPage.vue"
+import VIPPage from "@/pages/vip/VIPPage.vue"
 import { readSessionSnapshot } from "@/stores/session"
 import PagodaPage from "@/pages/tower/PagodaPage.vue"
 import SpiritTowerPage from "@/pages/tower/SpiritTowerPage.vue"
@@ -110,6 +112,16 @@ export const router = createRouter({
           path: "ranking",
           name: "ranking",
           component: RankingPage,
+        },
+        {
+          path: "signin",
+          name: "signin",
+          component: SigninPage,
+        },
+        {
+          path: "vip",
+          name: "vip",
+          component: VIPPage,
         },
       ],
     },

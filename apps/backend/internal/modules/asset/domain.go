@@ -8,6 +8,18 @@ type Delta struct {
 	SoulPieces  int   `json:"soul_pieces"`
 }
 
+type ApplyMetadata struct {
+	Source         string `json:"source"`
+	Reason         string `json:"reason"`
+	IdempotencyKey string `json:"idempotency_key"`
+}
+
+type ApplyRequest struct {
+	Delta    Delta         `json:"delta"`
+	Metadata ApplyMetadata `json:"metadata"`
+}
+
 type ApplyResult struct {
-	Wallet growth.Wallet `json:"wallet"`
+	Wallet   growth.Wallet `json:"wallet"`
+	Metadata ApplyMetadata `json:"metadata"`
 }
