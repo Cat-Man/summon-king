@@ -136,8 +136,10 @@ test("loads arena opponents refreshes and updates after battle", async () => {
         soul_pieces: 1,
       },
       battle: {
+        battle_no: "arena-7101-1",
         battle_type: "arena",
         result: "success",
+        winner_side: "attacker",
         rounds: 1,
         attacker_power: 152,
         defender_power: 140,

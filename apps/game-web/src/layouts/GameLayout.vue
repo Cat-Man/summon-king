@@ -10,6 +10,15 @@
       </div>
 
       <div class="shell-nav-wrap">
+        <div class="session-panel">
+          <div class="session-copy">
+            <strong>{{ sessionStore.nickname || "未登录访客" }}</strong>
+            <span>玩家 ID：{{ sessionStore.playerId ?? "-" }}</span>
+          </div>
+          <button data-testid="logout-button" class="logout-button" type="button" @click="logout">
+            退出登录
+          </button>
+        </div>
         <nav class="shell-nav" aria-label="主导航">
           <RouterLink v-for="item in primaryNav" :key="item.to" :to="item.to">{{ item.label }}</RouterLink>
         </nav>
@@ -26,6 +35,13 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from "vue-router"
+
+import { useSessionStore } from "@/stores/session"
+
+const router = useRouter()
+const sessionStore = useSessionStore()
+
 const primaryNav = [
   { to: "/home", label: "首页" },
   { to: "/map", label: "地图" },
@@ -44,6 +60,11 @@ const featureNav = [
   { to: "/arena", label: "竞技场" },
   { to: "/ranking", label: "排行榜" },
 ]
+
+async function logout() {
+  sessionStore.clearSession()
+  await router.push("/login")
+}
 </script>
 
 <style scoped>
@@ -130,6 +151,51 @@ const featureNav = [
   gap: 12px;
 }
 
+.session-panel {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.session-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.session-copy strong,
+.session-copy span {
+  margin: 0;
+}
+
+.session-copy strong {
+  font-size: 14px;
+  color: #fff8f0;
+}
+
+.session-copy span {
+  color: rgba(247, 239, 225, 0.64);
+  font-size: 12px;
+}
+
+.logout-button {
+  padding: 9px 14px;
+  border: 1px solid rgba(247, 239, 225, 0.14);
+  border-radius: 12px;
+  background: rgba(247, 239, 225, 0.04);
+  color: rgba(247, 239, 225, 0.86);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.logout-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(247, 189, 120, 0.4);
+  background: rgba(247, 189, 120, 0.08);
+}
+
 .shell-nav a {
   padding: 10px 16px;
   border-radius: 999px;
@@ -199,6 +265,11 @@ const featureNav = [
 
   .shell-nav-wrap {
     width: 100%;
+    align-items: flex-start;
+  }
+
+  .session-panel,
+  .session-copy {
     align-items: flex-start;
   }
 

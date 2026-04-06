@@ -171,8 +171,10 @@ test("challenges spirit tower and refreshes resources", async () => {
       soul_pieces: 1,
     },
     battle: {
+      battle_no: "tower-spirit-6205-1",
       battle_type: "tower",
       result: "success",
+      winner_side: "attacker",
       rounds: 1,
       attacker_power: 190,
       defender_power: 150,
@@ -265,8 +267,10 @@ test("still syncs resources when spirit tower status refresh fails after challen
       soul_pieces: 1,
     },
     battle: {
+      battle_no: "tower-spirit-6206-1",
       battle_type: "tower",
       result: "success",
+      winner_side: "attacker",
       rounds: 1,
       attacker_power: 195,
       defender_power: 152,

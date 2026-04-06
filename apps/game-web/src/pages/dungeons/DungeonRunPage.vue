@@ -49,13 +49,13 @@
         <p>{{ run.last_reward.label || "本次掉落" }}</p>
         <strong>灵力 +{{ run.last_reward.spirit_power }}</strong>
         <span>魂力 +{{ run.last_reward.soul_pieces }}</span>
-        <span v-if="run.pet_growth.exp > 0">幻兽经验 +{{ run.pet_growth.exp }}</span>
+        <span v-if="(run.pet_growth?.exp ?? 0) > 0">幻兽经验 +{{ run.pet_growth?.exp ?? 0 }}</span>
       </article>
       <article>
         <p>当前资源</p>
         <strong>当前灵力 {{ run.wallet_snapshot.spirit_power }}</strong>
         <span>当前魂力 {{ run.wallet_snapshot.soul_pieces }}</span>
-        <span v-if="run.pet_growth.team_total_power > 0">队伍战力 {{ run.pet_growth.team_total_power }}</span>
+        <span v-if="(run.pet_growth?.team_total_power ?? 0) > 0">队伍战力 {{ run.pet_growth?.team_total_power ?? 0 }}</span>
       </article>
     </div>
     <article v-if="run.last_battle?.battle_type" class="battle-panel">
@@ -115,6 +115,21 @@ const dungeonOptions = [
   { id: 2, name: "寒渊裂隙" },
 ]
 
+const defaultPetGrowth = {
+  exp: 0,
+  team_total_power: 0,
+}
+
+const defaultBattleSummary = {
+  battle_no: "",
+  battle_type: "",
+  result: "",
+  winner_side: "",
+  rounds: 0,
+  attacker_power: 0,
+  defender_power: 0,
+}
+
 const defaultRun: DungeonRun = {
   player_id: 0,
   dungeon_id: 1,
@@ -127,17 +142,8 @@ const defaultRun: DungeonRun = {
     spirit_power: 0,
     soul_pieces: 0,
   },
-  pet_growth: {
-    exp: 0,
-    team_total_power: 0,
-  },
-  last_battle: {
-    battle_type: "",
-    result: "",
-    rounds: 0,
-    attacker_power: 0,
-    defender_power: 0,
-  },
+  pet_growth: defaultPetGrowth,
+  last_battle: defaultBattleSummary,
   wallet_snapshot: {
     player_id: 0,
     spirit_power: 0,
@@ -182,14 +188,8 @@ function normalizeRun(nextRun: Partial<DungeonRun>): DungeonRun {
       ...defaultRun.last_reward,
       ...nextRun.last_reward,
     },
-    pet_growth: {
-      ...defaultRun.pet_growth,
-      ...nextRun.pet_growth,
-    },
-    last_battle: {
-      ...defaultRun.last_battle,
-      ...nextRun.last_battle,
-    },
+    pet_growth: nextRun.pet_growth ? { ...defaultPetGrowth, ...nextRun.pet_growth } : defaultPetGrowth,
+    last_battle: nextRun.last_battle ? { ...defaultBattleSummary, ...nextRun.last_battle } : defaultBattleSummary,
     wallet_snapshot: {
       ...defaultRun.wallet_snapshot,
       ...nextRun.wallet_snapshot,

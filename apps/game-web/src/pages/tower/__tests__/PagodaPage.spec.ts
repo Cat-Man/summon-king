@@ -109,8 +109,10 @@ test("loads pagoda status and refreshes after challenge", async () => {
       spirit_power: 5,
     },
     battle: {
+      battle_no: "tower-pagoda-6101-1",
       battle_type: "tower",
       result: "success",
+      winner_side: "attacker",
       rounds: 1,
       attacker_power: 180,
       defender_power: 120,
@@ -215,8 +217,10 @@ test("still syncs resources when pagoda status refresh fails after challenge", a
       bone_level: 1,
     },
     battle: {
+      battle_no: "tower-pagoda-6102-1",
       battle_type: "tower",
       result: "success",
+      winner_side: "attacker",
       rounds: 1,
       attacker_power: 170,
       defender_power: 130,

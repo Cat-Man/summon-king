@@ -21,7 +21,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
-import { useRouter } from "vue-router"
+import { useRoute, useRouter } from "vue-router"
 
 import { APIError, apiRequest } from "@/api/http"
 import { useSessionStore } from "@/stores/session"
@@ -33,6 +33,7 @@ type GuestLoginResponse = {
 }
 
 const router = useRouter()
+const route = useRoute()
 const sessionStore = useSessionStore()
 
 const nickname = ref("")
@@ -40,6 +41,13 @@ const submitting = ref(false)
 const errorMessage = ref("")
 
 const normalizedNickname = computed(() => nickname.value.trim())
+const redirectTarget = computed(() => {
+  const redirect = route.query.redirect
+  if (typeof redirect === "string" && redirect.startsWith("/")) {
+    return redirect
+  }
+  return "/home"
+})
 
 async function submit() {
   if (!normalizedNickname.value) {
@@ -64,7 +72,7 @@ async function submit() {
       nickname: payload.nickname,
     })
 
-    await router.push("/home")
+    await router.push(redirectTarget.value)
   } catch (error) {
     if (error instanceof APIError) {
       errorMessage.value = error.message

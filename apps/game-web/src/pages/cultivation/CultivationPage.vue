@@ -10,7 +10,7 @@
       <p class="meter-label">当前状态 {{ cultivation.state }}</p>
       <div class="actions">
         <button class="primary" type="button" @click="beginCultivation">立刻修行</button>
-        <button class="ghost" type="button" @click="claimReward">领取灵力</button>
+        <button class="ghost" type="button" :disabled="!canClaimReward" @click="claimReward">领取灵力</button>
       </div>
     </div>
     <p v-if="errorMessage" class="status-text">{{ errorMessage }}</p>
@@ -59,6 +59,14 @@ const walletPower = ref(0)
 const errorMessage = ref("")
 
 const progress = computed(() => Math.min(100, cultivation.value.spirit_power * 10))
+const canClaimReward = computed(() => {
+  if (cultivation.value.claimable_at) {
+    const claimableAt = new Date(cultivation.value.claimable_at).getTime()
+    return Number.isFinite(claimableAt) && Date.now() >= claimableAt
+  }
+
+  return cultivation.value.spirit_power > 0
+})
 
 function normalizeCultivation(nextStatus: Partial<CultivationStatus>): CultivationStatus {
   const defaultPetGrowth = {
@@ -122,6 +130,9 @@ async function claimReward() {
   const playerId = sessionStore.playerId
   if (!playerId) {
     errorMessage.value = "当前未登录，无法领取灵力。"
+    return
+  }
+  if (!canClaimReward.value) {
     return
   }
 
