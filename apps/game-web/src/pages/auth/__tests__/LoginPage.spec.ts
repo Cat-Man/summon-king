@@ -9,6 +9,8 @@ const push = vi.fn()
 const route = {
   query: {
     redirect: "/arena",
+    channel: undefined as string | undefined,
+    token: undefined as string | undefined,
   },
 }
 
@@ -35,6 +37,8 @@ vi.mock("vue-router", async () => {
 beforeEach(() => {
   vi.clearAllMocks()
   route.query.redirect = "/arena"
+  route.query.channel = undefined
+  route.query.token = undefined
 })
 
 test("redirects to query redirect after guest login succeeds", async () => {
@@ -68,4 +72,38 @@ test("redirects to query redirect after guest login succeeds", async () => {
   expect(sessionStore.playerId).toBe(3001)
   expect(sessionStore.nickname).toBe("深链玩家")
   expect(push).toHaveBeenCalledWith("/arena")
+})
+
+test("auto bootstraps wxmini session when channel and token are present", async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  route.query.redirect = "/home"
+  route.query.channel = "wxmini"
+  route.query.token = "wxmini-unified-token"
+
+  vi.mocked(apiRequest).mockResolvedValue({
+    player_id: 4001,
+    token: "wxmini-session-token",
+    nickname: "小程序玩家",
+    channel: "wxmini",
+  })
+
+  mount(LoginPage, {
+    global: {
+      plugins: [pinia],
+    },
+  })
+  await flushPromises()
+
+  const sessionStore = useSessionStore()
+  expect(apiRequest).toHaveBeenCalledWith("bridge/wxmini/session/bootstrap", {
+    method: "POST",
+    body: JSON.stringify({
+      unified_token: "wxmini-unified-token",
+    }),
+  })
+  expect(sessionStore.token).toBe("wxmini-session-token")
+  expect(sessionStore.playerId).toBe(4001)
+  expect(sessionStore.nickname).toBe("小程序玩家")
+  expect(push).toHaveBeenCalledWith("/home")
 })

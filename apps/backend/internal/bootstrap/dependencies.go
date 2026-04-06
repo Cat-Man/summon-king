@@ -7,6 +7,7 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/alliance"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/bridge/wxmini"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/commerce"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
@@ -25,6 +26,7 @@ type dependencies struct {
 	dungeonService  *dungeon.Service
 	allianceService *alliance.Service
 	allianceWar     *alliance.WarService
+	wxminiService   *wxmini.Service
 	commerceService *commerce.Service
 	growthRepo      growth.Repository
 	petService      *pet.Service
@@ -71,6 +73,7 @@ func buildMySQLDependencies(cfg Config) (dependencies, error) {
 	accountService := account.NewService(accountRepo)
 	allianceService := alliance.NewService(allianceRepo)
 	allianceWar := alliance.NewWarService(allianceRepo)
+	wxminiService := wxmini.NewService(accountRepo)
 	commerceService := commerce.NewService(commerceRepo, assetService)
 	petService := pet.NewService(petRepo, pet.WithGrowthReader(growthRepo))
 	dungeonService := dungeon.NewService(
@@ -91,6 +94,7 @@ func buildMySQLDependencies(cfg Config) (dependencies, error) {
 		dungeonService:  dungeonService,
 		allianceService: allianceService,
 		allianceWar:     allianceWar,
+		wxminiService:   wxminiService,
 		commerceService: commerceService,
 		growthRepo:      growthRepo,
 		petService:      petService,
@@ -107,6 +111,7 @@ func buildMemoryDependencies() dependencies {
 	accountService := account.NewService(accountRepo)
 	allianceService := alliance.NewService(allianceRepo)
 	allianceWar := alliance.NewWarService(allianceRepo)
+	wxminiService := wxmini.NewService(accountRepo)
 	commerceService := commerce.NewService(commerce.NewMemoryRepository(), assetService)
 	petService := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
 	dungeonService := dungeon.NewService(
@@ -127,6 +132,7 @@ func buildMemoryDependencies() dependencies {
 		dungeonService:  dungeonService,
 		allianceService: allianceService,
 		allianceWar:     allianceWar,
+		wxminiService:   wxminiService,
 		commerceService: commerceService,
 		growthRepo:      growthRepo,
 		petService:      petService,

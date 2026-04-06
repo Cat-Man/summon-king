@@ -20,7 +20,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, onMounted, ref } from "vue"
 import { useRoute, useRouter } from "vue-router"
 
 import { APIError, apiRequest } from "@/api/http"
@@ -32,6 +32,13 @@ type GuestLoginResponse = {
   nickname: string
 }
 
+type WxminiBootstrapResponse = {
+  player_id: number
+  token: string
+  nickname: string
+  channel: string
+}
+
 const router = useRouter()
 const route = useRoute()
 const sessionStore = useSessionStore()
@@ -41,6 +48,12 @@ const submitting = ref(false)
 const errorMessage = ref("")
 
 const normalizedNickname = computed(() => nickname.value.trim())
+const wxminiUnifiedToken = computed(() => {
+  if (route.query.channel !== "wxmini") {
+    return ""
+  }
+  return typeof route.query.token === "string" ? route.query.token.trim() : ""
+})
 const redirectTarget = computed(() => {
   const redirect = route.query.redirect
   if (typeof redirect === "string" && redirect.startsWith("/")) {
@@ -48,6 +61,37 @@ const redirectTarget = computed(() => {
   }
   return "/home"
 })
+
+async function bootstrapWxminiSession() {
+  if (!wxminiUnifiedToken.value) {
+    return
+  }
+
+  submitting.value = true
+  errorMessage.value = ""
+  try {
+    const payload = await apiRequest<WxminiBootstrapResponse>("bridge/wxmini/session/bootstrap", {
+      method: "POST",
+      body: JSON.stringify({
+        unified_token: wxminiUnifiedToken.value,
+      }),
+    })
+    sessionStore.setSession({
+      token: payload.token,
+      playerId: payload.player_id,
+      nickname: payload.nickname,
+    })
+    await router.push(redirectTarget.value)
+  } catch (error) {
+    if (error instanceof APIError) {
+      errorMessage.value = error.message
+    } else {
+      errorMessage.value = "小程序会话初始化失败，请稍后重试"
+    }
+  } finally {
+    submitting.value = false
+  }
+}
 
 async function submit() {
   if (!normalizedNickname.value) {
@@ -83,6 +127,10 @@ async function submit() {
     submitting.value = false
   }
 }
+
+onMounted(async () => {
+  await bootstrapWxminiSession()
+})
 </script>
 
 <style scoped>

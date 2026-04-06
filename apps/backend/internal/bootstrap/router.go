@@ -9,6 +9,7 @@ import (
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/alliance"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/bridge/wxmini"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/commerce"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
@@ -54,6 +55,10 @@ func NewRouterWithConfig(cfg Config) (*gin.Engine, error) {
 
 	authGroup := api.Group("/auth")
 	account.NewHandler(deps.accountService).RegisterRoutes(authGroup)
+
+	wxminiBridgeGroup := api.Group("/bridge/wxmini")
+	registerModuleRoot(wxminiBridgeGroup, "bridge/wxmini")
+	wxmini.NewHandler(deps.wxminiService).RegisterRoutes(wxminiBridgeGroup)
 
 	homeGroup := api.Group("/home")
 	home.NewHandler(deps.homeService).RegisterRoutes(homeGroup)
