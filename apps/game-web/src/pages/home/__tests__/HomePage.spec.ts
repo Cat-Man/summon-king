@@ -300,3 +300,191 @@ test("refreshes overview when resource sync changes", async () => {
   expect(wrapper.text()).toContain("战灵 +8")
   expect(wrapper.text()).toContain("魔魂 +16")
 })
+
+test("renders cultivation card as ready to claim when overview says claimable", async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const sessionStore = useSessionStore()
+  sessionStore.setSession({
+    token: "guest-token",
+    playerId: 2003,
+    nickname: "可领修士",
+  })
+
+  vi.mocked(getHomeOverview).mockResolvedValue({
+    player_id: 2003,
+    nickname: "可领修士",
+    wallet: {
+      player_id: 2003,
+      spirit_power: 130,
+      spirit_free_wash: 3,
+      bone_level: 2,
+      soul_pieces: 4,
+      manor_plots: 2,
+    },
+    modules: {
+      map_label: "玄境 · 已开放 2 城",
+      map_city_count: 2,
+      dungeon: {
+        status: "idle",
+        current_floor: 0,
+        remain_dice: 0,
+        dungeon_id: 0,
+      },
+      cultivation: {
+        state: "cultivating",
+        spirit_power: 10,
+        claimable: true,
+        claimable_at: "2026-04-06T11:00:00Z",
+      },
+      pet: {
+        total_power: 120,
+        active_count: 1,
+        starter_pet_name: "初始灵狐",
+      },
+      tower: {
+        pagoda: {
+          current_floor: 0,
+          remaining_challenges: 5,
+          reward_preview: "战骨强韧",
+        },
+        spirit: {
+          current_floor: 0,
+          remaining_challenges: 5,
+          reward_preview: "灵魂碎片",
+        },
+      },
+      arena: {
+        current_streak: 0,
+        last_win: false,
+      },
+      ranking: {
+        self_rank: 9,
+        self_score: 950,
+      },
+    },
+    next_action: {
+      title: "领取修行收益",
+      description: "修行已完成，先把灵力写回钱包。",
+      route: "/cultivation",
+      cta: "立即领取",
+    },
+  } as any)
+  vi.mocked(getPetCollection).mockResolvedValue({
+    player_id: 2003,
+    total_power: 120,
+    team_size: 1,
+    active_team: [],
+    roster: [],
+  })
+
+  const wrapper = mount(HomePage, {
+    global: {
+      plugins: [pinia],
+      stubs: {
+        RouterLink: RouterLinkStub,
+      },
+    },
+  })
+  await flushPromises()
+
+  const cultivationCard = wrapper
+    .findAll(".overview-card")
+    .find((card) => card.text().includes("修行进度"))
+  expect(cultivationCard?.text()).toContain("可领取")
+  expect(cultivationCard?.text()).toContain("立即领取")
+})
+
+test("renders cultivation card as start action when cultivation is idle", async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const sessionStore = useSessionStore()
+  sessionStore.setSession({
+    token: "guest-token",
+    playerId: 2004,
+    nickname: "起步修士",
+  })
+
+  vi.mocked(getHomeOverview).mockResolvedValue({
+    player_id: 2004,
+    nickname: "起步修士",
+    wallet: {
+      player_id: 2004,
+      spirit_power: 100,
+      spirit_free_wash: 3,
+      bone_level: 1,
+      soul_pieces: 0,
+      manor_plots: 2,
+    },
+    modules: {
+      map_label: "玄境 · 已开放 2 城",
+      map_city_count: 2,
+      dungeon: {
+        status: "idle",
+        current_floor: 0,
+        remain_dice: 0,
+        dungeon_id: 0,
+      },
+      cultivation: {
+        state: "idle",
+        spirit_power: 0,
+        claimable: false,
+        claimable_at: "",
+      },
+      pet: {
+        total_power: 120,
+        active_count: 1,
+        starter_pet_name: "初始灵狐",
+      },
+      tower: {
+        pagoda: {
+          current_floor: 0,
+          remaining_challenges: 5,
+          reward_preview: "战骨强韧",
+        },
+        spirit: {
+          current_floor: 0,
+          remaining_challenges: 5,
+          reward_preview: "灵魂碎片",
+        },
+      },
+      arena: {
+        current_streak: 0,
+        last_win: false,
+      },
+      ranking: {
+        self_rank: 9,
+        self_score: 900,
+      },
+    },
+    next_action: {
+      title: "开始修行",
+      description: "先启动当前修行循环。",
+      route: "/cultivation",
+      cta: "开始修行",
+    },
+  } as any)
+  vi.mocked(getPetCollection).mockResolvedValue({
+    player_id: 2004,
+    total_power: 120,
+    team_size: 1,
+    active_team: [],
+    roster: [],
+  })
+
+  const wrapper = mount(HomePage, {
+    global: {
+      plugins: [pinia],
+      stubs: {
+        RouterLink: RouterLinkStub,
+      },
+    },
+  })
+  await flushPromises()
+
+  const cultivationCard = wrapper
+    .findAll(".overview-card")
+    .find((card) => card.text().includes("修行进度"))
+  expect(cultivationCard?.text()).toContain("未开始")
+  expect(cultivationCard?.text()).toContain("开始修行")
+})

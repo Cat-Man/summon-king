@@ -114,6 +114,34 @@ const moduleCards = computed(() => {
     ]
   }
 
+  const cultivationModule = overview.value.modules.cultivation
+  const cultivationCard = cultivationModule.claimable
+    ? {
+        eyebrow: "修行链路",
+        title: "修行进度",
+        value: "可领取",
+        description: `已积累 ${cultivationModule.spirit_power} 灵力，当前可以直接领取收益。`,
+        route: "/cultivation",
+        cta: "立即领取",
+      }
+    : cultivationModule.state === "idle"
+      ? {
+          eyebrow: "修行链路",
+          title: "修行进度",
+          value: "未开始",
+          description: `钱包灵力 ${overview.value.wallet.spirit_power}，新一轮修行还未启动。`,
+          route: "/cultivation",
+          cta: "开始修行",
+        }
+      : {
+          eyebrow: "修行链路",
+          title: "修行进度",
+          value: cultivationModule.state,
+          description: `当前灵力 ${cultivationModule.spirit_power}，钱包灵力 ${overview.value.wallet.spirit_power}。`,
+          route: "/cultivation",
+          cta: "前往修行",
+        }
+
   return [
     {
       eyebrow: "地图入口",
@@ -131,14 +159,7 @@ const moduleCards = computed(() => {
       route: "/dungeon",
       cta: "进入副本",
     },
-    {
-      eyebrow: "修行链路",
-      title: "修行进度",
-      value: overview.value.modules.cultivation.state,
-      description: `当前灵力 ${overview.value.modules.cultivation.spirit_power}，钱包灵力 ${overview.value.wallet.spirit_power}。`,
-      route: "/cultivation",
-      cta: "前往修行",
-    },
+    cultivationCard,
     {
       eyebrow: "阵容概览",
       title: "幻兽阵容",
