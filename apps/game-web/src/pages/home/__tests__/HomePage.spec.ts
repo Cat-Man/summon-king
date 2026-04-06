@@ -65,11 +65,20 @@ test("renders overview from api", async () => {
           current_floor: 0,
           remaining_challenges: 5,
           reward_preview: "战骨强韧",
+          last_reward: "战骨锻造",
+          last_reward_delta: {
+            bone_level: 1,
+          },
         },
         spirit: {
           current_floor: 3,
           remaining_challenges: 2,
           reward_preview: "灵魂碎片",
+          last_reward: "灵魂碎片",
+          last_reward_delta: {
+            spirit_power: 12,
+            soul_pieces: 1,
+          },
         },
       },
       arena: {
@@ -130,6 +139,7 @@ test("renders overview from api", async () => {
   expect(wrapper.text()).toContain("下一步推荐")
   expect(wrapper.text()).toContain("通天塔")
   expect(wrapper.text()).toContain("战灵塔")
+  expect(wrapper.text()).toContain("最近奖励：战骨锻造")
   expect(wrapper.text()).toContain("竞技场")
   expect(wrapper.text()).toContain("排行榜")
   expect(wrapper.text()).toContain("当前连胜 2 场")

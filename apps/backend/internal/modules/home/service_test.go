@@ -267,3 +267,66 @@ func TestOverview_RecommendsArenaAndExposesArenaRankingModulesAfterTowersExhaust
 		t.Fatal("expected ranking summary in overview modules")
 	}
 }
+
+func TestOverview_ExposesTowerLastRewardAfterChallenge(t *testing.T) {
+	ctx := context.Background()
+
+	accountRepo := account.NewMemoryRepository()
+	accountSvc := account.NewService(accountRepo)
+	guest, err := accountSvc.GuestLogin(ctx, "塔奖励修士")
+	if err != nil {
+		t.Fatalf("expected guest login success, got %v", err)
+	}
+
+	dungeonRepo := dungeon.NewMemoryRepository()
+	growthRepo := growth.NewMemoryRepository()
+	assetSvc := asset.NewService(growthRepo)
+	dungeonSvc := dungeon.NewService(dungeonRepo, assetSvc)
+	towerSvc := tower.NewService(tower.NewMemoryRepository(), assetSvc)
+	if _, err := towerSvc.StartChallenge(ctx, guest.PlayerID, "pagoda"); err != nil {
+		t.Fatalf("expected pagoda challenge success, got %v", err)
+	}
+	if _, err := towerSvc.StartChallenge(ctx, guest.PlayerID, "spirit"); err != nil {
+		t.Fatalf("expected spirit tower challenge success, got %v", err)
+	}
+
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	arenaSvc := arena.NewService(arena.NewMemoryRepository(), assetSvc)
+	rankingSvc := ranking.NewService(accountRepo, growthRepo, dungeonSvc, arenaSvc)
+	svc := NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc, arenaSvc, rankingSvc)
+
+	overview, err := svc.GetOverview(ctx, guest.PlayerID, guest.Token)
+	if err != nil {
+		t.Fatalf("expected overview success, got %v", err)
+	}
+
+	payload, err := json.Marshal(overview)
+	if err != nil {
+		t.Fatalf("expected overview marshal success, got %v", err)
+	}
+
+	var raw map[string]any
+	if err := json.Unmarshal(payload, &raw); err != nil {
+		t.Fatalf("expected overview decode success, got %v", err)
+	}
+
+	modules := raw["modules"].(map[string]any)
+	towerModules := modules["tower"].(map[string]any)
+	pagoda := towerModules["pagoda"].(map[string]any)
+	spirit := towerModules["spirit"].(map[string]any)
+
+	if pagoda["last_reward"] != "战骨锻造" {
+		t.Fatalf("expected pagoda last_reward 战骨锻造, got %#v", pagoda["last_reward"])
+	}
+	if spirit["last_reward"] != "灵魂碎片" {
+		t.Fatalf("expected spirit last_reward 灵魂碎片, got %#v", spirit["last_reward"])
+	}
+
+	pagodaDelta, ok := pagoda["last_reward_delta"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected pagoda last_reward_delta object, got %#v", pagoda["last_reward_delta"])
+	}
+	if pagodaDelta["bone_level"] != float64(1) {
+		t.Fatalf("expected pagoda bone_level 1, got %#v", pagodaDelta["bone_level"])
+	}
+}

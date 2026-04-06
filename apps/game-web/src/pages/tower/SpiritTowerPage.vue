@@ -125,7 +125,10 @@ async function loadStatus() {
   }
 
   try {
-    status.value = await getTowerStatus("spirit", playerId)
+    const nextStatus = await getTowerStatus("spirit", playerId)
+    status.value = nextStatus
+    lastReward.value = nextStatus.last_reward ?? ""
+    summarizeRewards(nextStatus.last_reward_delta ?? {})
     errorMessage.value = ""
   } catch (error) {
     errorMessage.value = error instanceof APIError ? error.message : "战灵塔状态加载失败。"

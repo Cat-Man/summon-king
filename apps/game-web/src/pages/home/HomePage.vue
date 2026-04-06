@@ -226,7 +226,9 @@ const towerCards = computed<TowerCard[]>(() => {
       label: "pagoda",
       currentFloor: tower.pagoda.current_floor,
       remainingChallenges: tower.pagoda.remaining_challenges,
-      description: `当前奖励预览：${tower.pagoda.reward_preview}，累计挑战带来成长收益。`,
+      description: tower.pagoda.last_reward
+        ? `最近奖励：${tower.pagoda.last_reward}，当前奖励预览：${tower.pagoda.reward_preview}。`
+        : `当前奖励预览：${tower.pagoda.reward_preview}，累计挑战带来成长收益。`,
       route: "/tower/pagoda",
       cta: "继续挑战",
     },
@@ -235,7 +237,9 @@ const towerCards = computed<TowerCard[]>(() => {
       label: "spirit",
       currentFloor: tower.spirit.current_floor,
       remainingChallenges: tower.spirit.remaining_challenges,
-      description: `当前奖励预览：${tower.spirit.reward_preview}，灵力与魔魂成长同步。`,
+      description: tower.spirit.last_reward
+        ? `最近奖励：${tower.spirit.last_reward}，当前奖励预览：${tower.spirit.reward_preview}。`
+        : `当前奖励预览：${tower.spirit.reward_preview}，灵力与魔魂成长同步。`,
       route: "/tower/spirit",
       cta: "前往战灵塔",
     },

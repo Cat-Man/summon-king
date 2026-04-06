@@ -77,6 +77,9 @@ func (s *Service) StartChallenge(ctx context.Context, playerID int64, tower stri
 		return TowerResult{}, err
 	}
 	result.WalletSnapshot = wallet
+	if err := s.repo.SaveLastReward(ctx, playerID, tower, result.Reward, result.RewardDelta); err != nil {
+		return TowerResult{}, err
+	}
 	return result, nil
 }
 

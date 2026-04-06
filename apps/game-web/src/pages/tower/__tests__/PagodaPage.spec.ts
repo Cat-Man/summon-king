@@ -36,7 +36,11 @@ test("loads pagoda status and refreshes after challenge", async () => {
       max_floor: 10,
       remaining_challenges: 5,
       reward_preview: "战骨锻造",
-    })
+      last_reward: "旧战骨锻造",
+      last_reward_delta: {
+        bone_level: 1,
+      },
+    } as any)
     .mockResolvedValueOnce({
       tower: "pagoda",
       label: "通天塔",
@@ -44,7 +48,12 @@ test("loads pagoda status and refreshes after challenge", async () => {
       max_floor: 10,
       remaining_challenges: 4,
       reward_preview: "战骨锻造",
-    })
+      last_reward: "战骨锻造",
+      last_reward_delta: {
+        bone_level: 1,
+        spirit_power: 5,
+      },
+    } as any)
   vi.mocked(getPetCollection)
     .mockResolvedValueOnce({
       player_id: 6101,
@@ -135,6 +144,8 @@ test("loads pagoda status and refreshes after challenge", async () => {
   expect(wrapper.text()).toContain("第 0 层")
   expect(wrapper.text()).toContain("5/5")
   expect(wrapper.text()).toContain("战骨锻造")
+  expect(wrapper.text()).toContain("最近挑战奖励：旧战骨锻造")
+  expect(wrapper.text()).toContain("战骨 +1")
   expect(wrapper.text()).toContain("战斗前摘要")
   expect(wrapper.text()).toContain("当前队伍战力 152")
   expect(wrapper.text()).toContain("成长总加成 +32")

@@ -9,6 +9,8 @@ export type TowerStatus = {
   max_floor: number
   remaining_challenges: number
   reward_preview: string
+  last_reward?: string
+  last_reward_delta?: TowerRewardDelta
 }
 
 export type TowerRewardDelta = {

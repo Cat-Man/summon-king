@@ -1,4 +1,5 @@
 import { apiRequest } from "@/api/http"
+import type { TowerRewardDelta } from "@/api/modules/tower"
 
 export type Wallet = {
   player_id: number
@@ -13,6 +14,8 @@ export type TowerSummary = {
   current_floor: number
   remaining_challenges: number
   reward_preview: string
+  last_reward?: string
+  last_reward_delta?: TowerRewardDelta
 }
 
 export type TowerOverview = {

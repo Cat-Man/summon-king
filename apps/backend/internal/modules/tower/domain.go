@@ -6,12 +6,14 @@ import (
 )
 
 type TowerStatus struct {
-	Tower               string `json:"tower"`
-	Label               string `json:"label"`
-	CurrentFloor        int    `json:"current_floor"`
-	MaxFloor            int    `json:"max_floor"`
-	RemainingChallenges int    `json:"remaining_challenges"`
-	RewardPreview       string `json:"reward_preview"`
+	Tower               string           `json:"tower"`
+	Label               string           `json:"label"`
+	CurrentFloor        int              `json:"current_floor"`
+	MaxFloor            int              `json:"max_floor"`
+	RemainingChallenges int              `json:"remaining_challenges"`
+	RewardPreview       string           `json:"reward_preview"`
+	LastReward          string           `json:"last_reward,omitempty"`
+	LastRewardDelta     TowerRewardDelta `json:"last_reward_delta"`
 }
 
 type TowerRewardDelta struct {

@@ -35,7 +35,12 @@ test("loads spirit tower status from api", async () => {
     max_floor: 12,
     remaining_challenges: 2,
     reward_preview: "灵魂碎片",
-  })
+    last_reward: "旧灵魂碎片",
+    last_reward_delta: {
+      spirit_power: 12,
+      soul_pieces: 1,
+    },
+  } as any)
   vi.mocked(getPetCollection).mockResolvedValue({
     player_id: 6202,
     total_power: 152,
@@ -74,6 +79,9 @@ test("loads spirit tower status from api", async () => {
   expect(wrapper.text()).toContain("第 3 层")
   expect(wrapper.text()).toContain("2/5")
   expect(wrapper.text()).toContain("灵魂碎片")
+  expect(wrapper.text()).toContain("最近奖励：旧灵魂碎片")
+  expect(wrapper.text()).toContain("灵力 +12")
+  expect(wrapper.text()).toContain("魔魂碎片 +1")
   expect(wrapper.text()).toContain("战斗前摘要")
   expect(wrapper.text()).toContain("当前队伍战力 152")
   expect(wrapper.text()).toContain("成长总加成 +32")
@@ -106,7 +114,12 @@ test("challenges spirit tower and refreshes resources", async () => {
       max_floor: 12,
       remaining_challenges: 1,
       reward_preview: "灵魂碎片",
-    })
+      last_reward: "灵魂碎片",
+      last_reward_delta: {
+        spirit_power: 12,
+        soul_pieces: 1,
+      },
+    } as any)
   vi.mocked(getPetCollection)
     .mockResolvedValueOnce({
       player_id: 6205,

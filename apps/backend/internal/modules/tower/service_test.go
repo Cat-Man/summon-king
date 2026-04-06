@@ -2,6 +2,7 @@ package tower
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
@@ -148,5 +149,38 @@ func TestService_PagodaRewardRaisesNextChallengeBattlePower(t *testing.T) {
 	}
 	if second.BattleResult.AttackerPower != 144 {
 		t.Fatalf("expected second challenge attacker power 144 after pagoda reward, got %d", second.BattleResult.AttackerPower)
+	}
+}
+
+func TestService_GetStatusReturnsLastChallengeReward(t *testing.T) {
+	ctx := context.Background()
+	svc := NewService(NewMemoryRepository(), asset.NewService(growth.NewMemoryRepository()))
+	playerID := int64(1004)
+
+	if _, err := svc.StartChallenge(ctx, playerID, "pagoda"); err != nil {
+		t.Fatalf("expected pagoda challenge success, got %v", err)
+	}
+
+	status := svc.GetStatus(ctx, playerID, "pagoda")
+	payload, err := json.Marshal(status)
+	if err != nil {
+		t.Fatalf("expected tower status marshal success, got %v", err)
+	}
+
+	var raw map[string]any
+	if err := json.Unmarshal(payload, &raw); err != nil {
+		t.Fatalf("expected tower status decode success, got %v", err)
+	}
+
+	if raw["last_reward"] != "战骨锻造" {
+		t.Fatalf("expected persisted last_reward 战骨锻造, got %#v", raw["last_reward"])
+	}
+
+	delta, ok := raw["last_reward_delta"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected last_reward_delta object, got %#v", raw["last_reward_delta"])
+	}
+	if delta["bone_level"] != float64(1) {
+		t.Fatalf("expected persisted bone_level 1, got %#v", delta["bone_level"])
 	}
 }
