@@ -1,6 +1,7 @@
 import { createPinia, setActivePinia } from "pinia"
 import { flushPromises, mount } from "@vue/test-utils"
 
+import { APIError } from "@/api/http"
 import { claimCultivation, startCultivation } from "@/api/modules/dungeon"
 import { getHomeOverview } from "@/api/modules/home"
 import { useResourceSyncStore } from "@/stores/resourceSync"
@@ -131,6 +132,7 @@ test("loads cultivation status and updates after start and claim", async () => {
   expect(syncStore.version).toBe(2)
   expect(wrapper.text()).toContain("110")
   expect(wrapper.text()).toContain("幻兽经验 +100")
+  expect(wrapper.get("button.ghost").attributes("disabled")).toBeDefined()
 })
 
 test("disables claim button until cultivation reward is ready", async () => {
@@ -197,4 +199,125 @@ test("disables claim button until cultivation reward is ready", async () => {
   expect(startCultivation).toHaveBeenCalledWith(4005)
   expect(wrapper.get("button.ghost").attributes("disabled")).toBeDefined()
   expect(claimCultivation).not.toHaveBeenCalled()
+})
+
+test("resets cultivation state when claim reports cultivation missing", async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const sessionStore = useSessionStore()
+  const syncStore = useResourceSyncStore()
+  sessionStore.setSession({
+    token: "guest-token",
+    playerId: 4006,
+    nickname: "失效修士",
+  })
+
+  vi.mocked(getHomeOverview).mockResolvedValue({
+    player_id: 4006,
+    nickname: "失效修士",
+    wallet: {
+      player_id: 4006,
+      spirit_power: 100,
+      spirit_free_wash: 3,
+      bone_level: 1,
+      soul_pieces: 0,
+      manor_plots: 2,
+    },
+    modules: {
+      map_label: "玄境 · 已开放 2 城",
+      map_city_count: 2,
+      dungeon: {
+        status: "idle",
+        current_floor: 0,
+        remain_dice: 0,
+        dungeon_id: 0,
+      },
+      cultivation: {
+        state: "cultivating",
+        spirit_power: 10,
+        claimable: true,
+        claimable_at: "2000-04-04T01:00:00Z",
+      },
+    },
+  } as any)
+  vi.mocked(claimCultivation).mockRejectedValue(
+    new APIError("cultivation not found", { status: 404, code: 4041 }),
+  )
+
+  const wrapper = mount(CultivationPage, {
+    global: {
+      plugins: [pinia],
+    },
+  })
+  await flushPromises()
+
+  await wrapper.get("button.ghost").trigger("click")
+  await flushPromises()
+
+  expect(claimCultivation).toHaveBeenCalledWith(4006)
+  expect(syncStore.version).toBe(0)
+  expect(wrapper.text()).toContain("尚未开始修行，请先开始修行。")
+  expect(wrapper.text()).toContain("当前状态 idle")
+  expect(wrapper.text()).toContain("预计可领取：未开始修行")
+  expect(wrapper.get("button.ghost").attributes("disabled")).toBeDefined()
+})
+
+test("shows waiting message when claim reports cultivation not ready", async () => {
+  const pinia = createPinia()
+  setActivePinia(pinia)
+  const sessionStore = useSessionStore()
+  const syncStore = useResourceSyncStore()
+  sessionStore.setSession({
+    token: "guest-token",
+    playerId: 4007,
+    nickname: "卡点修士",
+  })
+
+  vi.mocked(getHomeOverview).mockResolvedValue({
+    player_id: 4007,
+    nickname: "卡点修士",
+    wallet: {
+      player_id: 4007,
+      spirit_power: 100,
+      spirit_free_wash: 3,
+      bone_level: 1,
+      soul_pieces: 0,
+      manor_plots: 2,
+    },
+    modules: {
+      map_label: "玄境 · 已开放 2 城",
+      map_city_count: 2,
+      dungeon: {
+        status: "idle",
+        current_floor: 0,
+        remain_dice: 0,
+        dungeon_id: 0,
+      },
+      cultivation: {
+        state: "cultivating",
+        spirit_power: 10,
+        claimable: true,
+        claimable_at: "2000-04-04T01:00:00Z",
+      },
+    },
+  } as any)
+  vi.mocked(claimCultivation).mockRejectedValue(
+    new APIError("cultivation not ready", { status: 409, code: 4091 }),
+  )
+
+  const wrapper = mount(CultivationPage, {
+    global: {
+      plugins: [pinia],
+    },
+  })
+  await flushPromises()
+
+  await wrapper.get("button.ghost").trigger("click")
+  await flushPromises()
+
+  expect(claimCultivation).toHaveBeenCalledWith(4007)
+  expect(syncStore.version).toBe(0)
+  expect(wrapper.text()).toContain("修行尚未完成，请稍后领取。")
+  expect(wrapper.text()).toContain("当前状态 cultivating")
+  expect(wrapper.text()).toContain("预计可领取：2000-04-04T01:00:00Z")
 })

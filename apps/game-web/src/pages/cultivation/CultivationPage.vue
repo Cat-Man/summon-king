@@ -57,6 +57,8 @@ const cultivation = ref<CultivationStatus>({
 })
 const walletPower = ref(0)
 const errorMessage = ref("")
+const CULTIVATION_NOT_FOUND_CODE = 4041
+const CULTIVATION_NOT_READY_CODE = 4091
 
 const progress = computed(() => Math.min(100, cultivation.value.spirit_power * 10))
 const canClaimReward = computed(() => {
@@ -65,7 +67,7 @@ const canClaimReward = computed(() => {
     return Number.isFinite(claimableAt) && Date.now() >= claimableAt
   }
 
-  return cultivation.value.spirit_power > 0
+  return cultivation.value.state !== "idle" && cultivation.value.spirit_power > 0
 })
 
 function normalizeCultivation(nextStatus: Partial<CultivationStatus>): CultivationStatus {
@@ -87,6 +89,30 @@ function normalizeCultivation(nextStatus: Partial<CultivationStatus>): Cultivati
       ...nextStatus.pet_growth,
     },
   }
+}
+
+function resetCultivation(playerId: number) {
+  cultivation.value = normalizeCultivation({
+    player_id: playerId,
+    spirit_power: 0,
+    state: "idle",
+  })
+}
+
+function isCultivationMissingError(error: unknown) {
+  return (
+    error instanceof APIError &&
+    error.status === 404 &&
+    error.code === CULTIVATION_NOT_FOUND_CODE
+  )
+}
+
+function isCultivationNotReadyError(error: unknown) {
+  return (
+    error instanceof APIError &&
+    error.status === 409 &&
+    error.code === CULTIVATION_NOT_READY_CODE
+  )
 }
 
 async function loadOverview() {
@@ -142,6 +168,15 @@ async function claimReward() {
     errorMessage.value = ""
     resourceSyncStore.touch()
   } catch (error) {
+    if (isCultivationMissingError(error)) {
+      resetCultivation(playerId)
+      errorMessage.value = "尚未开始修行，请先开始修行。"
+      return
+    }
+    if (isCultivationNotReadyError(error)) {
+      errorMessage.value = "修行尚未完成，请稍后领取。"
+      return
+    }
     errorMessage.value = error instanceof APIError ? error.message : "领取灵力失败。"
   }
 }
