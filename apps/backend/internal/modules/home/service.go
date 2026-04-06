@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
@@ -118,7 +117,7 @@ func (s *Service) GetOverview(ctx context.Context, playerID int64, token string)
 		overview.Modules.Cultivation = CultivationSummary{
 			State:       status.State,
 			SpiritPower: status.SpiritPower,
-			Claimable:   !status.ClaimableAt.IsZero() && time.Now().After(status.ClaimableAt),
+			Claimable:   !status.ClaimableAt.IsZero() && !currentTime().Before(status.ClaimableAt),
 			ClaimableAt: status.ClaimableAt,
 		}
 	}

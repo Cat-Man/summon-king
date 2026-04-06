@@ -2,7 +2,9 @@ package dungeon
 
 import (
 	"context"
+	"errors"
 	"testing"
+	"time"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
@@ -166,10 +168,15 @@ func TestClaimCultivation_UpdatesSpiritWallet(t *testing.T) {
 	growthRepo := growth.NewMemoryRepository()
 	svc := NewService(NewMemoryRepository(), asset.NewService(growthRepo))
 	playerID := int64(1009)
+	base := time.Date(2026, time.April, 6, 10, 0, 0, 0, time.UTC)
+	current := base
+	restore := SetNowForTesting(func() time.Time { return current })
+	defer restore()
 
 	if _, err := svc.StartCultivation(ctx, playerID); err != nil {
 		t.Fatalf("expected cultivation start success, got %v", err)
 	}
+	current = base.Add(time.Hour + time.Second)
 	if _, err := svc.ClaimCultivation(ctx, playerID); err != nil {
 		t.Fatalf("expected cultivation claim success, got %v", err)
 	}
@@ -183,6 +190,92 @@ func TestClaimCultivation_UpdatesSpiritWallet(t *testing.T) {
 	}
 }
 
+func TestClaimCultivation_RejectsBeforeClaimableAt(t *testing.T) {
+	ctx := context.Background()
+	repo := NewMemoryRepository()
+	svc := NewService(repo, asset.NewService(growth.NewMemoryRepository()))
+	playerID := int64(1018)
+
+	status, err := svc.StartCultivation(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected cultivation start success, got %v", err)
+	}
+	if status.ClaimableAt.IsZero() {
+		t.Fatal("expected cultivation claimable_at to be set")
+	}
+
+	if _, err := svc.ClaimCultivation(ctx, playerID); !errors.Is(err, ErrCultivationNotReady) {
+		t.Fatalf("expected ErrCultivationNotReady before claimable_at, got %v", err)
+	}
+}
+
+func TestClaimCultivation_AllowsAtExactClaimableAt(t *testing.T) {
+	ctx := context.Background()
+	repo := NewMemoryRepository()
+	svc := NewService(repo, asset.NewService(growth.NewMemoryRepository()))
+	playerID := int64(1021)
+	base := time.Date(2026, time.April, 6, 10, 0, 0, 0, time.UTC)
+	current := base
+	restore := SetNowForTesting(func() time.Time { return current })
+	defer restore()
+
+	status, err := svc.StartCultivation(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected cultivation start success, got %v", err)
+	}
+
+	current = status.ClaimableAt
+	claimed, err := svc.ClaimCultivation(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected cultivation claim success at exact claimable_at, got %v", err)
+	}
+	if claimed.State != "idle" {
+		t.Fatalf("expected claimed cultivation state idle, got %s", claimed.State)
+	}
+}
+
+func TestCultivationSnapshot_DoesNotStartCultivationWhenNotExists(t *testing.T) {
+	ctx := context.Background()
+	repo := NewMemoryRepository()
+	svc := NewService(repo, asset.NewService(growth.NewMemoryRepository()))
+	playerID := int64(1019)
+
+	if _, _, err := svc.CultivationSnapshot(ctx, playerID); !errors.Is(err, ErrCultivationNotFound) {
+		t.Fatalf("expected ErrCultivationNotFound, got %v", err)
+	}
+	if _, err := repo.GetCultivation(ctx, playerID); !errors.Is(err, ErrCultivationNotFound) {
+		t.Fatalf("expected cultivation to remain absent, got %v", err)
+	}
+}
+
+func TestCultivationSnapshot_ReturnsClaimableAtBoundary(t *testing.T) {
+	ctx := context.Background()
+	repo := NewMemoryRepository()
+	svc := NewService(repo, asset.NewService(growth.NewMemoryRepository()))
+	playerID := int64(1020)
+	base := time.Date(2026, time.April, 6, 10, 0, 0, 0, time.UTC)
+	current := base
+	restore := SetNowForTesting(func() time.Time { return current })
+	defer restore()
+
+	status, err := svc.StartCultivation(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected cultivation start success, got %v", err)
+	}
+
+	current = status.ClaimableAt
+	snapshot, claimable, err := svc.CultivationSnapshot(ctx, playerID)
+	if err != nil {
+		t.Fatalf("expected cultivation snapshot success, got %v", err)
+	}
+	if !claimable {
+		t.Fatal("expected cultivation to be claimable at exact claimable_at")
+	}
+	if !snapshot.ClaimableAt.Equal(status.ClaimableAt) {
+		t.Fatalf("expected claimable_at %v, got %v", status.ClaimableAt, snapshot.ClaimableAt)
+	}
+}
+
 func TestClaimCultivation_GrantsPetExperienceToActiveTeam(t *testing.T) {
 	ctx := context.Background()
 	growthRepo := growth.NewMemoryRepository()
@@ -193,10 +286,15 @@ func TestClaimCultivation_GrantsPetExperienceToActiveTeam(t *testing.T) {
 		WithPetProgressor(petSvc),
 	)
 	playerID := int64(1009)
+	base := time.Date(2026, time.April, 6, 10, 0, 0, 0, time.UTC)
+	current := base
+	restore := SetNowForTesting(func() time.Time { return current })
+	defer restore()
 
 	if _, err := svc.StartCultivation(ctx, playerID); err != nil {
 		t.Fatalf("expected cultivation start success, got %v", err)
 	}
+	current = base.Add(time.Hour + time.Second)
 
 	status, err := svc.ClaimCultivation(ctx, playerID)
 	if err != nil {

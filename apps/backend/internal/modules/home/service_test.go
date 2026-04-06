@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
-	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/pet"
@@ -160,6 +161,48 @@ func TestOverview_ReflectsGrowthBoostedPetPower(t *testing.T) {
 	}
 	if overview.Modules.Pet.TotalPower != 144 {
 		t.Fatalf("expected pet total power 144 with bone bonus, got %d", overview.Modules.Pet.TotalPower)
+	}
+}
+
+func TestOverview_MarksCultivationClaimableAtExactClaimableAt(t *testing.T) {
+	ctx := context.Background()
+
+	accountRepo := account.NewMemoryRepository()
+	accountSvc := account.NewService(accountRepo)
+	guest, err := accountSvc.GuestLogin(ctx, "整点修士")
+	if err != nil {
+		t.Fatalf("expected guest login success, got %v", err)
+	}
+
+	base := time.Date(2100, time.April, 6, 10, 0, 0, 0, time.UTC)
+	current := base
+	restoreDungeonNow := dungeon.SetNowForTesting(func() time.Time { return current })
+	defer restoreDungeonNow()
+	restoreHomeNow := SetNowForTesting(func() time.Time { return current })
+	defer restoreHomeNow()
+
+	dungeonRepo := dungeon.NewMemoryRepository()
+	growthRepo := growth.NewMemoryRepository()
+	assetSvc := asset.NewService(growthRepo)
+	dungeonSvc := dungeon.NewService(dungeonRepo, assetSvc)
+	status, err := dungeonSvc.StartCultivation(ctx, guest.PlayerID)
+	if err != nil {
+		t.Fatalf("expected cultivation start success, got %v", err)
+	}
+	current = status.ClaimableAt
+
+	towerSvc := tower.NewService(tower.NewMemoryRepository(), assetSvc)
+	petSvc := pet.NewService(pet.NewMemoryRepository())
+	arenaSvc := arena.NewService(arena.NewMemoryRepository(), assetSvc)
+	rankingSvc := ranking.NewService(accountRepo, growthRepo, dungeonSvc, arenaSvc)
+	svc := NewService(accountRepo, dungeonSvc, growthRepo, petSvc, towerSvc, arenaSvc, rankingSvc)
+
+	overview, err := svc.GetOverview(ctx, guest.PlayerID, guest.Token)
+	if err != nil {
+		t.Fatalf("expected overview success, got %v", err)
+	}
+	if !overview.Modules.Cultivation.Claimable {
+		t.Fatal("expected cultivation to be claimable at exact claimable_at")
 	}
 }
 

@@ -29,11 +29,11 @@ type battleResolver interface {
 type Option func(*Service)
 
 type Service struct {
-	repo        Repository
-	asset       assetWriter
-	teams       teamReader
-	progressor  petProgressor
-	battles     battleResolver
+	repo       Repository
+	asset      assetWriter
+	teams      teamReader
+	progressor petProgressor
+	battles    battleResolver
 }
 
 type rewardRule struct {
@@ -213,6 +213,14 @@ func (s *Service) StartCultivation(ctx context.Context, playerID int64) (Cultiva
 }
 
 func (s *Service) ClaimCultivation(ctx context.Context, playerID int64) (CultivationStatus, error) {
+	current, err := s.repo.GetCultivation(ctx, playerID)
+	if err != nil {
+		return CultivationStatus{}, err
+	}
+	if current.State != "cultivating" || current.ClaimableAt.IsZero() || currentTime().Before(current.ClaimableAt) {
+		return CultivationStatus{}, ErrCultivationNotReady
+	}
+
 	status, err := s.repo.ClaimCultivation(ctx, playerID)
 	if err != nil {
 		return CultivationStatus{}, err

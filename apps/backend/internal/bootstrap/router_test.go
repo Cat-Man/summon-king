@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 )
 
 func TestNewRouterWithConfig_UsesMemoryStorage(t *testing.T) {
@@ -211,6 +214,11 @@ func TestRouter_SavedPetTeamAffectsArenaBattlePower(t *testing.T) {
 }
 
 func TestRouter_CultivationClaimAffectsPetTeamAndArenaPower(t *testing.T) {
+	base := time.Date(2026, time.April, 6, 10, 0, 0, 0, time.UTC)
+	current := base
+	restore := dungeon.SetNowForTesting(func() time.Time { return current })
+	defer restore()
+
 	r := NewRouter()
 
 	startReq := httptest.NewRequest(http.MethodPost, "/api/v1/dungeon/cultivation/start", bytes.NewBufferString("player_id=1001"))
@@ -221,6 +229,7 @@ func TestRouter_CultivationClaimAffectsPetTeamAndArenaPower(t *testing.T) {
 	if startResp.Code != http.StatusOK {
 		t.Fatalf("expected cultivation start 200, got %d", startResp.Code)
 	}
+	current = base.Add(time.Hour + time.Second)
 
 	claimReq := httptest.NewRequest(http.MethodPost, "/api/v1/dungeon/cultivation/claim", bytes.NewBufferString("player_id=1001"))
 	claimReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")

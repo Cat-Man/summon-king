@@ -12,6 +12,7 @@ import (
 var (
 	ErrDungeonRunNotFound  = errors.New("dungeon run not found")
 	ErrCultivationNotFound = errors.New("cultivation not found")
+	ErrCultivationNotReady = errors.New("cultivation not ready")
 	ErrDungeonLocked       = errors.New("dungeon locked")
 )
 
@@ -124,12 +125,13 @@ func (r *MemoryRepository) GetDungeonRun(_ context.Context, playerID int64) (Dun
 func (r *MemoryRepository) StartCultivation(_ context.Context, playerID int64) (CultivationStatus, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	now := currentTime()
 	status := CultivationStatus{
 		PlayerID:    playerID,
 		SpiritPower: 0,
 		State:       "cultivating",
-		StartAt:     time.Now(),
-		ClaimableAt: time.Now().Add(1 * time.Hour),
+		StartAt:     now,
+		ClaimableAt: now.Add(1 * time.Hour),
 	}
 	r.cultivation[playerID] = status
 	return status, nil
@@ -232,12 +234,13 @@ func (r *MySQLRepository) StartCultivation(ctx context.Context, playerID int64) 
 	if err != nil {
 		return CultivationStatus{}, err
 	}
+	now := currentTime()
 	status := CultivationStatus{
 		PlayerID:    playerID,
 		SpiritPower: 0,
 		State:       "cultivating",
-		StartAt:     time.Now(),
-		ClaimableAt: time.Now().Add(1 * time.Hour),
+		StartAt:     now,
+		ClaimableAt: now.Add(1 * time.Hour),
 	}
 	state.Cultivation = &status
 	return status, r.saveState(ctx, playerID, state)
