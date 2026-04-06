@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/alliance"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/asset"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
@@ -16,14 +17,15 @@ import (
 )
 
 type dependencies struct {
-	accountService *account.Service
-	homeService    *home.Service
-	rankingService *ranking.Service
-	arenaService   *arena.Service
-	dungeonService *dungeon.Service
-	growthRepo     growth.Repository
-	petService     *pet.Service
-	towerService   *tower.Service
+	accountService  *account.Service
+	homeService     *home.Service
+	rankingService  *ranking.Service
+	arenaService    *arena.Service
+	dungeonService  *dungeon.Service
+	allianceService *alliance.Service
+	growthRepo      growth.Repository
+	petService      *pet.Service
+	towerService    *tower.Service
 }
 
 type mysqlStore interface {
@@ -62,6 +64,7 @@ func buildMySQLDependencies(cfg Config) (dependencies, error) {
 
 	assetService := asset.NewService(growthRepo)
 	accountService := account.NewService(accountRepo)
+	allianceService := alliance.NewService(alliance.NewMemoryRepository())
 	petService := pet.NewService(petRepo, pet.WithGrowthReader(growthRepo))
 	dungeonService := dungeon.NewService(
 		dungeonRepo,
@@ -74,14 +77,15 @@ func buildMySQLDependencies(cfg Config) (dependencies, error) {
 	rankingService := ranking.NewService(accountRepo, growthRepo, dungeonService, arenaService)
 
 	return dependencies{
-		accountService: accountService,
-		homeService:    home.NewService(accountRepo, dungeonService, growthRepo, petService, towerService, arenaService, rankingService),
-		rankingService: rankingService,
-		arenaService:   arenaService,
-		dungeonService: dungeonService,
-		growthRepo:     growthRepo,
-		petService:     petService,
-		towerService:   towerService,
+		accountService:  accountService,
+		homeService:     home.NewService(accountRepo, dungeonService, growthRepo, petService, towerService, arenaService, rankingService),
+		rankingService:  rankingService,
+		arenaService:    arenaService,
+		dungeonService:  dungeonService,
+		allianceService: allianceService,
+		growthRepo:      growthRepo,
+		petService:      petService,
+		towerService:    towerService,
 	}, nil
 }
 
@@ -91,6 +95,7 @@ func buildMemoryDependencies() dependencies {
 	growthRepo := growth.NewMemoryRepository()
 	assetService := asset.NewService(growthRepo)
 	accountService := account.NewService(accountRepo)
+	allianceService := alliance.NewService(alliance.NewMemoryRepository())
 	petService := pet.NewService(pet.NewMemoryRepository(), pet.WithGrowthReader(growthRepo))
 	dungeonService := dungeon.NewService(
 		dungeonRepo,
@@ -103,13 +108,14 @@ func buildMemoryDependencies() dependencies {
 	rankingService := ranking.NewService(accountRepo, growthRepo, dungeonService, arenaService)
 
 	return dependencies{
-		accountService: accountService,
-		homeService:    home.NewService(accountRepo, dungeonService, growthRepo, petService, towerService, arenaService, rankingService),
-		rankingService: rankingService,
-		arenaService:   arenaService,
-		dungeonService: dungeonService,
-		growthRepo:     growthRepo,
-		petService:     petService,
-		towerService:   towerService,
+		accountService:  accountService,
+		homeService:     home.NewService(accountRepo, dungeonService, growthRepo, petService, towerService, arenaService, rankingService),
+		rankingService:  rankingService,
+		arenaService:    arenaService,
+		dungeonService:  dungeonService,
+		allianceService: allianceService,
+		growthRepo:      growthRepo,
+		petService:      petService,
+		towerService:    towerService,
 	}
 }

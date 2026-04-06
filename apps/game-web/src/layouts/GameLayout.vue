@@ -50,6 +50,7 @@ const primaryNav = [
 ]
 
 const featureNav = [
+  { to: "/alliance", label: "联盟" },
   { to: "/pet", label: "幻兽" },
   { to: "/growth/spirit", label: "战灵" },
   { to: "/growth/bone", label: "战骨" },

@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from "vue-router"
 
 import GameLayout from "@/layouts/GameLayout.vue"
 import ArenaPage from "@/pages/arena/ArenaPage.vue"
+import AlliancePage from "@/pages/alliance/AlliancePage.vue"
+import AllianceWarPage from "@/pages/alliance/AllianceWarPage.vue"
 import CultivationPage from "@/pages/cultivation/CultivationPage.vue"
 import LoginPage from "@/pages/auth/LoginPage.vue"
 import DungeonRunPage from "@/pages/dungeons/DungeonRunPage.vue"
@@ -53,6 +55,16 @@ export const router = createRouter({
           path: "cultivation",
           name: "cultivation",
           component: CultivationPage,
+        },
+        {
+          path: "alliance",
+          name: "alliance",
+          component: AlliancePage,
+        },
+        {
+          path: "alliance-war",
+          name: "alliance-war",
+          component: AllianceWarPage,
         },
         {
           path: "pet",

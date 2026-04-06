@@ -7,6 +7,7 @@ import (
 	httpx "github.com/Cat-Man/summon-king/apps/backend/internal/infra/http"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/middleware"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/account"
+	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/alliance"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/arena"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/dungeon"
 	"github.com/Cat-Man/summon-king/apps/backend/internal/modules/growth"
@@ -55,6 +56,10 @@ func NewRouterWithConfig(cfg Config) (*gin.Engine, error) {
 
 	homeGroup := api.Group("/home")
 	home.NewHandler(deps.homeService).RegisterRoutes(homeGroup)
+
+	allianceGroup := api.Group("/alliance")
+	registerModuleRoot(allianceGroup, "alliance")
+	alliance.NewHandler(deps.allianceService).RegisterRoutes(allianceGroup)
 
 	rankingGroup := api.Group("/ranking")
 	ranking.NewHandler(deps.rankingService).RegisterRoutes(rankingGroup)
